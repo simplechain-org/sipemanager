@@ -1,0 +1,12 @@
+port: 8092
+db:
+  address: 127.0.0.1
+  port: 3306
+  username: root
+  password: root
+  db_name: sipe
+  max_idle: 10
+  max_open: 100
+  charset: utf8mb4
+  log_mode: true
+  loc: Asia/Shanghai
