@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/configor"
-	"sipe-manager/controllers"
-	"sipe-manager/dao"
+	"sipemanager/controllers"
+	"sipemanager/dao"
 	"net/http"
 	"strings"
 )
