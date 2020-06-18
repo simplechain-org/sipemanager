@@ -14,6 +14,7 @@ func (this *Contract) TableName() string {
 	return "contracts"
 }
 
+//合约创建
 func (this *DataBaseAccessObject) CreateContract(contract *Contract) (uint, error) {
 	err := this.db.Create(contract).Error
 	if err != nil {
@@ -45,6 +46,7 @@ func (this *DataBaseAccessObject) GetContracts() ([]*Contract, error) {
 	return contracts, err
 }
 
+//加载整个合约（sol,bin,abi）
 func (this *DataBaseAccessObject) GetContractById(id uint) (*Contract, error) {
 	var contract Contract
 	err := this.db.Table((&Contract{}).TableName()).Where("id=?", id).
@@ -56,8 +58,8 @@ func (this *DataBaseAccessObject) GetContractById(id uint) (*Contract, error) {
 //链使用哪个合约进行跨链
 type ChainContract struct {
 	ID                 uint `gorm:"primary_key"`
-	ChainId            uint
-	ContractInstanceId uint `gorm:"contract_instance_id"`
+	ChainId            uint  //链id
+	ContractInstanceId uint `gorm:"contract_instance_id"` //合约实例id
 }
 
 func (this *ChainContract) TableName() string {
