@@ -23,6 +23,13 @@ type Transaction struct {
 }
 
 //分页列表
+// @Summary 分页列表
+// @Tags block
+// @Accept  json
+// @Produce  json
+// @Param number query int true "blockNumber"
+// @Success 200 {object} JSONResult{data=Transaction}
+// @Router /block/transaction/{number} [post]
 func (this *Controller) GetBlockTransaction(c *gin.Context) {
 	numberStr := c.Param("number")
 	number, err := strconv.ParseUint(numberStr, 10, 64)

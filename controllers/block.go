@@ -3,10 +3,10 @@ package controllers
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
-	"sipemanager/blockchain"
-	"sipemanager/dao"
 	"math/big"
 	"net/http"
+	"sipemanager/blockchain"
+	"sipemanager/dao"
 	"strconv"
 )
 
@@ -54,6 +54,12 @@ type Block struct {
 }
 
 //分页获取区块列表
+// @Summary 分页获取区块列表
+// @Tags block
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JSONResult{data=[]Block}
+// @Router /block/list [get]
 func (this *Controller) GetPageBlock(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {
