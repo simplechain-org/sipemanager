@@ -13,8 +13,8 @@ func (this *Controller) echoError(c *gin.Context, err error) {
 }
 func (this *Controller) echoResult(c *gin.Context, result interface{}) {
 	c.JSON(http.StatusOK, gin.H{
-		"code":   0,
-		"result": result,
+		"code": 0,
+		"data": result,
 	})
 }
 

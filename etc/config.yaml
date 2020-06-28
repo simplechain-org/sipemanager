@@ -1,6 +1,6 @@
 port: 8092
 db:
-  address: 127.0.0.1
+  address: 192.168.3.116
   port: 3306
   username: root
   password: root
