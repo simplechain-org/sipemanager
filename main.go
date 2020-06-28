@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/configor"
+	"net/http"
 	"sipemanager/controllers"
 	"sipemanager/dao"
-	"net/http"
 	"strings"
 )
 
@@ -51,6 +51,7 @@ func main() {
 		})
 	})
 	controllers.Register(router, dao)
+	controllers.SwaggerDoc(router, dao)
 
 	router.StaticFile("/", "./webroot/dist/index.html")
 

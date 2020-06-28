@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+type JSONResult struct {
+	Code int         `json:"code" `
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data"`
+}
+
 func (this *Controller) echoError(c *gin.Context, err error) {
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  err.Error(),

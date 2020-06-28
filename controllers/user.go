@@ -5,8 +5,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
-	"sipemanager/dao"
 	"net/http"
+	"sipemanager/dao"
 	"time"
 )
 
@@ -41,6 +41,14 @@ type User struct {
 }
 
 //用户注册
+// @Summary 用户注册
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param username body string true "用户名"
+// @Param password body string true "密码"
+// @Success 200 {object} JSONResult{data=int} "{"code":0,"data":"用户Id"}"
+// @Router /user/register [post]
 func (this *Controller) Register(c *gin.Context) {
 	var user User
 	if err := c.Bind(&user); err != nil {
@@ -65,6 +73,14 @@ func (this *Controller) Register(c *gin.Context) {
 }
 
 //用户登录
+// @Summary 用户登录
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Param username body string true "用户名"
+// @Param password body string true "密码"
+// @Success 200 {object} JSONResult{data=object} "{"token": token, "user_id": loadUser.ID}"
+// @Router /user/login [post]
 func (this *Controller) Login(c *gin.Context) {
 	var user User
 	if err := c.Bind(&user); err != nil {

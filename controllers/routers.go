@@ -2,9 +2,22 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+	"sipemanager/docs"
 )
+
+func SwaggerDoc(router *gin.Engine, object *dao.DataBaseAccessObject) {
+	docs.SwaggerInfo.Title = "Sipe Manager API"
+	docs.SwaggerInfo.Description = "区块链管理系统api文档"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "192.168.3.109:8092"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	router.GET("/api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
 
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
