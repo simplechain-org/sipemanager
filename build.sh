@@ -16,7 +16,7 @@ elif [ $# -eq 1 ];then
 #		mv webroot/dist build/linux/webroot
 		cp -r etc build/linux/
 		cp -r docs build/linux/
-		cp start.sh build/mac/
+		cp start.sh build/linux/
 
 	elif [ $platform == "widows" ];then
 		GOOS=widows GOARCH=amd64 go build
@@ -30,7 +30,7 @@ elif [ $# -eq 1 ];then
 #		mv webroot/dist build/windows/webroot
 		cp -r etc build/windows/
 		cp -r docs build/windows/
-		cp start.sh build/mac/
+		cp start.sh build/windows/
 
 	elif [ $platform == "mac" ];then	
 		GOOS=darwin GOARCH=amd64 go build
