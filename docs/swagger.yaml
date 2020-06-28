@@ -1,0 +1,169 @@
+definitions:
+  controllers.Block:
+    properties:
+      difficulty:
+        type: string
+      gasLimit:
+        type: integer
+      gasUsed:
+        type: integer
+      miner:
+        type: string
+      nonce:
+        type: integer
+      number:
+        type: string
+      parentHash:
+        type: string
+      sha3Uncles:
+        type: string
+      timestamp:
+        type: integer
+      transactions:
+        type: integer
+    type: object
+  controllers.JSONResult:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      msg:
+        type: string
+    type: object
+  controllers.Transaction:
+    properties:
+      from:
+        type: string
+      gas:
+        type: integer
+      gasPrice:
+        type: string
+      hash:
+        type: string
+      input:
+        items:
+          type: integer
+        type: array
+      nonce:
+        type: integer
+      to:
+        type: string
+      value:
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /block/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.Block'
+                  type: array
+              type: object
+      summary: 分页获取区块列表
+      tags:
+      - block
+  /block/transaction/{number}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: blockNumber
+        in: query
+        name: number
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.Transaction'
+              type: object
+      summary: 分页列表
+      tags:
+      - block
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户名
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
+      - description: 密码
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"token": token, "user_id": loadUser.ID}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: 用户登录
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户名
+        in: body
+        name: username
+        required: true
+        schema:
+          type: string
+      - description: 密码
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":0,"data":"用户Id"}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: 用户注册
+      tags:
+      - user
+swagger: "2.0"
