@@ -78,7 +78,7 @@
       this.$http.get('/wallet/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.wallets = response.data.result
+            this.wallets = response.data.data
             if (this.wallets.length > 0) {
               this.form.wallet_id = this.wallets[0].ID
             }
@@ -101,7 +101,7 @@
         this.$http.get('/contract/transaction')
           .then(response => {
             if (response.data.code === 0) {
-              this.tableData = response.data.result
+              this.tableData = response.data.data
             }
           })
           .catch(error => {
@@ -123,7 +123,7 @@
           .then(response => {
             if (response.data.code === 0) {
               this.centerDialogVisible = true
-              this.errMsg = '买入成功' + response.data.result
+              this.errMsg = '买入成功' + response.data.data
             } else {
               this.centerDialogVisible = true
               this.errMsg = response.data.msg

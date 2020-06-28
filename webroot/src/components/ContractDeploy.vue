@@ -65,7 +65,7 @@
       this.$http.get('/wallet/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.wallets = response.data.result
+            this.wallets = response.data.data
             if (this.wallets.length > 0) {
               this.form.wallet_id = this.wallets[0].ID
             }
@@ -77,7 +77,7 @@
       this.$http.get('contract/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.contracts = response.data.result
+            this.contracts = response.data.data
             if (this.contracts.length > 0) {
               this.form.contract_id = this.contracts[0].ID
             }
@@ -104,7 +104,7 @@
               .then(response => {
                 if (response.data.code === 0) {
                   this.centerDialogVisible = true
-                  this.errMsg = '合约部署成功' + response.data.result
+                  this.errMsg = '合约部署成功' + response.data.data
                   this.handleReset()
                   this.$router.push('/contract/instance')
                 } else {

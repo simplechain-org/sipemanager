@@ -22,7 +22,7 @@
       this.$http.get('/contract/instance/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.instances = response.data.result
+            this.instances = response.data.data
           }
         })
         .catch(error => {

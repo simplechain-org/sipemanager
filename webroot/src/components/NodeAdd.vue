@@ -74,7 +74,7 @@
       this.$http.get('/chain/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.chains = response.data.result
+            this.chains = response.data.data
             if (this.chains.length > 0) {
               this.form.chain_id = this.chains[0].ID
             }

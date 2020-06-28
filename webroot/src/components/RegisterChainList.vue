@@ -79,7 +79,7 @@
       this.$http.get('/contract/register/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.registerChainList = response.data.result
+            this.registerChainList = response.data.data
           }
         })
         .catch(error => {

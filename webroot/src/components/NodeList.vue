@@ -25,7 +25,7 @@
       this.$http.get('/node/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.tableData = response.data.result
+            this.tableData = response.data.data
           }
         })
         .catch(error => {

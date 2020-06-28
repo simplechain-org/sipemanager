@@ -59,8 +59,8 @@
       this.$http.get('/block/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.tableData = response.data.result.data
-            this.total = response.data.result.total
+            this.tableData = response.data.data.data
+            this.total = response.data.data.total
             this.paginationVisible = true
           }
         })
@@ -85,8 +85,8 @@
           })
           .then(response => {
             if (response.data.code === 0) {
-              this.tableData = response.data.result.data
-              this.total = response.data.result.total
+              this.tableData = response.data.data.data
+              this.total = response.data.data.total
             }
           })
           .catch(error => {
@@ -97,8 +97,8 @@
         this.$http.get('/block/list')
           .then(response => {
             if (response.data.code === 0) {
-              this.tableData = response.data.result.data
-              this.total = response.data.result.total
+              this.tableData = response.data.data.data
+              this.total = response.data.data.total
               this.paginationVisible = true
             } else {
               this.errMsg = response.data.msg

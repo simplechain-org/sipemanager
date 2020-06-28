@@ -64,8 +64,8 @@
               })
               .then(response => {
                 if (response.data.code === 0) {
-                  localStorage.setItem('accessToken', 'Bearer ' + response.data.result.token)
-                  localStorage.setItem('user_id', response.data.result.user_id)
+                  localStorage.setItem('accessToken', 'Bearer ' + response.data.data.token)
+                  localStorage.setItem('user_id', response.data.data.user_id)
                   this.$router.push({
                     path: '/'
                   })

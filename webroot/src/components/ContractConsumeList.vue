@@ -81,7 +81,7 @@
       this.$http.get('/contract/consume/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.contractConsumeList = response.data.result
+            this.contractConsumeList = response.data.data
           }
         })
         .catch(error => {

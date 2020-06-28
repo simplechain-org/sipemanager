@@ -46,10 +46,10 @@
           .then(response => {
             console.log(response)
             if (response.data.code === 0) {
-              for (var attr in response.data.result) {
+              for (var attr in response.data.data) {
                 this.tableData.push({
                   name: attr,
-                  value: response.data.result[attr]
+                  value: response.data.data[attr]
                 })
               }
               this.show = true

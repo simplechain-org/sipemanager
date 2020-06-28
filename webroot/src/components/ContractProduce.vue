@@ -81,7 +81,7 @@
       this.$http.get('/wallet/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.wallets = response.data.result
+            this.wallets = response.data.data
             if (this.wallets.length > 0) {
               this.form.wallet_id = this.wallets[0].ID
             }
@@ -105,7 +105,7 @@
         this.$http.get('/chain/info/' + this.source_chain_id)
           .then(response => {
             if (response.data.code === 0) {
-              this.source_coin = response.data.result.symbol
+              this.source_coin = response.data.data.symbol
             }
           })
           .catch(error => {
@@ -116,7 +116,7 @@
         this.$http.get('/chain/info/' + this.target_chain_id)
           .then(response => {
             if (response.data.code === 0) {
-              this.target_coin = response.data.result.symbol
+              this.target_coin = response.data.data.symbol
             }
           })
           .catch(error => {
@@ -131,10 +131,10 @@
         var r2 = this.$http.get('/chain/list')
         this.$http.all([r1, r2])
           .then(this.$http.spread((res1, res2) => {
-            var node = res1.data.result
+            var node = res1.data.data
             this.source_chain_id = node.chain_id
             this.getSourceCoin()
-            var chains = res2.data.result
+            var chains = res2.data.data
             this.chains = []
             for (let i = 0; i < chains.length; i++) {
               if (chains[i].ID !== node.chain_id) {
@@ -168,7 +168,7 @@
               .then(response => {
                 if (response.data.code === 0) {
                   this.centerDialogVisible = true
-                  this.errMsg = '跨链交易创建成功 ' + response.data.result
+                  this.errMsg = '跨链交易创建成功 ' + response.data.data
                   this.handleReset()
                 } else {
                   this.centerDialogVisible = true

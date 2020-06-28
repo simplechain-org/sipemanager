@@ -91,7 +91,7 @@
               .then(response => {
                 if (response.data.code === 0) {
                   this.centerDialogVisible = true
-                  this.errMsg = '合约添加成功' + response.data.result
+                  this.errMsg = '合约添加成功' + response.data.data
                   this.handleReset()
                 } else {
                   this.centerDialogVisible = true

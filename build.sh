@@ -11,7 +11,7 @@ elif [ $# -eq 1 ];then
 		cd ..
 		rm -rf build/linux
 		mkdir build/linux
-		mv sipe-client build/linux/
+		mv sipemanager build/linux/
 		mkdir -p build/linux/webroot
 		mv webroot/dist build/linux/webroot
 		cp -r etc build/linux/
@@ -23,7 +23,7 @@ elif [ $# -eq 1 ];then
 		cd ..
 		rm -rf build/windows
 		mkdir build/windows
-		mv sipe-client build/windows/
+		mv sipemanager build/windows/
 		mkdir -p build/windows/webroot
 		mv webroot/dist build/windows/webroot
 		cp -r etc build/windows/
@@ -35,7 +35,7 @@ elif [ $# -eq 1 ];then
 		cd ..
 		rm -rf build/mac
 		mkdir build/mac
-		mv sipe-client build/mac/
+		mv sipemanager build/mac/
 		mkdir -p build/mac/webroot
 		mv webroot/dist build/mac/webroot
 		cp -r etc build/mac/

@@ -85,7 +85,7 @@
       this.$http.get('/wallet/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.wallets = response.data.result
+            this.wallets = response.data.data
             if (this.wallets.length > 0) {
               this.form.wallet_id = this.wallets[0].ID
             }
@@ -104,8 +104,8 @@
         var r2 = this.$http.get('/chain/list')
         this.$http.all([r1, r2])
           .then(this.$http.spread((res1, res2) => {
-            var node = res1.data.result
-            var chains = res2.data.result
+            var node = res1.data.data
+            var chains = res2.data.data
             this.chains = []
             for (let i = 0; i < chains.length; i++) {
               if (chains[i].ID !== node.chain_id) {
@@ -134,7 +134,7 @@
               .then(response => {
                 if (response.data.code === 0) {
                   this.centerDialogVisible = true
-                  this.errMsg = '链信息注册成功 ' + response.data.result
+                  this.errMsg = '链信息注册成功 ' + response.data.data
                 } else {
                   this.centerDialogVisible = true
                   this.errMsg = response.data.msg

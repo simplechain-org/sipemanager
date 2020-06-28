@@ -74,7 +74,7 @@
       this.$http.get('/contract/produce/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.contractProduceList = response.data.result
+            this.contractProduceList = response.data.data
           }
         })
         .catch(error => {

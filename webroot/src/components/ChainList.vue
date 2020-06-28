@@ -63,7 +63,7 @@
         this.$http.get('/chain/list')
           .then(response => {
             if (response.data.code === 0) {
-              this.chains = response.data.result
+              this.chains = response.data.data
             }
           })
           .catch(error => {
@@ -77,7 +77,7 @@
           .then(response => {
             if (response.data.code === 0) {
               this.dialogTableVisible = true
-              this.contracts = response.data.result
+              this.contracts = response.data.data
             }
           })
           .catch(error => {
@@ -124,7 +124,7 @@
               console.log(response.data)
               if (response.data.code === 0) {
                 this.centerDialogVisible = true
-                this.errMsg = response.data.result
+                this.errMsg = response.data.data
                 this.loadChainList()
               } else {
                 this.centerDialogVisible = true

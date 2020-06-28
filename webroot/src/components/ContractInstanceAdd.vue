@@ -69,7 +69,7 @@
       this.$http.get('contract/list')
         .then(response => {
           if (response.data.code === 0) {
-            this.contracts = response.data.result
+            this.contracts = response.data.data
             if (this.contracts.length > 0) {
               this.form.contract_id = this.contracts[0].ID
             }
@@ -81,7 +81,7 @@
 
       this.$http.get('/chain/list').then(response => {
           if (response.data.code === 0) {
-            this.chains = response.data.result
+            this.chains = response.data.data
             if (this.chains.length > 0) {
               this.form.chain_id = this.chains[0].ID
             }
@@ -110,7 +110,7 @@
               .then(response => {
                 if (response.data.code === 0) {
                   this.centerDialogVisible = true
-                  this.errMsg = '合约实例添加成功' + response.data.result
+                  this.errMsg = '合约实例添加成功' + response.data.data
                   this.handleReset()
                 } else {
                   this.centerDialogVisible = true

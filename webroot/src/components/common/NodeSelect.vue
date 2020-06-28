@@ -55,15 +55,15 @@
       var r2 = this.$http.get('/node/current')
       this.$http.all([r1, r2])
         .then(this.$http.spread((res1, res2) => {
-          this.nodes = res1.data.result
-          var node = res2.data.result
+          this.nodes = res1.data.data
+          var node = res2.data.data
           this.nodeId = node.ID
         }))
       // // 请求用户所有的节点
       // this.$http.get('/node/list')
       //   .then(response => {
       //     if (response.data.code === 0) {
-      //       this.nodes = response.data.result
+      //       this.nodes = response.data.data
       //     }
       //   })
       //   .catch(error => {
@@ -73,7 +73,7 @@
       // this.$http.get('/node/current')
       //   .then(response => {
       //     if (response.data.code === 0) {
-      //       var node = response.data.result
+      //       var node = response.data.data
       //       this.nodeId = node.ID
       //     }
       //   })
