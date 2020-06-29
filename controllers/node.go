@@ -8,6 +8,17 @@ import (
 )
 
 //添加node
+// @Summary 添加node
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Param chain_id body int true "关联链Id"
+// @Param address body string true "节点地址"
+// @Param port body int true "端口"
+// @Param name body string true "名称"
+// @Security ApiKeyAuth
+// @Success 200 {object} JSONResult{data=int} "NodeId"
+// @Router /node [post]
 func (this *Controller) AddNode(c *gin.Context) {
 	var node dao.Node
 	if err := c.ShouldBindJSON(&node); err != nil {
@@ -59,6 +70,16 @@ type UserNodeParam struct {
 	NodeId uint `json:"node_id"`
 }
 
+//切换node
+// @Summary 切换node
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param user_id body int true "关联链Id"
+// @Param node_id body int true "端口"
+// @Success 200 {object} string "success"
+// @Router /node/change [post]
 func (this *Controller) ChangeNode(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {
@@ -66,6 +87,7 @@ func (this *Controller) ChangeNode(c *gin.Context) {
 		return
 	}
 	var params UserNodeParam
+	fmt.Printf("fdf%+v", params)
 	if err := c.Bind(&params); err != nil {
 		this.echoError(c, err)
 		return
@@ -89,6 +111,12 @@ type Node struct {
 	ChainName   string `json:"chain_name"`
 }
 
+// @Summary 节点列表
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JSONResult{data=[]Node}
+// @Router /node/list [get]
 func (this *Controller) GetNodes(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {

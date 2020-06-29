@@ -29,7 +29,7 @@ type Transaction struct {
 // @Produce  json
 // @Param number query int true "blockNumber"
 // @Success 200 {object} JSONResult{data=Transaction}
-// @Router /block/transaction/{number} [post]
+// @Router /block/transaction/{number} [get]
 func (this *Controller) GetBlockTransaction(c *gin.Context) {
 	numberStr := c.Param("number")
 	number, err := strconv.ParseUint(numberStr, 10, 64)
@@ -97,6 +97,15 @@ type TransactionReceipt struct {
 	Payload           string          `json:"input"`
 }
 
+//交易详情
+// @Summary 交易详情
+// @Tags block
+// @Accept  json
+// @Produce  json
+// @Param number query string true "tx hash"
+// @securityDefinitions.basic BasicAuth
+// @Success 200 {object} JSONResult{data=TransactionReceipt}
+// @Router /block/transaction/{hash} [get]
 func (this *Controller) GetTransactionReceipt(c *gin.Context) {
 	hash := c.Param("hash")
 	user, err := this.GetUser(c)

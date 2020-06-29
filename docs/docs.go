@@ -62,8 +62,51 @@ var doc = `{
                 }
             }
         },
+        "/block/transaction/{hash}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "block"
+                ],
+                "summary": "交易详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tx hash",
+                        "name": "number",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.TransactionReceipt"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/block/transaction/{number}": {
-            "post": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -96,6 +139,167 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/controllers.Transaction"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/node": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "添加node",
+                "parameters": [
+                    {
+                        "description": "关联链Id",
+                        "name": "chain_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "节点地址",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "端口",
+                        "name": "port",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "名称",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "NodeId",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/node/change": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "切换node",
+                "parameters": [
+                    {
+                        "description": "关联链Id",
+                        "name": "user_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "端口",
+                        "name": "node_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/node/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "节点列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.Node"
+                                            }
                                         }
                                     }
                                 }
@@ -264,6 +468,47 @@ var doc = `{
                 }
             }
         },
+        "controllers.Node": {
+            "type": "object",
+            "required": [
+                "address",
+                "chain_id",
+                "name",
+                "port"
+            ],
+            "properties": {
+                "address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id",
+                    "type": "integer"
+                },
+                "chain_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_https": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "type": "integer"
+                },
+                "port": {
+                    "description": "端口",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "controllers.Transaction": {
             "type": "object",
             "properties": {
@@ -295,6 +540,66 @@ var doc = `{
                     "type": "string"
                 }
             }
+        },
+        "controllers.TransactionReceipt": {
+            "type": "object",
+            "properties": {
+                "blockHash": {
+                    "type": "string"
+                },
+                "blockNumber": {
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "cumulativeGasUsed": {
+                    "type": "integer"
+                },
+                "gas": {
+                    "type": "integer"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "integer"
+                },
+                "input": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "type": "integer"
+                },
+                "root": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "transactionHash": {
+                    "type": "string"
+                },
+                "transactionIndex": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

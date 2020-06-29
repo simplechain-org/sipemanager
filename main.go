@@ -27,6 +27,9 @@ func LoadConfig(path string) (*AppConfig, error) {
 	return &config, err
 }
 
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	flag.Parse()
 	appConfig, err := LoadConfig(*configPath)

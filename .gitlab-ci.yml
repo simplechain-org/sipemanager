@@ -1,0 +1,42 @@
+image: golang:1.14.1
+stages:
+  - build
+  - apiDoc
+
+before_script:
+  - export GOPROXY="https://goproxy.cn"
+  - export GO111MODULE=on
+  - export CGO_ENABLED=0
+  - go env
+build:
+  stage: build
+  script:
+    - go mod download
+    - go build
+
+swagger:
+  stage: apiDoc
+  variables:
+    YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
+  dependencies:
+    - before_script
+    - build
+  script:
+    - mkdir -p docs
+    - ls -al
+    - go get -u github.com/swaggo/swag/cmd/swag
+    - swag init
+    - test -e "docs/swagger.json" || exit 1
+    - echo "type=swagger&merge=merge&token=$YAPI_TOKEN&json=`cat docs/swagger.json`" > postData.txt
+    - >
+      curl -X POST -H "Content-Type: application/x-www-form-urlencoded"
+      -d @postData.txt
+      http://192.168.3.194:3000/api/open/import_data
+  allow_failure: true
+  cache:
+    key: "CI_COMMIT_REF_SLUG"
+    paths:
+      - /go
+  only:
+    - master
+    - develop

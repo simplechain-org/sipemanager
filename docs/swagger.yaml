@@ -31,6 +31,35 @@ definitions:
       msg:
         type: string
     type: object
+  controllers.Node:
+    properties:
+      address:
+        description: 地址
+        type: string
+      chain_id:
+        description: 链id
+        type: integer
+      chain_name:
+        type: string
+      description:
+        type: string
+      is_https:
+        type: boolean
+      name:
+        type: string
+      network_id:
+        type: integer
+      port:
+        description: 端口
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - address
+    - chain_id
+    - name
+    - port
+    type: object
   controllers.Transaction:
     properties:
       from:
@@ -49,6 +78,41 @@ definitions:
         type: integer
       to:
         type: string
+      value:
+        type: string
+    type: object
+  controllers.TransactionReceipt:
+    properties:
+      blockHash:
+        type: string
+      blockNumber:
+        type: string
+      contractAddress:
+        type: string
+      cumulativeGasUsed:
+        type: integer
+      gas:
+        type: integer
+      gasPrice:
+        type: string
+      gasUsed:
+        type: integer
+      input:
+        type: string
+      nonce:
+        type: integer
+      root:
+        items:
+          type: integer
+        type: array
+      status:
+        type: string
+      to:
+        type: string
+      transactionHash:
+        type: string
+      transactionIndex:
+        type: integer
       value:
         type: string
     type: object
@@ -77,8 +141,33 @@ paths:
       summary: 分页获取区块列表
       tags:
       - block
+  /block/transaction/{hash}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: tx hash
+        in: query
+        name: number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.TransactionReceipt'
+              type: object
+      summary: 交易详情
+      tags:
+      - block
   /block/transaction/{number}:
-    post:
+    get:
       consumes:
       - application/json
       parameters:
@@ -102,6 +191,102 @@ paths:
       summary: 分页列表
       tags:
       - block
+  /node:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关联链Id
+        in: body
+        name: chain_id
+        required: true
+        schema:
+          type: integer
+      - description: 节点地址
+        in: body
+        name: address
+        required: true
+        schema:
+          type: string
+      - description: 端口
+        in: body
+        name: port
+        required: true
+        schema:
+          type: integer
+      - description: 名称
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: NodeId
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 添加node
+      tags:
+      - node
+  /node/change:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关联链Id
+        in: body
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: 端口
+        in: body
+        name: node_id
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 切换node
+      tags:
+      - node
+  /node/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.Node'
+                  type: array
+              type: object
+      summary: 节点列表
+      tags:
+      - node
   /user/login:
     post:
       consumes:
@@ -166,4 +351,9 @@ paths:
       summary: 用户注册
       tags:
       - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
