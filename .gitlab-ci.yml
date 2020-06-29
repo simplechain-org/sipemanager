@@ -1,15 +1,21 @@
 image: golang:1.14.1
 stages:
+  - prebuild
   - build
   - apiDoc
 
-before_script:
-  - export GOPROXY="https://goproxy.cn"
-  - export GO111MODULE=on
-  - export CGO_ENABLED=0
-  - go env
+prebuild:
+  stage: prebuild
+  script:
+    - export GOPROXY="https://goproxy.cn"
+    - export GO111MODULE=on
+    - export CGO_ENABLED=0
+    - go env
+
 build:
   stage: build
+  dependencies:
+    - prebuild
   script:
     - go mod download
     - go build
@@ -19,7 +25,7 @@ swagger:
   variables:
     YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
   dependencies:
-    - before_script
+    - prebuild
     - build
   script:
     - mkdir -p docs
