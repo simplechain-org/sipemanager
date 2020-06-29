@@ -33,7 +33,6 @@ swagger:
   script:
     - mkdir -p docs
     - ls -al
-    - go get -u github.com/swaggo/swag/cmd/swag
     - swag init
     - test -e "docs/swagger.json" || exit 1
     - echo "type=swagger&merge=merge&token=$YAPI_TOKEN&json=`cat docs/swagger.json`" > postData.txt
