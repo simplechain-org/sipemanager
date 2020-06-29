@@ -116,6 +116,19 @@ definitions:
       value:
         type: string
     type: object
+  dao.Wallet:
+    properties:
+      address:
+        type: string
+      content:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      userId:
+        type: integer
+    type: object
 info:
   contact: {}
   license: {}
@@ -138,6 +151,8 @@ paths:
                     $ref: '#/definitions/controllers.Block'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: 分页获取区块列表
       tags:
       - block
@@ -148,7 +163,7 @@ paths:
       parameters:
       - description: tx hash
         in: query
-        name: number
+        name: hash
         required: true
         type: string
       produces:
@@ -163,6 +178,8 @@ paths:
                 data:
                   $ref: '#/definitions/controllers.TransactionReceipt'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: 交易详情
       tags:
       - block
@@ -188,38 +205,63 @@ paths:
                 data:
                   $ref: '#/definitions/controllers.Transaction'
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: 分页列表
       tags:
       - block
+  /chain/{chain_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: chainId
+        in: path
+        name: chain_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功删除链信息
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 删除链信息
+      tags:
+      - chain
   /node:
     post:
       consumes:
       - application/json
       parameters:
       - description: 关联链Id
-        in: body
+        in: formData
         name: chain_id
         required: true
-        schema:
-          type: integer
+        type: integer
       - description: 节点地址
-        in: body
+        in: formData
         name: address
         required: true
-        schema:
-          type: string
+        type: string
       - description: 端口
-        in: body
+        in: formData
         name: port
         required: true
-        schema:
-          type: integer
+        type: integer
       - description: 名称
-        in: body
+        in: formData
         name: name
         required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:
@@ -242,18 +284,16 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: 关联链Id
-        in: body
+      - description: useId
+        in: formData
         name: user_id
         required: true
-        schema:
-          type: integer
-      - description: 端口
-        in: body
+        type: integer
+      - description: nodeId
+        in: formData
         name: node_id
         required: true
-        schema:
-          type: integer
+        type: integer
       produces:
       - application/json
       responses:
@@ -264,6 +304,29 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 切换node
+      tags:
+      - node
+  /node/current:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.Node'
+                  type: array
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取当前登录账户的节点
       tags:
       - node
   /node/list:
@@ -284,6 +347,8 @@ paths:
                     $ref: '#/definitions/controllers.Node'
                   type: array
               type: object
+      security:
+      - ApiKeyAuth: []
       summary: 节点列表
       tags:
       - node
@@ -351,6 +416,59 @@ paths:
       summary: 用户注册
       tags:
       - user
+  /wallet:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 钱包昵称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: keystore string
+        in: formData
+        name: content
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: walletId
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 添加钱包
+      tags:
+      - wallet
+  /wallet/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.Wallet'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 钱包列表
+      tags:
+      - wallet
 securityDefinitions:
   ApiKeyAuth:
     in: header

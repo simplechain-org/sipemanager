@@ -12,10 +12,10 @@ import (
 // @Tags node
 // @Accept  json
 // @Produce  json
-// @Param chain_id body int true "关联链Id"
-// @Param address body string true "节点地址"
-// @Param port body int true "端口"
-// @Param name body string true "名称"
+// @Param chain_id formData int true "关联链Id"
+// @Param address formData string true "节点地址"
+// @Param port formData int true "端口"
+// @Param name formData string true "名称"
 // @Security ApiKeyAuth
 // @Success 200 {object} JSONResult{data=int} "NodeId"
 // @Router /node [post]
@@ -76,8 +76,8 @@ type UserNodeParam struct {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param user_id body int true "关联链Id"
-// @Param node_id body int true "端口"
+// @Param user_id formData int true "useId"
+// @Param node_id formData int true "nodeId"
 // @Success 200 {object} string "success"
 // @Router /node/change [post]
 func (this *Controller) ChangeNode(c *gin.Context) {
@@ -115,6 +115,7 @@ type Node struct {
 // @Tags node
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Success 200 {object} JSONResult{data=[]Node}
 // @Router /node/list [get]
 func (this *Controller) GetNodes(c *gin.Context) {
@@ -140,6 +141,14 @@ func (this *Controller) GetNodes(c *gin.Context) {
 	}
 	this.echoResult(c, result)
 }
+
+// @Summary 获取当前登录账户的节点
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} JSONResult{data=[]Node}
+// @Router /node/current [get]
 func (this *Controller) GetUserCurrentNode(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {

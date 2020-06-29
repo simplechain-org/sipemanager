@@ -15,6 +15,15 @@ type AddressParam struct {
 	Address string `json:"address" binding:"required"`
 }
 
+// @Summary 添加钱包
+// @Tags wallet
+// @Accept  json
+// @Produce  json
+// @Param name formData string true "钱包昵称"
+// @Param content formData string true "keystore string"
+// @Security ApiKeyAuth
+// @Success 200 {object} JSONResult{data=int} "walletId"
+// @Router /wallet [post]
 func (this *Controller) AddWallet(c *gin.Context) {
 	var params WalletParam
 	if err := c.ShouldBindJSON(&params); err != nil {
@@ -49,6 +58,13 @@ func (this *Controller) AddWallet(c *gin.Context) {
 }
 
 //不加载content
+// @Summary 钱包列表
+// @Tags wallet
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} JSONResult{data=dao.Wallet}
+// @Router /wallet/list [get]
 func (this *Controller) ListWallet(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {

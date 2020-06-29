@@ -58,6 +58,7 @@ type Block struct {
 // @Tags block
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
 // @Success 200 {object} JSONResult{data=[]Block}
 // @Router /block/list [get]
 func (this *Controller) GetPageBlock(c *gin.Context) {

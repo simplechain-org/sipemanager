@@ -77,6 +77,14 @@ func (this *Controller) CreateChain(c *gin.Context) {
 }
 
 //删除链信息
+// @Summary 删除链信息
+// @Tags chain
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param chain_id path int true "chainId"
+// @Success 200 {object} JSONResult{data=string} "成功删除链信息"
+// @Router /chain/{chain_id} [delete]
 func (this *Controller) RemoveChain(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
 	if chainIdStr == "" {
