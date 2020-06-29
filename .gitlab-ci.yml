@@ -33,6 +33,10 @@ swagger:
   script:
     - mkdir -p docs
     - ls -al
+    - export GOPROXY="https://goproxy.cn"
+    - export GO111MODULE=on
+    - export CGO_ENABLED=0
+    - go get -u github.com/swaggo/swag/cmd/swag
     - swag init
     - test -e "docs/swagger.json" || exit 1
     - echo "type=swagger&merge=merge&token=$YAPI_TOKEN&json=`cat docs/swagger.json`" > postData.txt
