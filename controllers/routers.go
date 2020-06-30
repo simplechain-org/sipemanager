@@ -9,11 +9,11 @@ import (
 	"sipemanager/docs"
 )
 
-func SwaggerDoc(router *gin.Engine, object *dao.DataBaseAccessObject) {
+func SwaggerDoc(router *gin.Engine) {
 	docs.SwaggerInfo.Title = "Sipe Manager API"
 	docs.SwaggerInfo.Description = "区块链管理系统api文档"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "192.168.3.109:8092"
+	docs.SwaggerInfo.Host = "192.168.4.109:8092"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	router.GET("/api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

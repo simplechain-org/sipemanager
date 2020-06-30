@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sipemanager/controllers"
 	"sipemanager/dao"
+	"sipemanager/service"
 	"strings"
 )
 
@@ -54,7 +55,8 @@ func main() {
 		})
 	})
 	controllers.Register(router, dao)
-	controllers.SwaggerDoc(router, dao)
+	controllers.SwaggerDoc(router)
+	go func() { service.ListenEvent(dao) }()
 
 	router.StaticFile("/", "./webroot/dist/index.html")
 
@@ -62,6 +64,7 @@ func main() {
 	router.Static("/static", "./webroot/dist/static")
 
 	router.Run(fmt.Sprintf(":%d", appConfig.Port)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
 }
 
 ////// 跨域
