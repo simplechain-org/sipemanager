@@ -3,7 +3,11 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/robfig/cron/v3"
+	"math/big"
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"time"
@@ -19,7 +23,7 @@ func ListenEvent(dao *dao.DataBaseAccessObject) {
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
 		fmt.Println("current time is ", time.Now())
-		nodes, err := dao.ListAllNode()
+		nodes, err := dao.GetInstancesJoinNode()
 		if err != nil {
 			errors.New("cant not found nodes")
 		}
@@ -28,7 +32,7 @@ func ListenEvent(dao *dao.DataBaseAccessObject) {
 	cron.Start()
 }
 
-func GetRpcApi(node dao.Node) (*blockchain.Api, error) {
+func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 	n := &blockchain.Node{
 		Address:   node.Address,
 		Port:      node.Port,
@@ -41,17 +45,34 @@ func GetRpcApi(node dao.Node) (*blockchain.Api, error) {
 		return nil, err
 	}
 	return api, nil
+
 }
 
-func createCrossEvent(nodes []dao.Node) {
+func createCrossEvent(nodes []dao.InstanceNodes) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
-		fmt.Printf("%+v\n", nodes[i].Address)
+		fmt.Printf("current nodes %+v ", nodes[i])
+		addresses := []common.Address{
+			common.HexToAddress(nodes[i].CrossAddress),
+		}
+		node := ethereum.FilterQuery{
+			FromBlock: big.NewInt(1),
+			Addresses: addresses,
+		}
 		api, err := GetRpcApi(nodes[i])
 		if err != nil {
 			errors.New("cant not found nodes")
 		}
+		log, err := api.GetPastEvents(node)
+		fmtLogs(log)
 		fmt.Println("api ", api.GetChainId())
+
 	}
 	fmt.Println(time.Since(a))
+}
+
+func fmtLogs(logs []types.Log) {
+	for _, log := range logs {
+		fmt.Printf("%+v\n", log.BlockNumber)
+	}
 }

@@ -3,6 +3,7 @@ package blockchain
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -114,4 +115,16 @@ func (this *Api) GetNetworkId() uint64 {
 }
 func (this *Api) GetChainId() uint {
 	return this.chainId
+}
+func (this *Api) GetPastEvents(query ethereum.FilterQuery) ([]types.Log, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	log, err := this.simpleClient.FilterLogs(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	return log, nil
 }
