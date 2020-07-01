@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"sipemanager/docs"
+	"time"
 )
 
 func SwaggerDoc(router *gin.Engine) {
@@ -67,4 +71,20 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.POST("/api/v1/contract/register/add", validateLogin, c.RegisterChainAdd)
 
+}
+
+func ListenEvent(object *dao.DataBaseAccessObject) {
+	c := &Controller{userClient: make(map[uint]*blockchain.Api),
+		dao: object,
+	}
+	cron := cron.New()
+	cron.AddFunc("@every 5s", func() {
+		fmt.Println("current time is ", time.Now())
+		nodes, err := object.GetInstancesJoinNode()
+		if err != nil {
+			errors.New("cant not found nodes")
+		}
+		go c.createCrossEvent(nodes)
+	})
+	cron.Start()
 }

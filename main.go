@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"sipemanager/controllers"
 	"sipemanager/dao"
-	"sipemanager/service"
 	"strings"
 )
 
@@ -56,7 +55,7 @@ func main() {
 	})
 	controllers.Register(router, dao)
 	controllers.SwaggerDoc(router)
-	go func() { service.ListenEvent(dao) }()
+	go func() { controllers.ListenEvent(dao) }()
 
 	router.StaticFile("/", "./webroot/dist/index.html")
 

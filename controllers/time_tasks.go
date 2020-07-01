@@ -1,4 +1,4 @@
-package service
+package controllers
 
 import (
 	"errors"
@@ -6,31 +6,11 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/robfig/cron/v3"
 	"math/big"
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"time"
 )
-
-type Service struct {
-	Rpc *blockchain.Api
-	dao *dao.DataBaseAccessObject
-}
-
-func ListenEvent(dao *dao.DataBaseAccessObject) {
-
-	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current time is ", time.Now())
-		nodes, err := dao.GetInstancesJoinNode()
-		if err != nil {
-			errors.New("cant not found nodes")
-		}
-		go createCrossEvent(nodes)
-	})
-	cron.Start()
-}
 
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 	n := &blockchain.Node{
@@ -48,7 +28,7 @@ func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 
 }
 
-func createCrossEvent(nodes []dao.InstanceNodes) {
+func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		fmt.Printf("current nodes %+v ", nodes[i])
