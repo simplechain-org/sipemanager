@@ -123,8 +123,5 @@ func (this *Api) GetPastEvents(query ethereum.FilterQuery) ([]types.Log, error) 
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	return log, nil
 }
