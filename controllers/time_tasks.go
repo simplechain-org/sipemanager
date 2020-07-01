@@ -35,11 +35,14 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 	for i := 0; i < len(nodes); i++ {
 		fmt.Printf("current nodes %+v ", nodes[i])
 		contract, err := this.dao.GetContractById(nodes[i].ContractId)
+		blockNumber := this.dao.GetMaxBlockNumber(nodes[i].ChainId)
+		fmt.Printf("cxc%+v\n", blockNumber)
 		addresses := []common.Address{
 			common.HexToAddress(nodes[i].CrossAddress),
 		}
+
 		records := ethereum.FilterQuery{
-			FromBlock: big.NewInt(1),
+			FromBlock: big.NewInt(blockNumber),
 			Addresses: addresses,
 		}
 		api, err := GetRpcApi(nodes[i])
@@ -61,12 +64,6 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 
 	}
 	fmt.Println(time.Since(a))
-}
-
-func fmtLogs(logs []types.Log) {
-	for _, log := range logs {
-		fmt.Printf("%+v\n", log.BlockNumber)
-	}
 }
 
 type CrossMakerTx struct {
