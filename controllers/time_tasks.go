@@ -119,7 +119,6 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 				CrossAddress:    node.CrossAddress,
 				ChainId:         node.ChainId,
 			}
-			fmt.Printf("fdfd%+v", item)
 			this.dao.MakerEventUpsert(item)
 		case takerTx:
 			var args CrossTakerTx
@@ -156,4 +155,13 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 			this.dao.MakerFinishEventUpsert(item)
 		}
 	}
+}
+
+func (this *Controller) createBlock(nodes []dao.InstanceNodes) {
+	a := time.Now()
+	for i := 0; i < len(nodes); i++ {
+		//sync all instance blocks
+
+	}
+	fmt.Println(time.Since(a))
 }

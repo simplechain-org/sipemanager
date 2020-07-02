@@ -79,7 +79,7 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	}
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current time is ", time.Now())
+		fmt.Println("current event time is ", time.Now())
 		nodes, err := object.GetInstancesJoinNode()
 		if err != nil {
 			errors.New("cant not found nodes")
