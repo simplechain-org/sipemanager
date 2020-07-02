@@ -10,6 +10,8 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"sipemanager/docs"
+	"sipemanager/utils"
+	"sync"
 	"time"
 )
 
@@ -74,6 +76,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 }
 
 func ListenEvent(object *dao.DataBaseAccessObject) {
+	var group sync.WaitGroup
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao: object,
 	}
@@ -81,10 +84,14 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	cron.AddFunc("@every 5s", func() {
 		fmt.Println("current event time is ", time.Now())
 		nodes, err := object.GetInstancesJoinNode()
+		filterNodes := utils.RemoveRepByLoop(nodes)
 		if err != nil {
 			errors.New("cant not found nodes")
 		}
-		go c.createCrossEvent(nodes)
+		fmt.Printf("-------nodes-----%+v\n", filterNodes)
+		//go c.createCrossEvent(nodes)
+		go c.createBlock(filterNodes, &group)
+		group.Wait()
 	})
 	cron.Start()
 }

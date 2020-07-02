@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/sirupsen/logrus"
 	"math/big"
 	"time"
 )
@@ -124,4 +125,15 @@ func (this *Api) GetPastEvents(query ethereum.FilterQuery) ([]types.Log, error) 
 		return nil, err
 	}
 	return log, nil
+}
+
+func (this *Api) GetHeaderByNumber() (*types.Header, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	header, err := this.simpleClient.HeaderByNumber(ctx, nil)
+	if err != nil {
+		logrus.Error(err.Error())
+		return nil, err
+	}
+	return header, nil
 }

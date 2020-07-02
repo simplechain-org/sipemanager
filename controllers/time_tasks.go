@@ -11,6 +11,7 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -46,9 +47,6 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 			Addresses: addresses,
 		}
 		api, err := GetRpcApi(nodes[i])
-		if err != nil {
-			logrus.Errorf("cant not found nodes")
-		}
 		logs, err := api.GetPastEvents(records)
 		if err != nil {
 			logrus.Errorf("FilterLogs:%v", err)
@@ -157,11 +155,41 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 	}
 }
 
-func (this *Controller) createBlock(nodes []dao.InstanceNodes) {
+func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		//sync all instance blocks
+		api, err := GetRpcApi(nodes[i])
 
+		header, err := api.GetHeaderByNumber()
+		dbNum, err := this.dao.GetNewBlockNumber(nodes[i].ChainId)
+
+		if err != nil {
+			logrus.Warn(err.Error())
+		}
+		newBlockNumber := header.Number.Int64()
+		diff := (newBlockNumber - dbNum) % 100000
+		count := (newBlockNumber - dbNum) / 100000
+		fmt.Printf("$-----%+v\n", dbNum)
+		fmt.Printf("$-----%+v\n", diff)
+		fmt.Printf("$-----%+v\n", count)
+		if diff != 0 {
+			count += 1
+		}
+		var i int64
+		for i = 1; i <= count; i++ {
+			from := dbNum + (i-1)*100000 + 1
+			var to int64
+			if i == count {
+				to = newBlockNumber
+			} else {
+				to = dbNum + (i * 100000)
+			}
+			logrus.Info(i, "from:", from)
+			logrus.Infof("to:%v", to)
+			group.Add(1)
+		}
+		group.Wait()
 	}
 	fmt.Println(time.Since(a))
 }

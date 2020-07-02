@@ -17,3 +17,20 @@ type Block struct {
 func (this *Block) TableName() string {
 	return "blocks"
 }
+
+func (this *DataBaseAccessObject) Create(block Block) (int64, error) {
+	err := this.db.Create(block).Error
+	if err != nil {
+		return 0, err
+	}
+	return block.Number, nil
+}
+
+func (this *DataBaseAccessObject) GetNewBlockNumber(chainId uint) (int64, error) {
+	var block Block
+	err := this.db.Table((&Block{}).TableName()).Where("chain_id = ?", chainId).Order("number desc").Limit(1).Find(&block).Error
+	if err != nil {
+		return 0, err
+	}
+	return block.Number, nil
+}
