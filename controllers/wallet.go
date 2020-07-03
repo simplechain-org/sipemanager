@@ -2,13 +2,19 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
+
 	"sipemanager/dao"
+	"sipemanager/utils"
+
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/gin-gonic/gin"
 )
 
 type WalletParam struct {
-	Name    string `json:"name" binding:"required"`
-	Content string `json:"content" binding:"required"`
+	Name     string `json:"name" binding:"required" form:"name"`         //账户名称
+	Content  string `json:"content" binding:"required" form:"content"`   //私钥/助记词/keystore文件
+	Password string `json:"password" binding:"required" form:"password"` //钱包密码
 }
 
 type AddressParam struct {
@@ -26,6 +32,7 @@ type AddressParam struct {
 // @Router /wallet [post]
 func (this *Controller) AddWallet(c *gin.Context) {
 	var params WalletParam
+	var err error
 	if err := c.ShouldBindJSON(&params); err != nil {
 		this.echoError(c, err)
 		return
@@ -35,20 +42,68 @@ func (this *Controller) AddWallet(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	var addressParam AddressParam
-	err = json.Unmarshal([]byte(params.Content), &addressParam)
-	if err != nil {
-		this.echoError(c, err)
-		return
+	var address string
+	var content []byte
+
+	if utils.IsHex(params.Content) {
+		//私钥
+		privateKeyECDSA, err := crypto.HexToECDSA(params.Content)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		content, err = utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		address, err = utils.GetAddress(privateKeyECDSA)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+	} else {
+		if utils.IsJSON(params.Content) {
+			//keystore文件内容
+			//校验口令
+			_, err := keystore.DecryptKey([]byte(params.Content), params.Password)
+			if err != nil {
+				this.echoError(c, err)
+				return
+			}
+			var addressParam AddressParam
+			err = json.Unmarshal([]byte(params.Content), &addressParam)
+			if err != nil {
+				this.echoError(c, err)
+				return
+			}
+			address = "0x" + addressParam.Address
+			content = []byte(params.Content)
+		} else {
+			//助记词
+			privateKeyECDSA, err := utils.GetPrivateKeyFromMnemonic(params.Content)
+			if err != nil {
+				this.echoError(c, err)
+				return
+			}
+			content, err = utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
+			if err != nil {
+				this.echoError(c, err)
+				return
+			}
+			address, err = utils.GetAddress(privateKeyECDSA)
+			if err != nil {
+				this.echoError(c, err)
+				return
+			}
+		}
 	}
-	address := "0x" + addressParam.Address
 	wallet := dao.Wallet{
 		Name:    params.Name,
-		Content: []byte(params.Content),
+		Content: content,
 		UserId:  user.ID,
 		Address: address,
 	}
-	wallet.UserId = user.ID
 	id, err := this.dao.CreateWallet(&wallet)
 	if err != nil {
 		this.echoError(c, err)
@@ -77,4 +132,39 @@ func (this *Controller) ListWallet(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, wallets)
+}
+
+type UpdateWalletParam struct {
+	WalletId    uint   `json:"wallet_id" binding:"required" form:"wallet_id"`       //钱包id
+	OldPassword string `json:"old_password" binding:"required" form:"old_password"` //钱包旧密码
+	NewPassword string `json:"new_password" binding:"required" form:"new_password"` //钱包新密码
+}
+
+func (this *Controller) UpdateWallet(c *gin.Context) {
+	var params UpdateWalletParam
+	if err := c.ShouldBind(&params); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	wallet, err := this.dao.GetWallet(params.WalletId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	key, err := keystore.DecryptKey([]byte(wallet.Content), params.OldPassword)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	content, err := utils.PrivateKeyToKeystore(key.PrivateKey, params.NewPassword)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	err = this.dao.UpdateWallet(params.WalletId, content)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "success")
 }

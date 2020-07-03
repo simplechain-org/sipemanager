@@ -58,8 +58,9 @@ func (this *DataBaseAccessObject) GetContractById(id uint) (*Contract, error) {
 //链使用哪个合约进行跨链
 type ChainContract struct {
 	ID                 uint `gorm:"primary_key"`
-	ChainId            uint  //链id
+	ChainId            uint //链id
 	ContractInstanceId uint `gorm:"contract_instance_id"` //合约实例id
+
 }
 
 func (this *ChainContract) TableName() string {

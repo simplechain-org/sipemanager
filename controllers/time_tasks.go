@@ -2,17 +2,19 @@ package controllers
 
 import (
 	"fmt"
+	"math/big"
+	"strings"
+	"sync"
+	"time"
+
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
-	"math/big"
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"strings"
-	"sync"
-	"time"
 )
 
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
@@ -92,9 +94,9 @@ type CrossMakerFinish struct {
 }
 
 func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.InstanceNodes) {
-	makerTx := abiParsed.Events["MakerTx"].ID().Hex()
-	takerTx := abiParsed.Events["TakerTx"].ID().Hex()
-	makerFinish := abiParsed.Events["MakerFinish"].ID().Hex()
+	makerTx := abiParsed.Events["MakerTx"].ID.Hex()
+	takerTx := abiParsed.Events["TakerTx"].ID.Hex()
+	makerFinish := abiParsed.Events["MakerFinish"].ID.Hex()
 	for _, event := range logs {
 		var item dao.CrossEvents
 		switch event.Topics[0].Hex() {

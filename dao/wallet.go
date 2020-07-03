@@ -37,3 +37,8 @@ func (this *DataBaseAccessObject) GetWallet(id uint) (*Wallet, error) {
 	}
 	return &wallet, nil
 }
+func (this *DataBaseAccessObject) UpdateWallet(id uint, content []byte) error {
+	return this.db.Table((&Wallet{}).TableName()).
+		Where("id=?", id).
+		Update("content", content).Error
+}
