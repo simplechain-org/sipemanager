@@ -3,16 +3,18 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron/v3"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"sync"
+	"time"
+
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"sipemanager/docs"
 	"sipemanager/utils"
-	"sync"
-	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SwaggerDoc(router *gin.Engine) {
@@ -59,6 +61,9 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/contract/list", validateLogin, c.ListContract)
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 	router.GET("/api/v1/contract/instance/list", validateLogin, c.GetContractInstances)
+	router.POST("/api/v1/contract/instance/import", validateLogin, c.GetContractInstances)
+
+	router.POST("/api/v1/contract/register/once", validateLogin, c.RegisterChainTwoWay)
 
 	router.POST("/api/v1/contract/instance/add", validateLogin, c.AddContractInstance)
 

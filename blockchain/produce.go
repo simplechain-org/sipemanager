@@ -3,14 +3,14 @@ package blockchain
 import (
 	"bytes"
 	"context"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type ContractConfig struct {
@@ -31,7 +31,7 @@ func (this *Api) Produce(contractConfig *ContractConfig, changeParam *ChangePara
 		return "", err
 	}
 	remoteChainId := big.NewInt(0).SetUint64(contractConfig.TargetChainId)
-	out, err := abi.Pack("makerStart", remoteChainId, changeParam.TargetValue,common.HexToAddress("0x0"), changeParam.Input)
+	out, err := abi.Pack("makerStart", remoteChainId, changeParam.TargetValue, common.HexToAddress("0x0"), changeParam.Input)
 	if err != nil {
 		return "", err
 	}

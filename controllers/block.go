@@ -3,11 +3,9 @@ package controllers
 import (
 	"math/big"
 	"net/http"
-	"strconv"
-	"sync"
-
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
@@ -161,13 +159,4 @@ func (this *Controller) onChangeNode(userId uint) (*blockchain.Api, error) {
 		return nil, err
 	}
 	return api, nil
-}
-
-func (this *Controller) BlocksListen(from, to int64, group *sync.WaitGroup) error {
-	var err error
-	//for i := int64(from); i <= to; i++ {
-	//	fmt.Printf("Block Create: %+v\n", i)
-	//}
-	group.Done()
-	return err
 }

@@ -1,15 +1,20 @@
 package controllers
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/gin-gonic/gin"
-	"sipemanager/blockchain"
-	"sipemanager/dao"
 	"strconv"
 	"strings"
 	"time"
+
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 type Contract struct {
@@ -322,4 +327,235 @@ func (this *Controller) RegisterChainAdd(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, registerId)
+}
+
+type ExistsContractParam struct {
+	ChainId     uint   `json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash      string `json:"tx_hash"`
+	Address     string `json:"address"`
+	Description string `json:"description" binding:"required"`
+	Sol         string `json:"sol"`
+	Abi         string `json:"abi" binding:"required"`
+	Bin         string `json:"bin"`
+}
+
+//引用链上合约
+
+//@Summary 引用链上合约
+//@Description 引用链上合约
+//@Accept application/x-www-form-urlencoded
+//@Accept application/json
+//@Produce application/json
+//@Param "" body ExistsContractParam true "请求体"
+//@Success 200 {object} JsonResult
+//@Router /api/v1/contract/instance/import [post]
+func (this *Controller) AddExistsContract(c *gin.Context) {
+	var param ExistsContractParam
+	if err := c.ShouldBind(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	contract := &dao.Contract{
+		Description: param.Description,
+		Sol:         param.Sol,
+		Bin:         param.Bin,
+		Abi:         param.Abi,
+	}
+	//创建合约对象
+	id, err := this.dao.CreateContract(contract)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	instance := &dao.ContractInstance{
+		ChainId:    param.ChainId,
+		TxHash:     param.TxHash,
+		Address:    param.Address,
+		ContractId: id,
+	}
+	id, err = this.dao.CreateContractInstance(instance)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, "success")
+}
+
+type RegisterChainTwoWayParam struct {
+	SourceChainId    uint     `json:"source_chain_id" form:"source_chain_id"`
+	TargetChainId    uint     `json:"target_chain_id" form:"target_chain_id"`
+	SourceNodeId     uint     `json:"source_node_id" form:"source_node_id"`
+	TargetNodeId     uint     `json:"target_node_id" form:"target_node_id"`
+	SignConfirmCount uint     `json:"sign_confirm_count" form:"sign_confirm_count"`
+	AnchorAddresses  []string `json:"anchor_addresses" form:"anchor_addresses"`
+	AnchorNames      []string `json:"anchor_names" form:"anchor_names"`
+	WalletId         uint     `json:"wallet_id" form:"wallet_id"`
+	Password         string   `json:"password" form:"password"`
+}
+
+func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
+	node, err := this.dao.GetNodeById(id)
+	n := &blockchain.Node{
+		Address:   node.Address,
+		Port:      node.Port,
+		ChainId:   node.ChainId,
+		IsHttps:   node.IsHttps,
+		NetworkId: node.NetworkId,
+	}
+	api, err := blockchain.NewApi(n)
+	if err != nil {
+		return nil, err
+	}
+	return api, nil
+}
+
+//@Summary 引用链上合约
+//@Description 引用链上合约
+//@Accept application/x-www-form-urlencoded
+//@Accept application/json
+//@Produce application/json
+//@Param "" body ExistsContractParam true "请求体"
+//@Success 200 {object} JsonResult
+//@Router /api/v1/contract/register/once [post]
+func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
+	var param RegisterChainTwoWayParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		fmt.Println("ShouldBindJSON:", err.Error())
+		this.echoError(c, err)
+		return
+	}
+	wallet, err := this.dao.GetWallet(param.WalletId)
+	if err != nil {
+		fmt.Println("GetWallet:", err.Error())
+		this.echoError(c, err)
+		return
+	}
+	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	if err != nil {
+		fmt.Println("GetPrivateKey:", err.Error())
+		this.echoError(c, err)
+		return
+	}
+	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+
+	errChan := make(chan error, 2)
+
+	source, err := this.getApiByNodeId(param.SourceNodeId)
+	if err != nil {
+		fmt.Println("GetApiByNodeId:", err.Error())
+		this.echoError(c, err)
+		return
+	}
+	target, err := this.getApiByNodeId(param.TargetNodeId)
+	if err != nil {
+		fmt.Println("GetApiByNodeId:", err.Error())
+		this.echoError(c, err)
+		return
+	}
+	db := this.dao.BeginTransaction()
+	for index, address := range param.AnchorAddresses {
+		anchorNode := &dao.AnchorNode{
+			Name:          param.AnchorNames[index],
+			Address:       address,
+			SourceChainId: param.SourceChainId,
+			TargetChainId: param.TargetChainId,
+		}
+		_, err := this.dao.CreateAnchorNodeByTx(db, anchorNode)
+		if err != nil {
+			db.Rollback()
+			this.echoError(c, err)
+			return
+		}
+	}
+	//注册一条链 source->target
+	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount)
+	//注册另一条链 target->source
+	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount)
+
+	errMsg := ""
+	for i := 0; i < 2; i++ {
+		err := <-errChan
+		if err != nil {
+			errMsg += err.Error()
+		}
+	}
+	if errMsg != "" {
+		db.Rollback()
+		this.echoError(c, errors.New(errMsg))
+		return
+	}
+	db.Commit()
+	this.echoSuccess(c, "链注册成功")
+}
+
+func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint) {
+	callerConfig := &blockchain.CallerConfig{
+		From:       from,
+		PrivateKey: privateKey,
+		NetworkId:  api.GetNetworkId(),
+	}
+	chain, err := this.dao.GetChain(targetChainId)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	contract, err := this.dao.GetContractByChainId(api.GetChainId())
+	if err != nil {
+		errChan <- err
+		return
+	}
+	anchorAddresses := make([]common.Address, 0, len(strAnchorAddresses))
+
+	for _, v := range strAnchorAddresses {
+		anchorAddresses = append(anchorAddresses, common.HexToAddress(v))
+	}
+	registerConfig := &blockchain.RegisterChainConfig{
+		AbiData:          []byte(contract.Abi),
+		ContractAddress:  common.HexToAddress(contract.Address),
+		TargetNetworkId:  uint64(chain.NetworkId),
+		AnchorAddresses:  anchorAddresses,
+		SignConfirmCount: uint8(signConfirmCount),
+	}
+	hash, err := api.RegisterChain(registerConfig, callerConfig)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	fmt.Println("hash=", hash)
+	register := &dao.ChainRegister{
+		SourceChainId:   api.GetChainId(),
+		TargetChainId:   targetChainId,
+		TxHash:          hash,
+		Confirm:         signConfirmCount,
+		AnchorAddresses: strings.Join(strAnchorAddresses, ","),
+	}
+	registerId, err := this.dao.CreateChainRegisterByTx(db, register)
+	if err != nil {
+		errChan <- err
+		return
+	}
+	go func(id uint, hash string) {
+		ticker := time.NewTicker(15 * time.Second)
+		defer ticker.Stop()
+		maxCount := 300 //最多尝试300次
+		i := 0
+		for {
+			<-ticker.C
+			fmt.Println("now:", time.Now().Unix())
+			//时间到，做一下检测
+			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
+			if err == nil && receipt != nil {
+				err = this.dao.UpdateChainRegisterStatus(id, int(receipt.Status))
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				break
+			}
+			if i >= maxCount {
+				break
+			}
+			i++
+		}
+	}(registerId, hash)
 }

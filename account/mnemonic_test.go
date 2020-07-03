@@ -31,9 +31,9 @@ func TestGetPrivateKeyFromMnemonic(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Log("mnemonic=",mnemonic)
+	t.Log("mnemonic=", mnemonic)
 
-	privateKey,err:=GetPrivateKeyFromMnemonic(mnemonic)
+	privateKey, err := GetPrivateKeyFromMnemonic(mnemonic)
 	if err != nil {
 		t.Error(err)
 		return
@@ -55,11 +55,11 @@ func TestPrivateKeyToKeystore(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	auth:="123456"
-	kjson,err:=PrivateKeyToKeystore(privateKey,auth)
+	auth := "123456"
+	kjson, err := PrivateKeyToKeystore(privateKey, auth)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log("keystore file content=",string(kjson))
+	t.Log("keystore file content=", string(kjson))
 }

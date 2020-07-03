@@ -24,6 +24,13 @@ func (this *DataBaseAccessObject) CreateChainRegister(chainRegister *ChainRegist
 	}
 	return chainRegister.ID, nil
 }
+func (this *DataBaseAccessObject) CreateChainRegisterByTx(db *gorm.DB, chainRegister *ChainRegister) (uint, error) {
+	err := db.Create(chainRegister).Error
+	if err != nil {
+		return 0, err
+	}
+	return chainRegister.ID, nil
+}
 func (this *DataBaseAccessObject) UpdateChainRegisterStatus(id uint, status int) error {
 	text := "失败"
 	if status == 1 {
