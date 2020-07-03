@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"sipemanager/dao"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/sirupsen/logrus"
-	"sipemanager/dao"
-	"strings"
 )
 
 func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.InstanceNodes) {
