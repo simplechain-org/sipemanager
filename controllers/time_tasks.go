@@ -15,6 +15,12 @@ import (
 	"time"
 )
 
+type ErrLogCode struct {
+	message string
+	code    int
+	err     string
+}
+
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 	n := &blockchain.Node{
 		Address:   node.Address,
@@ -91,103 +97,32 @@ type CrossMakerFinish struct {
 	Raw  types.Log // Blockchain specific contextual infos
 }
 
-func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.InstanceNodes) {
-	makerTx := abiParsed.Events["MakerTx"].ID().Hex()
-	takerTx := abiParsed.Events["TakerTx"].ID().Hex()
-	makerFinish := abiParsed.Events["MakerFinish"].ID().Hex()
-	for _, event := range logs {
-		var item dao.CrossEvents
-		switch event.Topics[0].Hex() {
-		case makerTx:
-			var args CrossMakerTx
-			err := abiParsed.Unpack(&args, "MakerTx", event.Data)
-			if err != nil {
-				logrus.Error("makerTx:", err.Error())
-			}
-			item = dao.CrossEvents{
-				BlockNumber:     event.BlockNumber,
-				TxId:            event.Topics[1].Hex(),
-				Event:           "MakerTx",
-				From:            "0x" + event.Topics[2].Hex()[26:],
-				NetworkId:       node.NetworkId,
-				RemoteNetworkId: args.RemoteChainId.Int64(),
-				Value:           args.Value.String(),
-				DestValue:       args.DestValue.String(),
-				TransactionHash: event.TxHash.Hex(),
-				CrossAddress:    node.CrossAddress,
-				ChainId:         node.ChainId,
-			}
-			this.dao.MakerEventUpsert(item)
-		case takerTx:
-			var args CrossTakerTx
-			err := abiParsed.Unpack(&args, "TakerTx", event.Data)
-			if err != nil {
-				logrus.Error("takerTx:", err.Error())
-			}
-			item = dao.CrossEvents{
-				BlockNumber:     event.BlockNumber,
-				TxId:            event.Topics[1].Hex(),
-				Event:           "TakerTx",
-				From:            strings.ToLower(args.From.Hex()),
-				To:              "0x" + event.Topics[2].Hex()[26:],
-				NetworkId:       node.NetworkId,
-				RemoteNetworkId: args.RemoteChainId.Int64(),
-				Value:           args.Value.String(),
-				DestValue:       args.DestValue.String(),
-				TransactionHash: event.TxHash.Hex(),
-				CrossAddress:    node.CrossAddress,
-				ChainId:         node.ChainId,
-			}
-			this.dao.TakerEventUpsert(item)
-		case makerFinish:
-			item = dao.CrossEvents{
-				BlockNumber:     event.BlockNumber,
-				TxId:            event.Topics[1].Hex(),
-				Event:           "MakerFinish",
-				To:              "0x" + event.Topics[2].Hex()[26:],
-				NetworkId:       node.NetworkId,
-				TransactionHash: event.TxHash.Hex(),
-				CrossAddress:    node.CrossAddress,
-				ChainId:         node.ChainId,
-			}
-			this.dao.MakerFinishEventUpsert(item)
-		}
-	}
-}
-
 func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		//sync all instance blocks
 		api, err := GetRpcApi(nodes[i])
-
 		header, err := api.GetHeaderByNumber()
-		dbNum, err := this.dao.GetNewBlockNumber(nodes[i].ChainId)
-
+		dbMaxNum, err := this.dao.GetNewBlockNumber(nodes[i].ChainId)
 		if err != nil {
-			logrus.Warn(err.Error())
+			logrus.Warn(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
 		}
 		newBlockNumber := header.Number.Int64()
-		diff := (newBlockNumber - dbNum) % 100000
-		count := (newBlockNumber - dbNum) / 100000
-		fmt.Printf("$-----%+v\n", dbNum)
-		fmt.Printf("$-----%+v\n", diff)
-		fmt.Printf("$-----%+v\n", count)
-		if diff != 0 {
-			count += 1
-		}
+
+		fmt.Printf("$-----%+v\n", dbMaxNum)
+		fmt.Printf("$-----%+v\n", newBlockNumber)
 		var i int64
-		for i = 1; i <= count; i++ {
-			from := dbNum + (i-1)*100000 + 1
+		for i = dbMaxNum; i <= newBlockNumber; i++ {
 			var to int64
-			if i == count {
-				to = newBlockNumber
+			if i == newBlockNumber {
+				to = newBlockNumber - 12
 			} else {
-				to = dbNum + (i * 100000)
+				to = newBlockNumber
 			}
-			logrus.Info(i, "from:", from)
+			logrus.Info(i, "from:", i)
 			logrus.Infof("to:%v", to)
 			group.Add(1)
+			go this.BlocksListen(i, to, group)
 		}
 		group.Wait()
 	}

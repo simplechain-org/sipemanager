@@ -8,6 +8,7 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"strconv"
+	"sync"
 )
 
 type Controller struct {
@@ -158,4 +159,13 @@ func (this *Controller) onChangeNode(userId uint) (*blockchain.Api, error) {
 		return nil, err
 	}
 	return api, nil
+}
+
+func (this *Controller) BlocksListen(from, to int64, group *sync.WaitGroup) error {
+	var err error
+	//for i := int64(from); i <= to; i++ {
+	//	fmt.Printf("Block Create: %+v\n", i)
+	//}
+	group.Done()
+	return err
 }
