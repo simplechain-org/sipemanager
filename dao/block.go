@@ -11,6 +11,7 @@ type Block struct {
 	Time         uint64 `gorm:"column:timestamp"`
 	Nonce        uint64 `gorm:"column:nonce"`
 	Transactions int    `gorm:"column:transactions"`
+	BlockHash    string `gorm:"column:blockHash"`
 	ChainId      uint   `gorm:"primary_key" gorm:"column:chain_id" sql:"type:INT UNSIGNED NOT NULL"`
 }
 
@@ -33,4 +34,13 @@ func (this *DataBaseAccessObject) GetNewBlockNumber(chainId uint) (int64, error)
 		return 0, err
 	}
 	return block.Number, nil
+}
+
+func (this *DataBaseAccessObject) BlockReplace(data Block) error {
+	var sql = "REPLACE INTO blocks(parentHash, sha3Uncles, miner, difficulty, number, gasLimit, gasUsed, timestamp, nonce, transactions, blockHash, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+	return this.db.Exec(sql,
+		data.ParentHash, data.UncleHash, data.CoinBase,
+		data.Difficulty, data.Number, data.GasLimit,
+		data.GasUsed, data.Time, data.Nonce,
+		data.Transactions, data.BlockHash, data.ChainId).Error
 }

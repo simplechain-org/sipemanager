@@ -167,39 +167,49 @@ func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitG
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		//sync all instance blocks
-		api, err := GetRpcApi(nodes[i])
-		header, err := api.GetHeaderByNumber()
-		dbMaxNum, err := this.dao.GetNewBlockNumber(nodes[i].ChainId)
-		if err != nil {
-			logrus.Warn(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
-		}
-		newBlockNumber := header.Number.Int64()
+		group.Add(1)
+		go this.syncAllNodes(nodes, i, group)
 
-		fmt.Printf("$-----%+v\n", dbMaxNum)
-		fmt.Printf("$-----%+v\n", newBlockNumber)
-		var i int64
-		for i = dbMaxNum; i <= newBlockNumber; i++ {
-			var to int64
-			if i == newBlockNumber {
-				to = newBlockNumber - 12
-			} else {
-				to = newBlockNumber
-			}
-			logrus.Info(i, "from:", i)
-			logrus.Infof("to:%v", to)
-			group.Add(1)
-			go this.BlocksListen(i, to, group)
-		}
-		group.Wait()
 	}
 	fmt.Println(time.Since(a))
 }
 
-func (this *Controller) BlocksListen(from, to int64, group *sync.WaitGroup) error {
-	var err error
-	//for i := int64(from); i <= to; i++ {
-	//	fmt.Printf("Block Create: %+v\n", i)
-	//}
+func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group *sync.WaitGroup) {
+	api, err := GetRpcApi(nodes[index])
+	chainId := nodes[index].ChainId
+	header, err := api.GetHeaderByNumber()
+	dbMaxNum, err := this.dao.GetNewBlockNumber(chainId)
+	if err != nil {
+		logrus.Warn(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
+	}
+	newBlockNumber := header.Number.Int64()
+
+	fmt.Printf("$-----%+v\n", dbMaxNum)
+	fmt.Printf("$-----%+v\n", newBlockNumber)
+	var j int64
+	for j = dbMaxNum; j <= newBlockNumber; j++ {
+		from := j
+		var to int64
+		if j == newBlockNumber {
+			to = newBlockNumber - 12
+			from = newBlockNumber
+		} else {
+			to = newBlockNumber
+		}
+		this.BlocksListen(from, to, api, nodes[index])
+	}
 	group.Done()
+}
+
+func (this *Controller) BlocksListen(from int64, to int64, api *blockchain.Api, node dao.InstanceNodes) error {
+	var err error
+	// 重新同步最近的12个区块
+	if from > to {
+		for i := to; i <= from; i++ {
+			fmt.Printf("Block Create: %+v\n", i)
+			this.SyncBlock(api, to, node)
+		}
+	}
+	this.SyncBlock(api, from, node)
 	return err
 }

@@ -12,7 +12,6 @@ import (
 	"sipemanager/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron/v3"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -85,18 +84,47 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao: object,
 	}
-	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current event time is ", time.Now())
-		nodes, err := object.GetInstancesJoinNode()
-		filterNodes := utils.RemoveRepByLoop(nodes)
-		if err != nil {
-			errors.New("cant not found nodes")
-		}
-		fmt.Printf("-------nodes-----%+v\n", filterNodes)
-		//go c.createCrossEvent(nodes)
-		go c.createBlock(filterNodes, &group)
-		group.Wait()
-	})
-	cron.Start()
+	fmt.Println("current event time is ", time.Now())
+	nodes, err := object.GetInstancesJoinNode()
+	filterNodes := utils.RemoveRepByLoop(nodes)
+	if err != nil {
+		errors.New("cant not found nodes")
+	}
+	fmt.Printf("-------nodes-----%+v\n", filterNodes)
+	//cron := cron.New()
+	//cron.AddFunc("@every 5s", func() {
+	//	fmt.Println("current event time is ", time.Now())
+	//	nodes, err := object.GetInstancesJoinNode()
+	//	filterNodes := utils.RemoveRepByLoop(nodes)
+	//	if err != nil {
+	//		errors.New("cant not found nodes")
+	//	}
+	//	fmt.Printf("-------nodes-----%+v\n", filterNodes)
+	//	go c.createCrossEvent(nodes)
+	//})
+	//cron.Start()
+
+	//go c.createCrossEvent(nodes)
+	go c.createBlock(filterNodes, &group)
+
+	//NodeChannel := make(chan struct {
+	//	ChainId     uint
+	//	BlockNumber int64
+	//})
+	//count := 2
+	//go func() {
+	//	fmt.Println("Goroutine 1")
+	//	ch <- struct{}{} // 协程结束，发出信号
+	//}()
+	//go func() {
+	//	fmt.Println("Goroutine 2")
+	//	ch <- struct{}{} // 协程结束，发出信号
+	//}()
+	//for range NodeChannel {
+	//	count--
+	//	// 当所有活动的协程都结束时，关闭管道
+	//	if count == 0 {
+	//		close(NodeChannel)
+	//	}
+	//}
 }
