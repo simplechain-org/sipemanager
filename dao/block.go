@@ -36,6 +36,13 @@ func (this *DataBaseAccessObject) GetNewBlockNumber(chainId uint) (int64, error)
 	return block.Number, nil
 }
 
+func (this *DataBaseAccessObject) GetMaxBlockNumber(chainId uint) int64 {
+	var Number int64
+	row := this.db.Raw("select IFNULL(max(number),0) number from blocks where chain_id = ?", chainId).Row()
+	row.Scan(&Number)
+	return Number
+}
+
 func (this *DataBaseAccessObject) BlockReplace(data Block) error {
 	var sql = "REPLACE INTO blocks(parentHash, sha3Uncles, miner, difficulty, number, gasLimit, gasUsed, timestamp, nonce, transactions, blockHash, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,

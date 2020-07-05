@@ -45,7 +45,7 @@ func (this *DataBaseAccessObject) MakerFinishEventUpsert(data CrossEvents) error
 		data.CrossAddress, data.ChainId).Error
 }
 
-func (this *DataBaseAccessObject) GetMaxBlockNumber(chainId uint) int64 {
+func (this *DataBaseAccessObject) GetMaxCrossNumber(chainId uint) int64 {
 	var blockNumber int64
 	row := this.db.Raw("select IFNULL(max(block_number),0) blockNumber from cross_events where chain_id = ?", chainId).Row()
 	row.Scan(&blockNumber)

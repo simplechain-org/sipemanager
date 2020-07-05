@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"math/big"
+	"sipemanager/utils"
 	"strings"
 	"sync"
 	"time"
@@ -40,12 +41,49 @@ func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 
 }
 
+func (this *Controller) ListenCrossEvent() {
+	cron := cron.New()
+	cron.AddFunc("@every 5s", func() {
+		fmt.Println("current event time is ", time.Now())
+		nodes, err := this.dao.GetInstancesJoinNode()
+		filterNodes := utils.RemoveRepByLoop(nodes)
+		if err != nil {
+			logrus.Error(&ErrLogCode{message: "routers => ListenEvent:", code: 30002, err: "cant not found nodes"})
+		}
+		fmt.Printf("-------nodes-----%+v\n", filterNodes)
+		go this.createCrossEvent(nodes)
+	})
+	cron.Start()
+}
+
+func (this *Controller) ListenBlock() {
+	var group sync.WaitGroup
+	NodeChannel := make(chan BlockChannel)
+	fmt.Println("current event time is ", time.Now())
+	nodes, err := this.dao.GetInstancesJoinNode()
+	filterNodes := utils.RemoveRepByLoop(nodes)
+	//count := len(filterNodes)
+	if err != nil {
+		logrus.Warn(&ErrLogCode{message: "routers => ListenEvent:", code: 30001, err: err.Error()})
+	}
+	go this.createBlock(filterNodes, &group, NodeChannel)
+
+	for i := 0; i <= len(filterNodes); i++ {
+		ch, ok := <-NodeChannel
+		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+		if ok {
+			go this.HeartChannel(ch, group, NodeChannel)
+		}
+	}
+
+}
+
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		fmt.Printf("current nodes %+v ", nodes[i])
 		contract, err := this.dao.GetContractById(nodes[i].ContractId)
-		blockNumber := this.dao.GetMaxBlockNumber(nodes[i].ChainId)
+		blockNumber := this.dao.GetMaxCrossNumber(nodes[i].ChainId)
 		addresses := []common.Address{
 			common.HexToAddress(nodes[i].CrossAddress),
 		}
@@ -162,11 +200,11 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 	}
 }
 
-func (this *Controller) HeartChannel(object *dao.DataBaseAccessObject, ch BlockChannel, group sync.WaitGroup, NodeChannel chan BlockChannel) {
+func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, NodeChannel chan BlockChannel) {
 
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
-		current, err := object.GetNodeById(ch.ChainId)
+		current, err := this.dao.GetNodeById(ch.ChainId)
 		if err != nil {
 			logrus.Warn(&ErrLogCode{message: "time_task => HeartChannel:", code: 20005, err: err.Error()})
 		}
@@ -194,27 +232,23 @@ func (this *Controller) HeartChannel(object *dao.DataBaseAccessObject, ch BlockC
 
 func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
 	a := time.Now()
-	for i := 0; i < len(nodes); i++ {
-		//sync all instance blocks
+	for _, node := range nodes {
 		group.Add(1)
-		go this.syncAllNodes(nodes, i, group, NodeChannel)
-
+		go this.syncAllNodes(node, group, NodeChannel)
 	}
 	fmt.Println(time.Since(a))
 }
 
-func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
-	api, err := GetRpcApi(nodes[index])
-	chainId := nodes[index].ChainId
+func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
+	api, err := GetRpcApi(node)
+	chainId := node.ChainId
 	header, err := api.GetHeaderByNumber()
-	dbMaxNum, err := this.dao.GetNewBlockNumber(chainId)
+	dbMaxNum := this.dao.GetMaxBlockNumber(chainId)
 	if err != nil {
 		logrus.Warn(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
 	}
 	newBlockNumber := header.Number.Int64()
 
-	fmt.Printf("$-----%+v\n", dbMaxNum)
-	fmt.Printf("$-----%+v\n", newBlockNumber)
 	var j int64
 	for j = dbMaxNum; j <= newBlockNumber; j++ {
 		from := j
@@ -225,7 +259,7 @@ func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group
 		} else {
 			to = newBlockNumber
 		}
-		this.BlocksListen(from, to, api, nodes[index])
+		this.BlocksListen(from, to, api, node)
 	}
 	NodeChannel <- BlockChannel{
 		ChainId:     chainId,

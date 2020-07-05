@@ -8,5 +8,5 @@ db:
   max_idle: 10
   max_open: 100
   charset: utf8mb4
-  log_mode: true
+  log_mode: false
   loc: Asia/Shanghai

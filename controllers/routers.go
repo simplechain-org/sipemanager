@@ -1,20 +1,12 @@
 package controllers
 
 import (
-	"fmt"
-	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
-	"sync"
-	"time"
-
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"sipemanager/docs"
-	"sipemanager/utils"
-
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+	"sipemanager/docs"
 )
 
 func SwaggerDoc(router *gin.Engine) {
@@ -86,45 +78,9 @@ type BlockChannel struct {
 }
 
 func ListenEvent(object *dao.DataBaseAccessObject) {
-	var group sync.WaitGroup
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao: object,
 	}
-	fmt.Println("current event time is ", time.Now())
-	nodes, err := object.GetInstancesJoinNode()
-	filterNodes := utils.RemoveRepByLoop(nodes)
-	//count := len(filterNodes)
-	if err != nil {
-		logrus.Warn(&ErrLogCode{message: "routers => ListenEvent:", code: 30001, err: err.Error()})
-	}
-
-	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current event time is ", time.Now())
-		nodes, err := object.GetInstancesJoinNode()
-		filterNodes := utils.RemoveRepByLoop(nodes)
-		if err != nil {
-			logrus.Error(&ErrLogCode{message: "routers => ListenEvent:", code: 30002, err: "cant not found nodes"})
-		}
-		fmt.Printf("-------nodes-----%+v\n", filterNodes)
-		go c.createCrossEvent(nodes)
-	})
-	cron.Start()
-
-	NodeChannel := make(chan BlockChannel)
-	go c.createBlock(filterNodes, &group, NodeChannel)
-	ch, ok := <-NodeChannel
-	logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
-
-	if ok {
-		go c.HeartChannel(object, ch, group, NodeChannel)
-	}
-	//for range NodeChannel {
-	//	count--
-	//	// 当所有活动的协程都结束时，关闭管道
-	//	if count == 0 {
-	//		close(NodeChannel)
-	//	}
-	//}
-
+	go c.ListenCrossEvent()
+	go c.ListenBlock()
 }
