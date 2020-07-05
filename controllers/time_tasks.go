@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"math/big"
 	"strings"
 	"sync"
@@ -45,7 +46,6 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 		fmt.Printf("current nodes %+v ", nodes[i])
 		contract, err := this.dao.GetContractById(nodes[i].ContractId)
 		blockNumber := this.dao.GetMaxBlockNumber(nodes[i].ChainId)
-		fmt.Printf("cxc%+v\n", blockNumber)
 		addresses := []common.Address{
 			common.HexToAddress(nodes[i].CrossAddress),
 		}
@@ -66,7 +66,6 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 		}
 
 		this.EventLog(logs, abiParsed, nodes[i])
-		fmt.Println("api ", api.GetChainId())
 
 	}
 	fmt.Println(time.Since(a))
@@ -163,18 +162,48 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 	}
 }
 
-func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup) {
+func (this *Controller) HeartChannel(object *dao.DataBaseAccessObject, ch BlockChannel, group sync.WaitGroup, NodeChannel chan BlockChannel) {
+
+	cron := cron.New()
+	cron.AddFunc("@every 5s", func() {
+		current, err := object.GetNodeById(ch.ChainId)
+		if err != nil {
+			logrus.Warn(&ErrLogCode{message: "time_task => HeartChannel:", code: 20005, err: err.Error()})
+		}
+		currents := []dao.InstanceNodes{
+			dao.InstanceNodes{
+				Address:   current.Address,
+				Port:      current.Port,
+				IsHttps:   current.IsHttps,
+				NetworkId: current.NetworkId,
+				Name:      current.Name,
+				ChainId:   current.ChainId,
+			},
+		}
+		fmt.Printf("current node is %+v", currents)
+		go this.createBlock(currents, &group, NodeChannel)
+		ch, ok := <-NodeChannel
+		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+	})
+	cron.Start()
+	// Heart Recursive execution
+	//if ok {
+	//	go this.HeartChannel(object, ch, group, NodeChannel)
+	//}
+}
+
+func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		//sync all instance blocks
 		group.Add(1)
-		go this.syncAllNodes(nodes, i, group)
+		go this.syncAllNodes(nodes, i, group, NodeChannel)
 
 	}
 	fmt.Println(time.Since(a))
 }
 
-func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group *sync.WaitGroup) {
+func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
 	api, err := GetRpcApi(nodes[index])
 	chainId := nodes[index].ChainId
 	header, err := api.GetHeaderByNumber()
@@ -198,6 +227,10 @@ func (this *Controller) syncAllNodes(nodes []dao.InstanceNodes, index int, group
 		}
 		this.BlocksListen(from, to, api, nodes[index])
 	}
+	NodeChannel <- BlockChannel{
+		ChainId:     chainId,
+		BlockNumber: dbMaxNum,
+	}
 	group.Done()
 }
 
@@ -206,10 +239,12 @@ func (this *Controller) BlocksListen(from int64, to int64, api *blockchain.Api, 
 	// 重新同步最近的12个区块
 	if from > to {
 		for i := to; i <= from; i++ {
-			fmt.Printf("Block Create: %+v\n", i)
-			this.SyncBlock(api, to, node)
+			fmt.Printf("Resync Block Create: %+v\n", i)
+			this.SyncBlock(api, i, node)
 		}
+	} else {
+		this.SyncBlock(api, from, node)
 	}
-	this.SyncBlock(api, from, node)
+
 	return err
 }

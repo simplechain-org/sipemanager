@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 
@@ -79,6 +80,11 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 }
 
+type BlockChannel struct {
+	ChainId     uint
+	BlockNumber int64
+}
+
 func ListenEvent(object *dao.DataBaseAccessObject) {
 	var group sync.WaitGroup
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
@@ -87,39 +93,32 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	fmt.Println("current event time is ", time.Now())
 	nodes, err := object.GetInstancesJoinNode()
 	filterNodes := utils.RemoveRepByLoop(nodes)
+	//count := len(filterNodes)
 	if err != nil {
-		errors.New("cant not found nodes")
+		logrus.Warn(&ErrLogCode{message: "routers => ListenEvent:", code: 30001, err: err.Error()})
 	}
-	fmt.Printf("-------nodes-----%+v\n", filterNodes)
-	//cron := cron.New()
-	//cron.AddFunc("@every 5s", func() {
-	//	fmt.Println("current event time is ", time.Now())
-	//	nodes, err := object.GetInstancesJoinNode()
-	//	filterNodes := utils.RemoveRepByLoop(nodes)
-	//	if err != nil {
-	//		errors.New("cant not found nodes")
-	//	}
-	//	fmt.Printf("-------nodes-----%+v\n", filterNodes)
-	//	go c.createCrossEvent(nodes)
-	//})
-	//cron.Start()
 
-	//go c.createCrossEvent(nodes)
-	go c.createBlock(filterNodes, &group)
+	cron := cron.New()
+	cron.AddFunc("@every 5s", func() {
+		fmt.Println("current event time is ", time.Now())
+		nodes, err := object.GetInstancesJoinNode()
+		filterNodes := utils.RemoveRepByLoop(nodes)
+		if err != nil {
+			logrus.Error(&ErrLogCode{message: "routers => ListenEvent:", code: 30002, err: "cant not found nodes"})
+		}
+		fmt.Printf("-------nodes-----%+v\n", filterNodes)
+		go c.createCrossEvent(nodes)
+	})
+	cron.Start()
 
-	//NodeChannel := make(chan struct {
-	//	ChainId     uint
-	//	BlockNumber int64
-	//})
-	//count := 2
-	//go func() {
-	//	fmt.Println("Goroutine 1")
-	//	ch <- struct{}{} // 协程结束，发出信号
-	//}()
-	//go func() {
-	//	fmt.Println("Goroutine 2")
-	//	ch <- struct{}{} // 协程结束，发出信号
-	//}()
+	NodeChannel := make(chan BlockChannel)
+	go c.createBlock(filterNodes, &group, NodeChannel)
+	ch, ok := <-NodeChannel
+	logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+
+	if ok {
+		go c.HeartChannel(object, ch, group, NodeChannel)
+	}
 	//for range NodeChannel {
 	//	count--
 	//	// 当所有活动的协程都结束时，关闭管道
@@ -127,4 +126,5 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	//		close(NodeChannel)
 	//	}
 	//}
+
 }
