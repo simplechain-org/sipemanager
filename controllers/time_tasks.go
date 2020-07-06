@@ -2,20 +2,20 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"math/big"
-	"sipemanager/utils"
 	"strings"
 	"sync"
 	"time"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+	"sipemanager/utils"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -75,6 +75,12 @@ func (this *Controller) ListenBlock() {
 			go this.HeartChannel(ch, group, NodeChannel)
 		}
 	}
+	//for range NodeChannel {
+	//	count--
+	//	if count == 0 {
+	//		close(NodeChannel)
+	//	}
+	//}
 
 }
 
