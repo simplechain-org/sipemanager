@@ -1,13 +1,19 @@
 package controllers
 
 import (
-	"github.com/simplechain-org/go-simplechain/common"
-	"github.com/gin-gonic/gin"
 	"math/big"
 	"net/http"
+	"strconv"
+	"strings"
+	"fmt"
+
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/core/types"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+
 	"sipemanager/blockchain"
 	"sipemanager/dao"
-	"strconv"
 )
 
 type Controller struct {
@@ -158,4 +164,95 @@ func (this *Controller) onChangeNode(userId uint) (*blockchain.Api, error) {
 		return nil, err
 	}
 	return api, nil
+}
+
+func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.InstanceNodes) {
+	chainId := node.ChainId
+	fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
+	block, err := api.BlockByNumber(big.NewInt(0).SetInt64(number))
+	if err != nil {
+		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20004, err: err.Error()})
+	}
+	blockRecord := dao.Block{
+		ParentHash:   block.ParentHash().Hex(),
+		UncleHash:    block.UncleHash().Hex(),
+		CoinBase:     block.Coinbase().Hex(),
+		Difficulty:   block.Difficulty().Int64(),
+		Number:       block.Number().Int64(),
+		GasLimit:     block.GasLimit(),
+		GasUsed:      block.GasUsed(),
+		Time:         block.Time(),
+		Nonce:        block.Nonce(),
+		Transactions: len(block.Transactions()),
+		BlockHash:    block.Hash().Hex(),
+		ChainId:      chainId,
+	}
+	replaceErr := this.dao.BlockReplace(blockRecord)
+	if replaceErr != nil {
+		fmt.Printf("%+v\n", blockRecord)
+		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20005, err: err.Error()})
+	}
+
+	if len(block.Transactions()) > 0 {
+		for index, transaction := range block.Transactions() {
+			netId := api.GetNetworkId()
+			// 获取from地址
+			msg, err := transaction.AsMessage(types.NewEIP155Signer(big.NewInt(0).SetUint64(netId)))
+			if err != nil {
+				logrus.Error(err.Error())
+			}
+			from := msg.From().Hex()
+			receipt, err := api.TransactionReceipt(transaction.Hash())
+			if err != nil {
+				logrus.Error("TransactionReceipt:", err)
+			}
+			// hexutil.Encode(transaction.Data()),
+			txRecord := dao.Transaction{
+				BlockHash:        block.Hash().Hex(),
+				BlockNumber:      block.Number().Int64(),
+				Hash:             transaction.Hash().Hex(),
+				From:             strings.ToLower(from),
+				GasUsed:          block.GasUsed(),
+				GasPrice:         transaction.GasPrice().String(),
+				Input:            transaction.Data(),
+				Nonce:            transaction.Nonce(),
+				TransactionIndex: int64(index),
+				Value:            transaction.Value().String(),
+				Timestamp:        block.Time(),
+				Status:           receipt.Status,
+				ChainId:          chainId,
+			}
+			if transaction.To() != nil {
+				txRecord.To = strings.ToLower(transaction.To().Hex())
+			}
+			txReplaceErr := this.dao.TxReplace(txRecord)
+			if txReplaceErr != nil {
+				logrus.Error("Transactions Create:", err.Error())
+			}
+
+		}
+	}
+
+	if len(block.Uncles()) > 0 {
+		for _, uncle := range block.Uncles() {
+			uncleRecord := dao.Uncle{
+				ParentHash:  uncle.ParentHash.Hex(),
+				UncleHash:   uncle.UncleHash.Hex(),
+				CoinBase:    uncle.Coinbase.Hex(),
+				Difficulty:  uncle.Difficulty.Int64(),
+				Number:      uncle.Number.Int64(),
+				GasLimit:    uncle.GasLimit,
+				GasUsed:     uncle.GasUsed,
+				Time:        uncle.Time,
+				Nonce:       uncle.Nonce.Uint64(),
+				ChainId:     chainId,
+				BlockNumber: block.Number().Int64(),
+			}
+			uncleReplaceErr := this.dao.UncleReplace(uncleRecord)
+			if uncleReplaceErr != nil {
+				logrus.Error("UncleRecord Create:", err.Error())
+			}
+		}
+
+	}
 }

@@ -59,4 +59,8 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&TakerOrder{})
 	db.AutoMigrate(&ChainRegister{})
 	db.AutoMigrate(&RetroActive{})
+	db.AutoMigrate(&CrossEvents{})
+	db.AutoMigrate(&Block{})
+	db.AutoMigrate(&Transaction{})
+	db.AutoMigrate(&Uncle{})
 }

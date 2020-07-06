@@ -1,6 +1,8 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+)
 
 //合约实例
 type ContractInstance struct {
@@ -64,4 +66,45 @@ func (this *DataBaseAccessObject) GetContractInstances() ([]*ContractInstance, e
 	contracts := make([]*ContractInstance, 0)
 	err := this.db.Table((&ContractInstance{}).TableName()).Select("id,chain_id,tx_hash,address").Find(&contracts).Error
 	return contracts, err
+}
+
+type InstanceNodes struct {
+	CrossAddress string `json:"cross_address"`
+	Address      string `json:"address"`
+	Port         int    `json:"port"`
+	IsHttps      bool   `json:"is_https"`
+	NetworkId    uint64 `json:"network_id"`
+	Name         string `json:"name"`
+	ChainId      uint   `json:"chain_id"`
+	ContractId   uint   `json:"contract_id"`
+}
+
+func (this *DataBaseAccessObject) GetInstancesJoinNode() ([]InstanceNodes, error) {
+	insNodes := make([]InstanceNodes, 0)
+	var sql = `SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, n.network_id, n.name, n.chain_id 
+				from
+				(select address cross_address, chain_id, contract_id from 
+					contract_instances
+					WHERE id in 
+						(SELECT contract_instance_id id from chain_contracts )
+						and 
+						deleted_at is null
+				) t
+				LEFT JOIN nodes n on n.chain_id = t.chain_id`
+	var result InstanceNodes
+	rows, err := this.db.Raw(sql).Rows()
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(
+			&result.CrossAddress,
+			&result.ContractId,
+			&result.Address,
+			&result.Port,
+			&result.IsHttps,
+			&result.NetworkId,
+			&result.Name,
+			&result.ChainId)
+		insNodes = append(insNodes, result)
+	}
+	return insNodes, err
 }

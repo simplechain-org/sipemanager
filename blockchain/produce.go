@@ -3,11 +3,11 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"math/big"
+
 	"github.com/simplechain-org/go-simplechain/common/hexutil"
 	"github.com/simplechain-org/go-simplechain/core/types"
 	"github.com/simplechain-org/go-simplechain/rlp"
-	"math/big"
-
 	"github.com/simplechain-org/go-simplechain"
 	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/simplechain-org/go-simplechain/common"
@@ -31,7 +31,7 @@ func (this *Api) Produce(contractConfig *ContractConfig, changeParam *ChangePara
 		return "", err
 	}
 	remoteChainId := big.NewInt(0).SetUint64(contractConfig.TargetChainId)
-	out, err := abi.Pack("makerStart", remoteChainId, changeParam.TargetValue,common.HexToAddress("0x0"), changeParam.Input)
+	out, err := abi.Pack("makerStart", remoteChainId, changeParam.TargetValue, common.HexToAddress("0x0"), changeParam.Input)
 	if err != nil {
 		return "", err
 	}

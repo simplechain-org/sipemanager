@@ -2,13 +2,16 @@ package blockchain
 
 import (
 	"context"
+	"math/big"
+	"time"
 	"fmt"
+
+	"github.com/simplechain-org/go-simplechain"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/core/types"
 	"github.com/simplechain-org/go-simplechain/ethclient"
 	"github.com/simplechain-org/go-simplechain/rpc"
-	"math/big"
-	"time"
+	"github.com/sirupsen/logrus"
 )
 
 type Node struct {
@@ -114,4 +117,24 @@ func (this *Api) GetNetworkId() uint64 {
 }
 func (this *Api) GetChainId() uint {
 	return this.chainId
+}
+func (this *Api) GetPastEvents(query simplechain.FilterQuery) ([]types.Log, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	log, err := this.simpleClient.FilterLogs(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return log, nil
+}
+
+func (this *Api) GetHeaderByNumber() (*types.Header, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	header, err := this.simpleClient.HeaderByNumber(ctx, nil)
+	if err != nil {
+		logrus.Error(err.Error())
+		return nil, err
+	}
+	return header, nil
 }

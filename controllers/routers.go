@@ -1,19 +1,20 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 	"sipemanager/docs"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SwaggerDoc(router *gin.Engine, object *dao.DataBaseAccessObject) {
+func SwaggerDoc(router *gin.Engine) {
 	docs.SwaggerInfo.Title = "Sipe Manager API"
 	docs.SwaggerInfo.Description = "区块链管理系统api文档"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "192.168.3.109:8092"
+	docs.SwaggerInfo.Host = "192.168.4.109:8092"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	router.GET("/api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -53,6 +54,9 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/contract/list", validateLogin, c.ListContract)
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 	router.GET("/api/v1/contract/instance/list", validateLogin, c.GetContractInstances)
+	router.POST("/api/v1/contract/instance/import", validateLogin, c.GetContractInstances)
+
+	router.POST("/api/v1/contract/register/once", validateLogin, c.RegisterChainTwoWay)
 
 	router.POST("/api/v1/contract/instance/add", validateLogin, c.AddContractInstance)
 
@@ -69,4 +73,17 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
+}
+
+type BlockChannel struct {
+	ChainId     uint
+	BlockNumber int64
+}
+
+func ListenEvent(object *dao.DataBaseAccessObject) {
+	c := &Controller{userClient: make(map[uint]*blockchain.Api),
+		dao: object,
+	}
+	go c.ListenCrossEvent()
+	go c.ListenBlock()
 }

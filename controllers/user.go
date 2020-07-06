@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"errors"
+	"net/http"
+	"time"
+
+	"sipemanager/dao"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"sipemanager/dao"
-	"time"
 )
 
 var secretKey = "Svhv*Zv5g&Wecr61BpTh&"

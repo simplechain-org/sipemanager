@@ -70,8 +70,5 @@ func (this *DataBaseAccessObject) UserHasNode(userId uint) bool {
 	if err != nil {
 		return false
 	}
-	if count > 0 {
-		return true
-	}
-	return false
+	return count > 0
 }
