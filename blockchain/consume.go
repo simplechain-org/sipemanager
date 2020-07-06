@@ -95,7 +95,7 @@ func (this *Api) Consume(foundCtxId string, contractConfig *ContractConfig, call
 				}
 				//必须给足了值
 				sourceValue := v.DestinationValue.ToInt()
-				msg := ethereum.CallMsg{
+				msg := simplechain.CallMsg{
 					From:     callerConfig.From,
 					To:       &contractConfig.ContractAddress,
 					Data:     out,

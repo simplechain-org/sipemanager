@@ -43,7 +43,7 @@ func (this *Api) Produce(contractConfig *ContractConfig, changeParam *ChangePara
 	if err != nil {
 		return "", err
 	}
-	msg := ethereum.CallMsg{
+	msg := simplechain.CallMsg{
 		From:     callerConfig.From,
 		To:       &contractConfig.ContractAddress,
 		Data:     out,

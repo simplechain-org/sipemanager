@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/simplechain-org/go-simplechain/accounts/keystore"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/miguelmota/go-ethereum-hdwallet"
+	"github.com/simplechain-org/go-simplechain-hdwallet"
 	"github.com/pborman/uuid"
 )
 
