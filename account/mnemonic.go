@@ -2,8 +2,8 @@ package account
 
 import (
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/simplechain-org/go-simplechain/accounts/keystore"
+	"github.com/simplechain-org/go-simplechain/crypto"
 	"github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/pborman/uuid"
 )

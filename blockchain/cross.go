@@ -6,13 +6,15 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"time"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/go-simplechain"
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/common/hexutil"
+	"github.com/simplechain-org/go-simplechain/core/types"
+	"github.com/simplechain-org/go-simplechain/cross/backend"
+	"github.com/simplechain-org/go-simplechain/rlp"
 )
 
 type CrossTransaction struct {
@@ -100,7 +102,7 @@ func (this *Api) RegisterChain(config *RegisterChainConfig, callerConfig *Caller
 	if err != nil {
 		return "", err
 	}
-	msg := ethereum.CallMsg{
+	msg := simplechain.CallMsg{
 		From:     callerConfig.From,
 		To:       &config.ContractAddress,
 		Data:     out,
@@ -129,5 +131,32 @@ func (this *Api) RegisterChain(config *RegisterChainConfig, callerConfig *Caller
 		return "", err
 	}
 	return result.String(), nil
-
+}
+func (this *Api) CtxQuery(hash common.Hash) (*backend.RPCCrossTransaction, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	crossTx, err := this.simpleClient.CtxQuery(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	return crossTx, nil
+}
+func (this *Api) GetMakerTx(ctxId common.Hash,contract common.Address,from common.Address,abiData []byte,targetNetworkId *big.Int) (bool,error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	abi, err := abi.JSON(bytes.NewReader(abiData))
+	if err != nil {
+		return false, err
+	}
+	input, err := abi.Pack("getMakerTx", ctxId, targetNetworkId)
+	msg   := simplechain.CallMsg{From: from, To: &contract, Data: input}
+	result,err := this.simpleClient.CallContract(ctx,msg,nil);
+	if err != nil {
+		return false, err
+	}
+	if new(big.Int).SetBytes(result).Cmp(big.NewInt(0)) > 0 { // error if makerTx is not existed in source-chain
+		return true, nil
+	} else {
+		return false, nil
+	}
 }

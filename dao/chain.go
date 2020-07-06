@@ -95,3 +95,14 @@ func (this *DataBaseAccessObject) GetChainIdByContractAddress(address string) (u
 		Order("id desc").Limit(1).Scan(&result).Error
 	return result.ChainId, err
 }
+
+func (this *DataBaseAccessObject) GetChainIdByNetworkId(networkId uint64) (uint, error) {
+	//读取单个字段时，需要创建一个结构体，因为scan的参数是slice or struct
+	type Result struct {
+		ChainId uint
+	}
+	var result Result
+	err := this.db.Table((&ContractInstance{}).TableName()).Where("network_id=?", networkId).
+		Order("id desc").Limit(1).Scan(&result).Error
+	return result.ChainId, err
+}

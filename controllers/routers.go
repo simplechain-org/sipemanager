@@ -67,4 +67,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.POST("/api/v1/contract/register/add", validateLogin, c.RegisterChainAdd)
 
+	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
+	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 }

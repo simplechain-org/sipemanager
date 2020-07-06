@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/gin-gonic/gin"
 	"math/big"
 	"net/http"

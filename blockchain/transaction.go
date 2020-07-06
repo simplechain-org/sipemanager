@@ -3,12 +3,12 @@ package blockchain
 import (
 	"context"
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/go-simplechain"
+	"github.com/simplechain-org/go-simplechain/accounts/keystore"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/common/hexutil"
+	"github.com/simplechain-org/go-simplechain/core/types"
+	"github.com/simplechain-org/go-simplechain/rlp"
 	"math/big"
 )
 
@@ -29,7 +29,7 @@ func (this *Api) DeployContract(from common.Address, amount *big.Int, data []byt
 	if err != nil {
 		return "", err
 	}
-	msg := ethereum.CallMsg{
+	msg := simplechain.CallMsg{
 		From:     from,
 		GasPrice: gasPrice,
 		Data:     data,

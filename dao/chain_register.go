@@ -67,3 +67,16 @@ func (this *DataBaseAccessObject) ListChainRegisterByStatus(status int) ([]Chain
 		Find(&result).Error
 	return result, err
 }
+
+func (this *DataBaseAccessObject) GetTargetChainIdBySourceChainId(sourceChainId uint) (uint, error) {
+	type Result struct {
+		TargetChainId uint
+	}
+	var result Result
+	err := this.db.Model(&ChainRegister{}).
+		Where("source_chain_id=?", sourceChainId).
+		Select("target_chain_id").
+		Order("id desc").
+		Limit(1).Scan(&result).Error
+	return result.TargetChainId, err
+}
