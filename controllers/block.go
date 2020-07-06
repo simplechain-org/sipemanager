@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-
 	"math/big"
 	"net/http"
 	"strconv"
