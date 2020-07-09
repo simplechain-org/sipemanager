@@ -31,3 +31,12 @@ func (this *DataBaseAccessObject) TxReplace(data Transaction) error {
 		data.TransactionIndex, data.Value, data.Timestamp,
 		data.Status, data.ChainId).Error
 }
+
+func (this *DataBaseAccessObject) GetTxByHash(hash string) (*Transaction, error) {
+	var tx Transaction
+	err := this.db.Table((&Transaction{}).TableName()).Where("hash=?", hash).First(&tx).Error
+	if err != nil {
+		return nil, err
+	}
+	return &tx, nil
+}
