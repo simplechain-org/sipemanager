@@ -34,14 +34,15 @@ elif [ $# -eq 1 ];then
 
 	elif [ $platform == "mac" ];then	
 		GOOS=darwin GOARCH=amd64 go build
-#		cd webroot
-#		npm run build
-#		cd ..
+		cd webroot
+	  npm run build
+#   npm install
+		cd ..
 		rm -rf build/mac
-		mkdir build/mac
+		mkdir -p build/mac
 		mv sipemanager build/mac/
-#		mkdir -p build/mac/webroot
-#		mv webroot/dist build/mac/webroot
+		mkdir -p build/mac/webroot
+		mv webroot/dist build/mac/webroot
 		cp -r etc build/mac/
 		cp -r docs build/mac/
 		cp start.sh build/mac/

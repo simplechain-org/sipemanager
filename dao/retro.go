@@ -62,3 +62,11 @@ func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int,offset,limi
 	}
 	return nil, errors.New("offset >= count")
 }
+func (this *DataBaseAccessObject) QueryRetroActive(txHash string) (*RetroActive, error) {
+	var retro RetroActive
+	err := this.db.Table((&RetroActive{}).TableName()).Where("tx_hash=?", txHash).First(&retro).Error
+	if err != nil {
+		return nil, err
+	}
+	return &retro, nil
+}

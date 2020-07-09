@@ -72,3 +72,11 @@ func (this *DataBaseAccessObject) UserHasNode(userId uint) bool {
 	}
 	return count > 0
 }
+func (this *DataBaseAccessObject) GetNodeByUserIdAndNetworkId(userId uint,networkId uint64) (*Node, error) {
+	var node Node
+	err := this.db.Table(nodeTableName).Where("user_id=? and network_id=?", userId,networkId).Order("id desc").First(&node).Error
+	if err != nil {
+		return nil, err
+	}
+	return &node, nil
+}

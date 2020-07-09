@@ -132,14 +132,15 @@ func (this *Api) RegisterChain(config *RegisterChainConfig, callerConfig *Caller
 	}
 	return result.String(), nil
 }
-func (this *Api) CtxQuery(hash common.Hash) (*backend.RPCCrossTransaction, error) {
+func (this *Api) CtxGet(hash common.Hash) (*backend.RPCCrossTransaction, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
-	crossTx, err := this.simpleClient.CtxQuery(ctx, hash)
+	var r *backend.RPCCrossTransaction
+	err := this.client.CallContext(ctx, &r, "cross_ctxGet", hash)
 	if err != nil {
 		return nil, err
 	}
-	return crossTx, nil
+	return r, nil
 }
 func (this *Api) GetMakerTx(ctxId common.Hash,contract common.Address,from common.Address,abiData []byte,targetNetworkId *big.Int) (bool,error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
