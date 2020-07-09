@@ -5,7 +5,6 @@ import (
 	_ "errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	_ "github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -43,18 +42,6 @@ func TestGetTxByHash(t *testing.T) {
 	}
 	t.Log(id)
 
-}
-
-type Recept struct {
-	TxId   common.Hash
-	TxHash common.Hash
-	From   common.Address
-	To     common.Address
-}
-
-type MakerFinish struct {
-	Rtx           Recept
-	RemoteChainId *big.Int
 }
 
 func TestGetTxReplace(t *testing.T) {
@@ -142,8 +129,7 @@ func TestGetTxReplace(t *testing.T) {
 			if err != nil {
 				fmt.Println("abi.MethodById err=", err)
 			}
-			t.Log(args.Rtx.To.Hex())
-
+			t.Log(args.Rtx.TxId.Hex())
 		}
 	}
 

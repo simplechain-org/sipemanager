@@ -1,19 +1,20 @@
 package controllers
 
 import (
+	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
-	"fmt"
-
-	"github.com/simplechain-org/go-simplechain/common"
-	"github.com/simplechain-org/go-simplechain/core/types"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+
+	"github.com/gin-gonic/gin"
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/core/types"
+	"github.com/sirupsen/logrus"
 )
 
 type Controller struct {
@@ -221,15 +222,32 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 				Timestamp:        block.Time(),
 				Status:           receipt.Status,
 				ChainId:          chainId,
+				Fee:              transaction.GasPrice().Uint64() * block.GasUsed(),
 			}
 			if transaction.To() != nil {
 				txRecord.To = strings.ToLower(transaction.To().Hex())
+			}
+
+			contract, err := this.dao.GetContractById(node.ContractId)
+			abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
+
+			fmt.Printf("---- %+v\n", abiParsed)
+			sigdata := transaction.Data()[:4]
+
+			argdata := transaction.Data()[4:]
+			fmt.Println(argdata)
+			method, err := abiParsed.MethodById(sigdata)
+			var args dao.MakerFinish
+			UnpackErr := method.Inputs.Unpack(&args, argdata)
+			if UnpackErr != nil {
+
+			} else {
+				txRecord.EventType = "makerFinish"
 			}
 			txReplaceErr := this.dao.TxReplace(txRecord)
 			if txReplaceErr != nil {
 				logrus.Error("Transactions Create:", err.Error())
 			}
-
 		}
 	}
 
@@ -256,21 +274,21 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 
 	}
 }
-func (this *Controller) getApi(userId uint,networkId uint64) (*blockchain.Api, error) {
-		node, err := this.dao.GetNodeByUserIdAndNetworkId(userId,networkId)
-		if err != nil {
-			return nil, err
-		}
-		n := &blockchain.Node{
-			Address:   node.Address,
-			Port:      node.Port,
-			ChainId:   node.ChainId,
-			IsHttps:   node.IsHttps,
-			NetworkId: node.NetworkId,
-		}
-		api, err := blockchain.NewApi(n)
-		if err != nil {
-			return nil, err
-		}
-		return api, nil
+func (this *Controller) getApi(userId uint, networkId uint64) (*blockchain.Api, error) {
+	node, err := this.dao.GetNodeByUserIdAndNetworkId(userId, networkId)
+	if err != nil {
+		return nil, err
+	}
+	n := &blockchain.Node{
+		Address:   node.Address,
+		Port:      node.Port,
+		ChainId:   node.ChainId,
+		IsHttps:   node.IsHttps,
+		NetworkId: node.NetworkId,
+	}
+	api, err := blockchain.NewApi(n)
+	if err != nil {
+		return nil, err
+	}
+	return api, nil
 }

@@ -64,21 +64,21 @@ func TestDataBaseAccessObject_GetChainIdByContractAddress(t *testing.T) {
 
 }
 
-func TestDataBaseAccessObject_GetTargetChainId(t *testing.T) {
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	obj := NewDataBaseAccessObject(db)
-
-	var sourceChainId uint = 2
-
-	var targetNetwordId int = 1
-
-	chainId, err := obj.GetTargetChainId(sourceChainId, targetNetwordId)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println("chainId=", chainId)
-}
+//func TestDataBaseAccessObject_GetTargetChainId(t *testing.T) {
+//	db, err := GetDBConnection(config)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	obj := NewDataBaseAccessObject(db)
+//
+//	var sourceChainId uint = 2
+//
+//	var targetNetwordId int = 1
+//
+//	chainId, err := obj.GetTargetChainId(sourceChainId, targetNetwordId)
+//
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	fmt.Println("chainId=", chainId)
+//}

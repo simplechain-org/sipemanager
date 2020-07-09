@@ -86,4 +86,6 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	}
 	go c.ListenCrossEvent()
 	go c.ListenBlock()
+	//go c.ListenAnchors()
+
 }

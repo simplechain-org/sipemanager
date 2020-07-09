@@ -56,6 +56,22 @@ func (this *Controller) ListenCrossEvent() {
 	cron.Start()
 }
 
+func (this *Controller) ListenAnchors() {
+	cron := cron.New()
+	cron.AddFunc("@every 5s", func() {
+		nodes, err := this.dao.GetInstancesJoinNode()
+		if err != nil {
+			logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})
+		}
+		filterNodes := utils.RemoveRepByLoop(nodes)
+		for _, item := range filterNodes {
+			go this.findAnchors(item)
+		}
+
+	})
+	cron.Start()
+}
+
 func (this *Controller) ListenBlock() {
 	var group sync.WaitGroup
 	NodeChannel := make(chan BlockChannel)
@@ -251,7 +267,12 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGro
 	header, err := api.GetHeaderByNumber()
 	dbMaxNum := this.dao.GetMaxBlockNumber(chainId)
 	if err != nil {
-		logrus.Warn(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
+		defer func() {
+			if panicErr := recover(); panicErr != nil {
+				logrus.Error(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
+			}
+		}()
+		panic(err.Error())
 	}
 	newBlockNumber := header.Number.Int64()
 

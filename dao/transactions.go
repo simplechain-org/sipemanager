@@ -1,6 +1,10 @@
 package dao
 
-//todo anchors From crossAddress makerFinish status
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
+)
+
 type Transaction struct {
 	BlockHash        string `gorm:"column:blockHash"`
 	BlockNumber      int64  `gorm:"column:blockNumber"`
@@ -16,6 +20,20 @@ type Transaction struct {
 	Timestamp        uint64 `gorm:"column:timestamp"`
 	Status           uint64 `gorm:"column:status"`
 	ChainId          uint   `gorm:"primary_key" gorm:"column:chain_id" sql:"type:INT UNSIGNED NOT NULL"`
+	EventType        string `gorm:"column:eventType"`
+	Fee              uint64 `gorm:"column:fee"`
+}
+
+type Recept struct {
+	TxId   common.Hash
+	TxHash common.Hash
+	From   common.Address
+	To     common.Address
+}
+
+type MakerFinish struct {
+	Rtx           Recept
+	RemoteChainId *big.Int
 }
 
 func (this *Transaction) TableName() string {
@@ -23,13 +41,13 @@ func (this *Transaction) TableName() string {
 }
 
 func (this *DataBaseAccessObject) TxReplace(data Transaction) error {
-	var sql = "REPLACE INTO transactions(blockHash, blockNumber, hash, `from`, gasUsed, gasPrice, input, nonce, `to`, transactionIndex, value, timestamp, status, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	var sql = "REPLACE INTO transactions(blockHash, blockNumber, hash, `from`, gasUsed, gasPrice, input, nonce, `to`, transactionIndex, value, timestamp, status, chain_id, eventType, fee) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,
 		data.BlockHash, data.BlockNumber, data.Hash,
 		data.From, data.GasUsed, data.GasPrice,
 		data.Input, data.Nonce, data.To,
 		data.TransactionIndex, data.Value, data.Timestamp,
-		data.Status, data.ChainId).Error
+		data.Status, data.ChainId, data.EventType, data.Fee).Error
 }
 
 func (this *DataBaseAccessObject) GetTxByHash(hash string) (*Transaction, error) {
@@ -39,4 +57,13 @@ func (this *DataBaseAccessObject) GetTxByHash(hash string) (*Transaction, error)
 		return nil, err
 	}
 	return &tx, nil
+}
+
+func (this *DataBaseAccessObject) GetTxByAnchors(chainId uint, from string, to string) ([]Transaction, error) {
+	result := make([]Transaction, 0)
+	err := this.db.Table((&Transaction{}).TableName()).Where("chain_id=? and from =? and to =?", chainId, from, to).Find(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
