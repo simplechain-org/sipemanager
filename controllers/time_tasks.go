@@ -232,12 +232,13 @@ func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, Node
 		}
 		currents := []dao.InstanceNodes{
 			dao.InstanceNodes{
-				Address:   current.Address,
-				Port:      current.Port,
-				IsHttps:   current.IsHttps,
-				NetworkId: current.NetworkId,
-				Name:      current.Name,
-				ChainId:   current.ChainId,
+				Address:    current.Address,
+				Port:       current.Port,
+				IsHttps:    current.IsHttps,
+				NetworkId:  current.NetworkId,
+				Name:       current.Name,
+				ChainId:    current.ChainId,
+				ContractId: ch.currentNode.ContractId,
 			},
 		}
 		fmt.Printf("current node is %+v", currents)
@@ -291,6 +292,7 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGro
 	NodeChannel <- BlockChannel{
 		ChainId:     chainId,
 		BlockNumber: dbMaxNum,
+		currentNode: node,
 	}
 	group.Done()
 }

@@ -78,6 +78,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 type BlockChannel struct {
 	ChainId     uint
 	BlockNumber int64
+	currentNode dao.InstanceNodes
 }
 
 func ListenEvent(object *dao.DataBaseAccessObject) {

@@ -190,7 +190,6 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 	}
 	replaceErr := this.dao.BlockReplace(blockRecord)
 	if replaceErr != nil {
-		fmt.Printf("%+v\n", blockRecord)
 		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20005, err: err.Error()})
 	}
 
@@ -231,11 +230,8 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 			contract, err := this.dao.GetContractById(node.ContractId)
 			abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
 
-			fmt.Printf("---- %+v\n", abiParsed)
 			sigdata := transaction.Data()[:4]
-
 			argdata := transaction.Data()[4:]
-			fmt.Println(argdata)
 			method, err := abiParsed.MethodById(sigdata)
 			var args dao.MakerFinish
 			UnpackErr := method.Inputs.Unpack(&args, argdata)
