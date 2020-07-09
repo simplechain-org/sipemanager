@@ -212,7 +212,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 				BlockNumber:      block.Number().Int64(),
 				Hash:             transaction.Hash().Hex(),
 				From:             strings.ToLower(from),
-				GasUsed:          block.GasUsed(),
+				GasUsed:          strconv.FormatUint(block.GasUsed(), 10),
 				GasPrice:         transaction.GasPrice().String(),
 				Input:            transaction.Data(),
 				Nonce:            transaction.Nonce(),
@@ -221,7 +221,6 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 				Timestamp:        block.Time(),
 				Status:           receipt.Status,
 				ChainId:          chainId,
-				Fee:              transaction.GasPrice().Uint64() * block.GasUsed(),
 			}
 			if transaction.To() != nil {
 				txRecord.To = strings.ToLower(transaction.To().Hex())
