@@ -59,15 +59,14 @@ func (this *Controller) ListenCrossEvent() {
 func (this *Controller) ListenAnchors() {
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
-		nodes, err := this.dao.GetInstancesJoinNode()
-		if err != nil {
-			logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})
-		}
-		filterNodes := utils.RemoveRepByLoop(nodes)
-		for _, item := range filterNodes {
-			go this.findAnchors(item)
-		}
-
+		//nodes, err := this.dao.GetInstancesJoinNode()
+		//if err != nil {
+		//	logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})
+		//}
+		//filterNodes := utils.RemoveRepByLoop(nodes)
+		//for _, node := range filterNodes {
+		this.AnalysisAnchors()
+		//}
 	})
 	cron.Start()
 }
@@ -103,7 +102,7 @@ func (this *Controller) ListenBlock() {
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
-		fmt.Printf("current nodes %+v ", nodes[i])
+		//fmt.Printf("current nodes %+v ", nodes[i])
 		contract, err := this.dao.GetContractById(nodes[i].ContractId)
 		blockNumber := this.dao.GetMaxCrossNumber(nodes[i].ChainId)
 		addresses := []common.Address{
@@ -241,15 +240,23 @@ func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, Node
 				ContractId: ch.currentNode.ContractId,
 			},
 		}
-		fmt.Printf("current node is %+v", currents)
 		go this.createBlock(currents, &group, NodeChannel)
 		ch, ok := <-NodeChannel
-		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+		logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
+		//select {
+		//case <-NodeChannel:
+		//	fmt.Println("消费完成……………………")
+		//	return
+		//case <-time.After(time.Second * 5):
+		//	fmt.Println("超时………………………")
+		//	return
+		//}
 	})
 	cron.Start()
 	// Heart Recursive execution
 	//if ok {
-	//	go this.HeartChannel(object, ch, group, NodeChannel)
+	//	time.Sleep(10 * time.Second)
+	//	go this.HeartChannel(ch, group, NodeChannel)
 	//}
 }
 
@@ -302,7 +309,7 @@ func (this *Controller) BlocksListen(from int64, to int64, api *blockchain.Api, 
 	// 重新同步最近的12个区块
 	if from > to {
 		for i := to; i <= from; i++ {
-			fmt.Printf("Resync Block Create: %+v\n", i)
+			//fmt.Printf("Resync Block Create: %+v\n", i)
 			this.SyncBlock(api, i, node)
 		}
 	} else {

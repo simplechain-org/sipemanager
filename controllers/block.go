@@ -10,6 +10,7 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/simplechain-org/go-simplechain/common"
@@ -169,7 +170,7 @@ func (this *Controller) onChangeNode(userId uint) (*blockchain.Api, error) {
 
 func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.InstanceNodes) {
 	chainId := node.ChainId
-	fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
+	//fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
 	block, err := api.BlockByNumber(big.NewInt(0).SetInt64(number))
 	if err != nil {
 		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20004, err: err.Error()})
@@ -238,10 +239,33 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 
 			} else {
 				txRecord.EventType = "makerFinish"
+				targetChain, err := this.dao.GetChainByNetWorkId(args.RemoteChainId.Uint64())
+				if err != nil {
+					logrus.Error("CrossAnchors => GetChainByNetWorkId:", err.Error())
+				}
+				crossRecord := dao.CrossAnchors{
+					BlockNumber:     txRecord.BlockNumber,
+					GasUsed:         txRecord.GasUsed,
+					GasPrice:        txRecord.GasPrice,
+					ContractAddress: txRecord.To,
+					Timestamp:       txRecord.Timestamp,
+					Status:          txRecord.Status,
+					ChainId:         txRecord.ChainId,
+					RemoteChainId:   targetChain.ID,
+					EventType:       txRecord.EventType,
+					NetworkId:       node.NetworkId,
+					RemoteNetworkId: args.RemoteChainId.Uint64(),
+					AnchorAddress:   txRecord.From,
+					TxId:            args.Rtx.TxId.Hex(),
+				}
+				crossErr := this.dao.CrossAnchorsReplace(crossRecord)
+				if crossErr != nil {
+					logrus.Error("CrossAnchors Create:", crossErr.Error())
+				}
 			}
 			txReplaceErr := this.dao.TxReplace(txRecord)
 			if txReplaceErr != nil {
-				logrus.Error("Transactions Create:", err.Error())
+				logrus.Error("Transactions Create:", txReplaceErr.Error())
 			}
 		}
 	}

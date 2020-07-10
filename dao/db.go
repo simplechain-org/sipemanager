@@ -65,4 +65,5 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&Uncle{})
 	db.AutoMigrate(&AnchorNode{})
 	db.AutoMigrate(&TxAnchors{})
+	db.AutoMigrate(&CrossAnchors{})
 }

@@ -29,6 +29,14 @@ func (this *DataBaseAccessObject) GetChain(chainId uint) (*Chain, error) {
 	}
 	return &chain, nil
 }
+func (this *DataBaseAccessObject) GetChainByNetWorkId(NetWorkId uint64) (*Chain, error) {
+	var chain Chain
+	err := this.db.Table((&Chain{}).TableName()).Where("network_id=?", NetWorkId).First(&chain).Error
+	if err != nil {
+		return nil, err
+	}
+	return &chain, nil
+}
 func (this *DataBaseAccessObject) GetChains() ([]*Chain, error) {
 	chains := make([]*Chain, 0)
 	err := this.db.Table((&Chain{}).TableName()).Find(&chains).Error
