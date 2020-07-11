@@ -2,6 +2,7 @@ package dao
 
 type TxAnchors struct {
 	From            string `gorm:"primary_key" gorm:"column:from"` //锚定节点地址
+	To              string `gorm:"column:to"`                      //跨链合约地址
 	SourceChainId   uint   `gorm:"source_chain_id"`
 	TargetChainId   uint   `gorm:"target_chain_id"`
 	SourceNetworkId uint64 `gorm:"source_network_id"`
@@ -32,9 +33,9 @@ days LIMIT 24) day_list on day_list.day = data.day
 }
 
 func (this *DataBaseAccessObject) TxAnchorsReplace(data TxAnchors) error {
-	var sql = "REPLACE INTO tx_anchors(`from`, source_chain_id, target_chain_id, source_network_id, target_network_id,  anchor_id, fee, date, count, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?)"
+	var sql = "REPLACE INTO tx_anchors(`from`,`to`, source_chain_id, target_chain_id, source_network_id, target_network_id,  anchor_id, fee, date, count, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,
-		data.From, data.SourceChainId,
+		data.From, data.To, data.SourceChainId,
 		data.TargetChainId, data.SourceNetworkId, data.TargetChainId, data.AnchorId, data.Fee,
 		data.Date, data.Count, data.ChainId).Error
 }

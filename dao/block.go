@@ -51,3 +51,29 @@ func (this *DataBaseAccessObject) BlockReplace(data Block) error {
 		data.GasUsed, data.Time, data.Nonce,
 		data.Transactions, data.BlockHash, data.ChainId).Error
 }
+
+func (this *DataBaseAccessObject) UpdateBlock(data Block) error {
+
+	number := this.db.Table((&Block{}).TableName()).Where("chain_id=?", data.ChainId).
+		Update(Block{
+			ParentHash:   data.ParentHash,
+			UncleHash:    data.UncleHash,
+			CoinBase:     data.CoinBase,
+			Difficulty:   data.Difficulty,
+			Number:       data.Number,
+			GasLimit:     data.GasLimit,
+			GasUsed:      data.GasUsed,
+			Time:         data.Time,
+			Nonce:        data.Nonce,
+			Transactions: data.Transactions,
+			BlockHash:    data.BlockHash,
+			ChainId:      data.ChainId,
+		}).RowsAffected
+	if number == 0 {
+		err := this.BlockReplace(data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

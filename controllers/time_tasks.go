@@ -19,12 +19,6 @@ import (
 	"sipemanager/utils"
 )
 
-type ErrLogCode struct {
-	message string
-	code    int
-	err     string
-}
-
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 	n := &blockchain.Node{
 		Address:   node.Address,
@@ -48,7 +42,7 @@ func (this *Controller) ListenCrossEvent() {
 		nodes, err := this.dao.GetInstancesJoinNode()
 		filterNodes := utils.RemoveRepByLoop(nodes)
 		if err != nil {
-			logrus.Error(&ErrLogCode{message: "routers => ListenEvent:", code: 30002, err: "cant not found nodes"})
+			logrus.Error(utils.ErrLogCode{LogType: "controller => time_task => ListenCrossEvent:", Code: 20006, Message: "cant not found nodes", Err: nil})
 		}
 		fmt.Printf("-------nodes-----%+v\n", filterNodes)
 		go this.createCrossEvent(nodes)
@@ -79,7 +73,7 @@ func (this *Controller) ListenBlock() {
 	filterNodes := utils.RemoveRepByLoop(nodes)
 	//count := len(filterNodes)
 	if err != nil {
-		logrus.Warn(&ErrLogCode{message: "routers => ListenEvent:", code: 30001, err: err.Error()})
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
 	}
 	go this.createBlock(filterNodes, &group, NodeChannel)
 
@@ -227,7 +221,7 @@ func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, Node
 	cron.AddFunc("@every 5s", func() {
 		current, err := this.dao.GetNodeById(ch.ChainId)
 		if err != nil {
-			logrus.Warn(&ErrLogCode{message: "time_task => HeartChannel:", code: 20005, err: err.Error()})
+			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => HeartChannel:", Code: 20005, Message: err.Error(), Err: nil})
 		}
 		currents := []dao.InstanceNodes{
 			dao.InstanceNodes{
@@ -275,11 +269,7 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGro
 	header, err := api.GetHeaderByNumber()
 	dbMaxNum := this.dao.GetMaxBlockNumber(chainId)
 	if err != nil {
-		defer func() {
-			if panicErr := recover(); panicErr != nil {
-				logrus.Error(&ErrLogCode{message: "time_task => createBlock:", code: 20001, err: err.Error()})
-			}
-		}()
+		defer utils.DeferRecoverLog("controller => time_task => createBlock:", err.Error(), 20001, nil)
 		panic(err.Error())
 	}
 	newBlockNumber := header.Number.Int64()

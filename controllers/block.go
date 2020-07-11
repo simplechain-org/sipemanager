@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"sipemanager/utils"
 	"strconv"
 	"strings"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 
-	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/simplechain-org/go-simplechain/common"
@@ -173,7 +173,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 	//fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
 	block, err := api.BlockByNumber(big.NewInt(0).SetInt64(number))
 	if err != nil {
-		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20004, err: err.Error()})
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => block => SyncBlock:", Code: 30004, Message: err.Error(), Err: nil})
 	}
 	blockRecord := dao.Block{
 		ParentHash:   block.ParentHash().Hex(),
@@ -189,9 +189,9 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 		BlockHash:    block.Hash().Hex(),
 		ChainId:      chainId,
 	}
-	replaceErr := this.dao.BlockReplace(blockRecord)
+	replaceErr := this.dao.UpdateBlock(blockRecord)
 	if replaceErr != nil {
-		logrus.Warn(&ErrLogCode{message: "time_task => SyncBlock:", code: 20005, err: err.Error()})
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => block => SyncBlock:", Code: 30003, Message: err.Error(), Err: nil})
 	}
 
 	if len(block.Transactions()) > 0 {
@@ -226,19 +226,35 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 			if transaction.To() != nil {
 				txRecord.To = strings.ToLower(transaction.To().Hex())
 			}
-
+			txReplaceErr := this.dao.TxReplace(txRecord)
+			if txReplaceErr != nil {
+				logrus.Error("Transactions Create:", txReplaceErr.Error())
+			}
 			contract, err := this.dao.GetContractById(node.ContractId)
 			abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
 
+			if len(transaction.Data()) < 4 {
+				defer utils.DeferRecoverLog("dao => block => SyncBlock: ", "data len to low", 30002, nil)
+				panic("data len to low")
+			}
 			sigdata := transaction.Data()[:4]
 			argdata := transaction.Data()[4:]
 			method, err := abiParsed.MethodById(sigdata)
+			if err != nil {
+				defer utils.DeferRecoverLog("dao => block => SyncBlock: ", err.Error(), 30003, err)
+				panic(err.Error())
+			}
 			var args dao.MakerFinish
 			UnpackErr := method.Inputs.Unpack(&args, argdata)
 			if UnpackErr != nil {
 
 			} else {
 				txRecord.EventType = "makerFinish"
+				fmt.Printf("746574%+v\n", txRecord)
+				txReplaceErr := this.dao.TxReplace(txRecord)
+				if txReplaceErr != nil {
+					logrus.Error("Transactions Create:", txReplaceErr.Error())
+				}
 				targetChain, err := this.dao.GetChainByNetWorkId(args.RemoteChainId.Uint64())
 				if err != nil {
 					logrus.Error("CrossAnchors => GetChainByNetWorkId:", err.Error())
@@ -262,10 +278,6 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 				if crossErr != nil {
 					logrus.Error("CrossAnchors Create:", crossErr.Error())
 				}
-			}
-			txReplaceErr := this.dao.TxReplace(txRecord)
-			if txReplaceErr != nil {
-				logrus.Error("Transactions Create:", txReplaceErr.Error())
 			}
 		}
 	}

@@ -34,6 +34,7 @@ func (this *DataBaseAccessObject) CrossAnchorsReplace(data CrossAnchors) error {
 		data.TxId).Error
 }
 
+//toDo 增加跨链合约地址进行查询
 func (this *DataBaseAccessObject) QueryTxByHours(txAnchors TxAnchors, EventType string) error {
 	var sql = "select FROM_UNIXTIME(timestamp,'%Y-%m-%d %H:00:00')as date,COUNT(*) count, sum( CAST(gasUsed as SIGNED)* CAST(gasPrice as SIGNED) ) fee FROM cross_anchors where `anchorAddress` = ? and eventType = ? and networkId= ? and remoteNetworkId = ? GROUP BY date"
 	rows, err := this.db.Raw(sql, txAnchors.From, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
