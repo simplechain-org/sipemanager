@@ -38,23 +38,21 @@ func (this *Controller) AnalysisAnchors() {
 				TargetNetworkId: targetChain.NetworkId,
 			}
 			TxErr := this.dao.QueryTxByHours(txAnchor, "makerFinish")
-			//txs, txErr := this.dao.GetTxByAnchors(node.ChainId, anchor.Address, node.CrossAddress)
 			if TxErr != nil {
 				fmt.Printf("fdfdfd-", TxErr.Error())
 			}
-			//
-			//txAnchot := dao.TxAnchors{
-			//	From:          anchor.Address,
-			//	To:            node.Address,
-			//	SourceChainId: anchor.SourceChainId,
-			//	TargetChainId: anchor.TargetChainId,
-			//}
-			//this.dao.CreateTxAnchors(txAnchot)
-
 		}
 	}
 
 	if err != nil {
 
 	}
+}
+
+func (this *Controller) MakerFinishAnalysis() {
+
+}
+
+func (this *Controller) CountAnalysis() {
+
 }
