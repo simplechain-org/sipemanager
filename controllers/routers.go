@@ -28,7 +28,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
 	router.GET("/api/v1/check/health", c.CheckHealth)
-
 	//auth
 	router.GET("/api/v1/block/list", validateLogin, c.GetPageBlock)
 	router.GET("/api/v1/block/transaction/:number", validateLogin, c.GetBlockTransaction)
@@ -73,6 +72,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
+	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
+
 }
 
 type BlockChannel struct {

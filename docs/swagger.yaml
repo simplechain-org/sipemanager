@@ -22,14 +22,37 @@ definitions:
       transactions:
         type: integer
     type: object
-  controllers.JSONResult:
+  controllers.ExistsContractParam:
+    properties:
+      abi:
+        type: string
+      address:
+        type: string
+      bin:
+        type: string
+      chain_id:
+        description: 链id ,合约部署在那条链上
+        type: integer
+      description:
+        type: string
+      sol:
+        type: string
+      tx_hash:
+        type: string
+    required:
+    - abi
+    - description
+    type: object
+  controllers.JsonResult:
     properties:
       code:
         type: integer
       data:
         type: object
-      msg:
+      err_msg:
         type: string
+    required:
+    - code
     type: object
   controllers.Node:
     properties:
@@ -116,6 +139,37 @@ definitions:
       value:
         type: string
     type: object
+  dao.TxAnchorsNode:
+    properties:
+      anchor_id:
+        type: integer
+      anchorAddress:
+        description: 锚定节点地址
+        type: string
+      chain_id:
+        type: integer
+      contractAddress:
+        description: 跨链合约地址
+        type: string
+      count:
+        type: string
+      date:
+        type: string
+      fee:
+        type: integer
+      name:
+        type: string
+      source_chain_id:
+        type: integer
+      source_network_id:
+        type: integer
+      target_chain_id:
+        type: integer
+      target_network_id:
+        type: integer
+      timeType:
+        type: string
+    type: object
   dao.Wallet:
     properties:
       address:
@@ -133,6 +187,48 @@ info:
   contact: {}
   license: {}
 paths:
+  /api/v1/contract/instance/import:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: 引用链上合约
+      parameters:
+      - description: 请求体
+        in: body
+        name: '""'
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ExistsContractParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      summary: 引用链上合约
+  /api/v1/contract/register/once:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: 引用链上合约
+      parameters:
+      - description: 请求体
+        in: body
+        name: '""'
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ExistsContractParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      summary: 引用链上合约
   /block/list:
     get:
       consumes:
@@ -144,7 +240,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   items:
@@ -173,7 +269,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   $ref: '#/definitions/controllers.TransactionReceipt'
@@ -200,7 +296,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   $ref: '#/definitions/controllers.Transaction'
@@ -227,7 +323,7 @@ paths:
           description: 成功删除链信息
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   type: string
@@ -237,6 +333,48 @@ paths:
       summary: 删除链信息
       tags:
       - chain
+  /chart/feeAndCount/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: hour:2020-07-10 12:00:00 day:2020-07-10 week:202025
+        in: query
+        name: startTime
+        required: true
+        type: string
+      - description: hour:2020-07-12 12:00:00 day:2020-07-12 week:202027
+        in: query
+        name: endTime
+        required: true
+        type: string
+      - description: chainId
+        in: query
+        name: chainId
+        required: true
+        type: integer
+      - description: hour,day,week
+        in: query
+        name: timeType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dao.TxAnchorsNode'
+                  type: array
+              type: object
+      summary: 统计锚定节点验证数和手续费
+      tags:
+      - Chart
   /node:
     post:
       consumes:
@@ -269,7 +407,7 @@ paths:
           description: NodeId
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   type: integer
@@ -317,7 +455,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   items:
@@ -340,7 +478,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   items:
@@ -376,7 +514,7 @@ paths:
           description: '{"token": token, "user_id": loadUser.ID}'
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   type: object
@@ -408,7 +546,7 @@ paths:
           description: '{"code":0,"data":"用户Id"}'
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   type: integer
@@ -438,7 +576,7 @@ paths:
           description: walletId
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   type: integer
@@ -459,7 +597,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controllers.JSONResult'
+            - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
                   $ref: '#/definitions/dao.Wallet'

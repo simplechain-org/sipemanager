@@ -29,7 +29,7 @@ type Transaction struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param number query int true "blockNumber"
-// @Success 200 {object} JSONResult{data=Transaction}
+// @Success 200 {object} JsonResult{data=Transaction}
 // @Router /block/transaction/{number} [get]
 func (this *Controller) GetBlockTransaction(c *gin.Context) {
 	numberStr := c.Param("number")
@@ -105,7 +105,7 @@ type TransactionReceipt struct {
 // @Produce  json
 // @Param hash query string true "tx hash"
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=TransactionReceipt}
+// @Success 200 {object} JsonResult{data=TransactionReceipt}
 // @Router /block/transaction/{hash} [get]
 func (this *Controller) GetTransactionReceipt(c *gin.Context) {
 	hash := c.Param("hash")

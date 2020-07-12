@@ -25,6 +25,70 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/contract/instance/import": {
+            "post": {
+                "description": "引用链上合约",
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "引用链上合约",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "\"\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ExistsContractParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/contract/register/once": {
+            "post": {
+                "description": "引用链上合约",
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "引用链上合约",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "\"\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ExistsContractParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
         "/block/list": {
             "get": {
                 "security": [
@@ -48,7 +112,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -99,7 +163,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -147,7 +211,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -195,13 +259,80 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
                                             "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/feeAndCount/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "统计锚定节点验证数和手续费",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-10 12:00:00 day:2020-07-10 week:202025",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-12 12:00:00 day:2020-07-12 week:202027",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "chainId",
+                        "name": "chainId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour,day,week",
+                        "name": "timeType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dao.TxAnchorsNode"
+                                            }
                                         }
                                     }
                                 }
@@ -264,7 +395,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -346,7 +477,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -388,7 +519,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -445,7 +576,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -499,7 +630,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -554,7 +685,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -593,7 +724,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controllers.JSONResult"
+                                    "$ref": "#/definitions/controllers.JsonResult"
                                 },
                                 {
                                     "type": "object",
@@ -646,8 +777,42 @@ var doc = `{
                 }
             }
         },
-        "controllers.JSONResult": {
+        "controllers.ExistsContractParam": {
             "type": "object",
+            "required": [
+                "abi",
+                "description"
+            ],
+            "properties": {
+                "abi": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "bin": {
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id ,合约部署在那条链上",
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "sol": {
+                    "type": "string"
+                },
+                "tx_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.JsonResult": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
             "properties": {
                 "code": {
                     "type": "integer"
@@ -655,7 +820,7 @@ var doc = `{
                 "data": {
                     "type": "object"
                 },
-                "msg": {
+                "err_msg": {
                     "type": "string"
                 }
             }
@@ -782,6 +947,52 @@ var doc = `{
                     "type": "integer"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.TxAnchorsNode": {
+            "type": "object",
+            "properties": {
+                "anchorAddress": {
+                    "description": "锚定节点地址",
+                    "type": "string"
+                },
+                "anchor_id": {
+                    "type": "integer"
+                },
+                "chain_id": {
+                    "type": "integer"
+                },
+                "contractAddress": {
+                    "description": "跨链合约地址",
+                    "type": "string"
+                },
+                "count": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_network_id": {
+                    "type": "integer"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_network_id": {
+                    "type": "integer"
+                },
+                "timeType": {
                     "type": "string"
                 }
             }

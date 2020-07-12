@@ -1,5 +1,7 @@
 package dao
 
+import "fmt"
+
 type TxAnchors struct {
 	AnchorAddress   string `gorm:"primary_key; column:anchorAddress"` //锚定节点地址
 	ContractAddress string `gorm:"column:contractAddress"`            //跨链合约地址
@@ -14,23 +16,66 @@ type TxAnchors struct {
 	ChainId         uint   `gorm:"primary_key; column:chain_id" sql:"type:INT UNSIGNED NOT NULL"`
 	TimeType        string `gorm:"column:timeType" `
 }
+type TxAnchorsNode struct {
+	AnchorAddress   string `json:"anchorAddress"`   //锚定节点地址
+	ContractAddress string `json:"contractAddress"` //跨链合约地址
+	SourceChainId   uint   `json:"source_chain_id"`
+	TargetChainId   uint   `json:"target_chain_id"`
+	SourceNetworkId uint64 `json:"source_network_id"`
+	TargetNetworkId uint64 `json:"target_network_id"`
+	AnchorId        uint   `json:"anchor_id"`
+	Fee             uint64 `json:"fee"`
+	Date            string `json:"date"`
+	Count           string `json:"count"`
+	ChainId         uint   `json:"chain_id"`
+	TimeType        string `json:"timeType" `
+	Name            string `json:"name" `
+}
 
 func (this *TxAnchors) TableName() string {
 	return "tx_anchors"
 }
 
-func (this *DataBaseAccessObject) QueryAnchors(data Transaction) error {
+//func (this *DataBaseAccessObject) QueryAnchors(startTime string, endTime string, chainId uint, timeType string) ([]TxAnchors, error) {
+//	result := make([]TxAnchors, 0)
+//	err := this.db.Table((&TxAnchors{}).TableName()).Where("date BETWEEN ? and ? and chain_id = ? and timeType = ? ", startTime, endTime, chainId, timeType).Order("chain_id desc").Find(&result).Error
+//
+//	if err != nil {
+//		return nil, err
+//	}
+//	return result, nil
+//}
+
+func (this *DataBaseAccessObject) QueryAnchors(startTime string, endTime string, chainId int, timeType string) ([]TxAnchorsNode, error) {
+	fmt.Printf("----45----%+v, %+v, %+v, %+v\n", startTime, endTime, chainId, timeType)
+	txAnchors := make([]TxAnchorsNode, 0)
 	var sql = `
-SELECT data.day,IFNULL(data.count, 0) count, IFNULL(data.fee,0) fee, day_list.day as date from
-(select FROM_UNIXTIME(timestamp, '%Y-%m-%d %H:00:00') day, sum( CAST(gasUsed as SIGNED)* CAST(gasPrice as SIGNED)) fee, count(1) count from transactions
-where from = "0x17529b05513e5595ceff7f4fb1e06512c271a540" and to = "0xb11e0d62e216fc161fd7acfe7b4d36153ead89e0" and status = 1 and chain_id = 2
-GROUP BY day) data
-right join
-(SELECT @date := DATE_ADD(@date, interval 1 hour) day from
-(SELECT @date := DATE_ADD('2020-07-09', interval -1 hour) from transactions)
-days LIMIT 24) day_list on day_list.day = data.day
+SELECT anchorAddress, contractAddress, source_chain_id,target_chain_id, source_network_id, target_network_id, anchor_id, fee, date, count,chain_id,timeType, name  FROM
+(SELECT * from tx_anchors WHERE date BETWEEN ? and ? and chain_id =? and timeType = ? ORDER BY chain_id asc ) t1
+LEFT JOIN (SELECT id, name from anchor_nodes) t2 on t1.anchor_id = t2.id
 `
-	return this.db.Exec(sql).Error
+	rows, err := this.db.Raw(sql, startTime, endTime, chainId, timeType).Rows()
+	defer rows.Close()
+	var result TxAnchorsNode
+	for rows.Next() {
+		rows.Scan(
+			&result.AnchorAddress,
+			&result.ContractAddress,
+			&result.SourceChainId,
+			&result.TargetChainId,
+			&result.SourceNetworkId,
+			&result.TargetNetworkId,
+			&result.AnchorId,
+			&result.Fee,
+			&result.Date,
+			&result.Count,
+			&result.ChainId,
+			&result.TimeType,
+			&result.Name)
+		txAnchors = append(txAnchors, result)
+	}
+	fmt.Printf("----4545----%+v\n", txAnchors)
+	return txAnchors, err
 }
 
 func (this *DataBaseAccessObject) TxAnchorsReplace(data TxAnchors) error {

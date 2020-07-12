@@ -19,7 +19,7 @@ import (
 // @Param port formData int true "端口"
 // @Param name formData string true "名称"
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=int} "NodeId"
+// @Success 200 {object} JsonResult{data=int} "NodeId"
 // @Router /node [post]
 func (this *Controller) AddNode(c *gin.Context) {
 	var node dao.Node
@@ -118,7 +118,7 @@ type Node struct {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=[]Node}
+// @Success 200 {object} JsonResult{data=[]Node}
 // @Router /node/list [get]
 func (this *Controller) GetNodes(c *gin.Context) {
 	user, err := this.GetUser(c)
@@ -149,7 +149,7 @@ func (this *Controller) GetNodes(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=[]Node}
+// @Success 200 {object} JsonResult{data=[]Node}
 // @Router /node/current [get]
 func (this *Controller) GetUserCurrentNode(c *gin.Context) {
 	user, err := this.GetUser(c)

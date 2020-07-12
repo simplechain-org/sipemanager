@@ -28,7 +28,7 @@ type AddressParam struct {
 // @Param name formData string true "钱包昵称"
 // @Param content formData string true "keystore string"
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=int} "walletId"
+// @Success 200 {object} JsonResult{data=int} "walletId"
 // @Router /wallet [post]
 func (this *Controller) AddWallet(c *gin.Context) {
 	var params WalletParam
@@ -118,7 +118,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} JSONResult{data=dao.Wallet}
+// @Success 200 {object} JsonResult{data=dao.Wallet}
 // @Router /wallet/list [get]
 func (this *Controller) ListWallet(c *gin.Context) {
 	user, err := this.GetUser(c)

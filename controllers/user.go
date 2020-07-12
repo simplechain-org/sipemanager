@@ -49,7 +49,7 @@ type User struct {
 // @Produce  json
 // @Param username body string true "用户名"
 // @Param password body string true "密码"
-// @Success 200 {object} JSONResult{data=int} "{"code":0,"data":"用户Id"}"
+// @Success 200 {object} JsonResult{data=int} "{"code":0,"data":"用户Id"}"
 // @Router /user/register [post]
 func (this *Controller) Register(c *gin.Context) {
 	var user User
@@ -81,7 +81,7 @@ func (this *Controller) Register(c *gin.Context) {
 // @Produce  json
 // @Param username body string true "用户名"
 // @Param password body string true "密码"
-// @Success 200 {object} JSONResult{data=object} "{"token": token, "user_id": loadUser.ID}"
+// @Success 200 {object} JsonResult{data=object} "{"token": token, "user_id": loadUser.ID}"
 // @Router /user/login [post]
 func (this *Controller) Login(c *gin.Context) {
 	var user User
