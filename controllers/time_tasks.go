@@ -52,7 +52,7 @@ func (this *Controller) ListenCrossEvent() {
 
 func (this *Controller) ListenAnchors() {
 	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
+	cron.AddFunc("@every 10s", func() {
 		//nodes, err := this.dao.GetInstancesJoinNode()
 		//if err != nil {
 		//	logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})

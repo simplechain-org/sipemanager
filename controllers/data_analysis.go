@@ -37,9 +37,11 @@ func (this *Controller) AnalysisAnchors() {
 				SourceNetworkId: sourceChain.NetworkId,
 				TargetNetworkId: targetChain.NetworkId,
 			}
-			TxErr := this.dao.QueryTxByHours(txAnchor, "makerFinish")
-			if TxErr != nil {
-				fmt.Printf("fdfdfd-", TxErr.Error())
+			TxHourErr := this.dao.QueryTxByHours(txAnchor, "makerFinish")
+			TxDayErr := this.dao.QueryTxByDays(txAnchor, "makerFinish")
+			TxWeekErr := this.dao.QueryTxByWeeks(txAnchor, "makerFinish")
+			if TxHourErr != nil || TxDayErr != nil || TxWeekErr != nil {
+				fmt.Printf("-------23-----%+v\n", TxHourErr.Error())
 			}
 		}
 	}
