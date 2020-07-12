@@ -53,7 +53,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 	ON t1.cross_date= t2.date_list
 ) ORDER BY t2.date_list desc
 `
-	rows, err := this.db.Raw(sql, txAnchors.From, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
+	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(

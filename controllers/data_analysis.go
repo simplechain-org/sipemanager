@@ -29,7 +29,7 @@ func (this *Controller) AnalysisAnchors() {
 
 			}
 			txAnchor := dao.TxAnchors{
-				From:            anchor.Address,
+				AnchorAddress:   anchor.Address,
 				SourceChainId:   register.SourceChainId,
 				TargetChainId:   register.TargetChainId,
 				AnchorId:        anchor.ID,
