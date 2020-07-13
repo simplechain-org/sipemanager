@@ -11,6 +11,7 @@ type ChainRegister struct {
 	Status          int    `json:"status"`
 	StatusText      string `json:"status_text"`
 	TxHash          string `json:"tx_hash"`
+	Address         string
 }
 
 func (this *ChainRegister) TableName() string {
@@ -74,7 +75,6 @@ func (this *DataBaseAccessObject) ListChainRegisterByStatus(status int) ([]Chain
 		Find(&result).Error
 	return result, err
 }
-
 func (this *DataBaseAccessObject) GetTargetChainIdBySourceChainId(sourceChainId uint) (uint, error) {
 	type Result struct {
 		TargetChainId uint
@@ -86,4 +86,13 @@ func (this *DataBaseAccessObject) GetTargetChainIdBySourceChainId(sourceChainId 
 		Order("id desc").
 		Limit(1).Scan(&result).Error
 	return result.TargetChainId, err
+}
+func (this *DataBaseAccessObject) GetChainRegisterByChaiId(sourceChainId uint, targetChainId uint) (*ChainRegister, error) {
+	var result ChainRegister
+	err := this.db.Table((&ChainRegister{}).TableName()).
+		Where("source_chain_id=?", sourceChainId).
+		Or("source_chain_id=?", targetChainId).
+		Where("target_chain_id=?", targetChainId).
+		Or("target_chain_id=?", sourceChainId).First(&result).Error
+	return &result, err
 }

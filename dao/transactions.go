@@ -4,7 +4,7 @@ import (
 	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
 )
-
+//todo anchors From crossAddress makerFinish status
 type Transaction struct {
 	BlockHash        string `gorm:"column:blockHash"`
 	BlockNumber      int64  `gorm:"column:blockNumber"`
@@ -65,4 +65,20 @@ func (this *DataBaseAccessObject) GetTxByAnchors(chainId uint, from string, to s
 		return nil, err
 	}
 	return result, nil
+}
+////todo
+func (this *DataBaseAccessObject) GetTransactionSumFee(from string, to string, eventType string, chainId uint) (*big.Int, error) {
+	//type SumFee struct {
+	//	TotalFee uint64 `gorm:"total_fee"`
+	//}
+	//var sumFee SumFee
+	//err := this.db.Table((&Transaction{}).TableName()).
+	//	Where("`from`=?", from).
+	//	Where("to=?", to).
+	//	Where("eventType=?", eventType).
+	//	Where("chain_id=?", chainId).
+	//	Select("sum(fee) as total_fee").
+	//	Scan(&sumFee).Error
+	//return sumFee.TotalFee, err
+	return big.NewInt(0),nil
 }

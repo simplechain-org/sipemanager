@@ -1,11 +1,14 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"fmt"
+	"github.com/jinzhu/gorm"
+)
 
 type Wallet struct {
 	gorm.Model
 	Name    string `gorm:"size:255" json:"name"`
-	Content []byte `gorm:"type:text" json:"content"`
+	Content string `gorm:"type:text" json:"content"`
 	UserId  uint
 	Address string `gorm:"size:255" json:"address"`
 }
@@ -41,4 +44,17 @@ func (this *DataBaseAccessObject) UpdateWallet(id uint, content []byte) error {
 	return this.db.Table((&Wallet{}).TableName()).
 		Where("id=?", id).
 		Update("content", content).Error
+}
+
+func (this *DataBaseAccessObject) WalletExists(address string) bool {
+	var count int
+
+	db := this.db.Table((&Wallet{}).TableName()).Where("address=?", address)
+
+	err := db.Count(&count).Error
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	return count != 0
 }

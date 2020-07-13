@@ -24,7 +24,21 @@ type AddAnchorNodeParam struct {
 }
 
 //锚定节点管理
-//新增锚定节点
+// @Summary 新增锚定节点
+// @Tags AddAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param source_chain_id formData uint true "源链id"
+// @Param target_chain_id formData uint true "目标链id"
+// @Param source_node_id formData uint true "源节点id"
+// @Param target_node_id formData uint true "目标链节点id"
+// @Param anchor_address formData string true "锚定地址"
+// @Param anchor_name formData string true "锚定节点名称"
+// @Param wallet_id formData uint true "钱包id"
+// @Param password formData string true "钱包密码"
+// @Success 200 {object} JSONResult{data=nil}
+// @Router /anchor/node/add [post]
 func (this *Controller) AddAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
 	if err := c.ShouldBind(&param); err != nil {
@@ -44,7 +58,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)
@@ -170,7 +184,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 			i++
 		}
 	}(target, id, targetHash)
-	this.echoSuccess(c, "success")
+	this.echoSuccess(c, "Success")
 }
 
 type RemoveAnchorNodeParam struct {
@@ -182,7 +196,18 @@ type RemoveAnchorNodeParam struct {
 }
 
 //锚定节点管理
-//删除锚定节点
+// @Summary 删除锚定节点
+// @Tags RemoveAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param anchor_node_id formData uint true "锚定节点id"
+// @Param source_node_id formData uint true "源节点id"
+// @Param target_node_id formData uint true "目标链节点id"
+// @Param wallet_id formData uint true "钱包id"
+// @Param password formData string true "钱包密码"
+// @Success 200 {object} JSONResult{data=nil}
+// @Router /anchor/node/remove [post]
 func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	//调用合约增加锚定节点，要注意是双链
 	//从数据库中删除
@@ -224,7 +249,7 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)

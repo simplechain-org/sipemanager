@@ -70,7 +70,7 @@ func (this *Controller) Consume(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		this.echoError(c, err)
 		return

@@ -7,7 +7,7 @@ var config = &DBConfig{
 	Password: "root",
 	Address:  "localhost",
 	Port:     3306,
-	DbName:   "sipe",
+	DbName:   "sipe_test",
 	Charset:  "utf8mb4",
 	MaxIdle:  1000,
 	MaxOpen:  2000,
@@ -16,8 +16,9 @@ var config = &DBConfig{
 }
 
 func TestGetDBConnection(t *testing.T) {
-	_, err := GetDBConnection(config)
+	db, err := GetDBConnection(config)
 	if err != nil {
 		t.Fatal(err)
 	}
+	AutoMigrate(db)
 }
