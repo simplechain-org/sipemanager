@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
 )
 
