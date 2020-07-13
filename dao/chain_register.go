@@ -11,7 +11,7 @@ type ChainRegister struct {
 	Status          int    `json:"status"`
 	StatusText      string `json:"status_text"`
 	TxHash          string `json:"tx_hash"`
-	Address         string
+	Address         string `json:"address"` // 合约地址
 }
 
 func (this *ChainRegister) TableName() string {

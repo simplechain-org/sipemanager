@@ -75,6 +75,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 
 	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
+	router.GET("/api/v1/chart/maxUncle/list", c.MaxUncle)
+
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
 	router.GET("/api/v1/reward/chain", validateLogin, c.GetChainReward)
@@ -82,10 +84,10 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/reward/add", validateLogin, c.AddSignReward)
 	router.POST("/api/v1/reward/configure", validateLogin, c.ConfigureSignReward)
 	router.GET("/api/v1/service/charge/list", validateLogin, c.ListServiceCharge)
-	router.POST("/api/v1/service/charge/add",validateLogin, c.AddServiceCharge)
-	router.GET("/api/v1//service/charge/fee",validateLogin, c.GetServiceChargeFee)
-	router.POST("/api/v1/anchor/node/add",validateLogin, c.AddAnchorNode)
-	router.POST("/api/v1/anchor/node/remove",validateLogin, c.RemoveAnchorNode)
+	router.POST("/api/v1/service/charge/add", validateLogin, c.AddServiceCharge)
+	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
+	router.POST("/api/v1/anchor/node/add", validateLogin, c.AddAnchorNode)
+	router.POST("/api/v1/anchor/node/remove", validateLogin, c.RemoveAnchorNode)
 
 }
 
