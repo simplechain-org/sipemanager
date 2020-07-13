@@ -27,3 +27,20 @@ func (this *DataBaseAccessObject) UncleReplace(data Uncle) error {
 		data.GasUsed, data.Time, data.Nonce,
 		data.ChainId, data.BlockNumber, data.BlockHash).Error
 }
+
+type MaxUncle struct {
+	BlockNumber int64
+	ChainId     uint
+}
+
+func (this *DataBaseAccessObject) QueryMaxUncle() ([]MaxUncle, error) {
+	maxUncle := make([]MaxUncle, 0)
+	rows, err := this.db.Raw("select IFNULL(max(blockNumber),0) blockNumber, chain_id from uncles GROUP BY chain_id").Rows()
+	defer rows.Close()
+	var result MaxUncle
+	for rows.Next() {
+		rows.Scan(&result.BlockNumber, &result.ChainId)
+		maxUncle = append(maxUncle, result)
+	}
+	return maxUncle, err
+}

@@ -1,10 +1,10 @@
 port: 8092
 db:
-  address: 192.168.3.116
+  address: localhost
   port: 3306
   username: root
-  password: root
-  db_name: smanager
+  password: admin123
+  db_name: sipe
   max_idle: 10
   max_open: 100
   charset: utf8mb4
