@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
 
 	"sipemanager/dao"
 	"sipemanager/utils"
@@ -27,13 +28,14 @@ type AddressParam struct {
 // @Produce  json
 // @Param name formData string true "钱包昵称"
 // @Param content formData string true "keystore string"
+// @Param password formData string true "密码"
 // @Security ApiKeyAuth
 // @Success 200 {object} JsonResult{data=int} "walletId"
 // @Router /wallet [post]
 func (this *Controller) AddWallet(c *gin.Context) {
 	var params WalletParam
 	var err error
-	if err := c.ShouldBindJSON(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		this.echoError(c, err)
 		return
 	}
@@ -43,7 +45,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 		return
 	}
 	var address string
-	var content []byte
+	var content string
 
 	if utils.IsHex(params.Content) {
 		//私钥
@@ -52,7 +54,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
-		content, err = utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
+		keyData, err := utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
 		if err != nil {
 			this.echoError(c, err)
 			return
@@ -62,6 +64,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
+		content = string(keyData)
 	} else {
 		if utils.IsJSON(params.Content) {
 			//keystore文件内容
@@ -78,7 +81,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 				return
 			}
 			address = "0x" + addressParam.Address
-			content = []byte(params.Content)
+			content = string(params.Content)
 		} else {
 			//助记词
 			privateKeyECDSA, err := utils.GetPrivateKeyFromMnemonic(params.Content)
@@ -86,7 +89,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 				this.echoError(c, err)
 				return
 			}
-			content, err = utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
+			KeyData, err := utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
 			if err != nil {
 				this.echoError(c, err)
 				return
@@ -96,7 +99,12 @@ func (this *Controller) AddWallet(c *gin.Context) {
 				this.echoError(c, err)
 				return
 			}
+			content = string(KeyData)
 		}
+	}
+	if this.dao.WalletExists(address) {
+		this.echoError(c, errors.New("钱包地址已经存在"))
+		return
 	}
 	wallet := dao.Wallet{
 		Name:    params.Name,
@@ -140,6 +148,17 @@ type UpdateWalletParam struct {
 	NewPassword string `json:"new_password" binding:"required" form:"new_password"` //钱包新密码
 }
 
+//修改钱包密码（口令）
+// @Summary 修改钱包密码
+// @Tags updateWallet
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param wallet_id formData string true "钱包id"
+// @Param old_password formData string true "钱包旧密码"
+// @Param new_password formData string true "钱包新密码"
+// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Router /wallet/update [post]
 func (this *Controller) UpdateWallet(c *gin.Context) {
 	var params UpdateWalletParam
 	if err := c.ShouldBind(&params); err != nil {
@@ -166,5 +185,5 @@ func (this *Controller) UpdateWallet(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	this.echoSuccess(c, "success")
+	this.echoSuccess(c, "Success")
 }

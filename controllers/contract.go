@@ -102,7 +102,7 @@ func (this *Controller) DeployContract(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		this.echoError(c, err)
 		return
@@ -197,7 +197,7 @@ func (this *Controller) RegisterChain(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)
@@ -419,8 +419,8 @@ func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
 //@Router /api/v1/contract/register/once [post]
 func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	var param RegisterChainTwoWayParam
-	if err := c.ShouldBindJSON(&param); err != nil {
-		fmt.Println("ShouldBindJSON:", err.Error())
+	if err := c.ShouldBind(&param); err != nil {
+		fmt.Println("ShouldBind:", err.Error())
 		this.echoError(c, err)
 		return
 	}
@@ -430,7 +430,7 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	privateKey, err := blockchain.GetPrivateKey(wallet.Content, param.Password)
+	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
 		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)
@@ -528,6 +528,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 		TxHash:          hash,
 		Confirm:         signConfirmCount,
 		AnchorAddresses: strings.Join(strAnchorAddresses, ","),
+		Address:         contract.Address,
 	}
 	registerId, err := this.dao.CreateChainRegisterByTx(db, register)
 	if err != nil {
