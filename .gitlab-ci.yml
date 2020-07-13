@@ -17,10 +17,10 @@ build:
   dependencies:
     - prebuild
   script:
-    - export GOPROXY="https://goproxy.cn"
+    - export GOPROXY="https://goproxy.cn,direct"
     - export GO111MODULE=on
     - export CGO_ENABLED=0
-    - go mod download
+    - go mod tidy
     - go build
 
 swagger:
