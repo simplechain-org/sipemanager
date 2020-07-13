@@ -101,7 +101,7 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao: object,
 	}
-	//go c.ListenCrossEvent()
+	go c.ListenCrossEvent()
 	go c.ListenBlock()
 	go c.ListenAnchors()
 

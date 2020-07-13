@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math/big"
 	"net/http"
 	"sipemanager/utils"
@@ -250,7 +249,6 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 
 			} else {
 				txRecord.EventType = "makerFinish"
-				fmt.Printf("746574%+v\n", txRecord)
 				txReplaceErr := this.dao.TxReplace(txRecord)
 				if txReplaceErr != nil {
 					logrus.Error("Transactions Create:", txReplaceErr.Error())

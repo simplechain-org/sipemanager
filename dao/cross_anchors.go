@@ -41,7 +41,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 (
 	(
 	select FROM_UNIXTIME(timestamp,'%Y-%m-%d %H:00:00') as cross_date,COUNT(*) count, sum( CAST(gasUsed as SIGNED)* CAST(gasPrice as SIGNED) ) fee FROM cross_anchors
-	WHERE anchorAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
+	WHERE anchorAddress = ? and contractAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
 	GROUP BY cross_date
 	) t1 
 	RIGHT JOIN
@@ -53,7 +53,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 	ON t1.cross_date= t2.date_list
 ) ORDER BY t2.date_list desc
 `
-	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
+	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, txAnchors.ContractAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(
@@ -75,7 +75,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 (
 	(
 	select FROM_UNIXTIME(timestamp,'%Y-%m-%d') as cross_date,COUNT(*) count, sum( CAST(gasUsed as SIGNED)* CAST(gasPrice as SIGNED) ) fee FROM cross_anchors
-	WHERE anchorAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
+	WHERE anchorAddress = ? and contractAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
 	GROUP BY cross_date
 	) t1 
 	RIGHT JOIN
@@ -87,7 +87,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 	ON t1.cross_date= t2.date_list
 ) ORDER BY t2.date_list desc
 `
-	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
+	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, txAnchors.ContractAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(
@@ -113,7 +113,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 			yearweek(FROM_UNIXTIME(timestamp,'%Y-%m-%d')) cross_date
 	FROM
 			cross_anchors
-	WHERE anchorAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
+	WHERE anchorAddress = ? and contractAddress = ? and eventType = ? and networkId= ? and remoteNetworkId = ?
 	GROUP BY
 		 cross_date
 	) t1 
@@ -125,7 +125,7 @@ RIGHT JOIN
 	) t2 
 ON t1.cross_date= t2.date_list
 `
-	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
+	rows, err := this.db.Raw(sql, txAnchors.AnchorAddress, txAnchors.ContractAddress, EventType, txAnchors.SourceNetworkId, txAnchors.TargetNetworkId).Rows()
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(
