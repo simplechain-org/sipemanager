@@ -3,13 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
+	"strconv"
 
 	"sipemanager/dao"
 	"sipemanager/utils"
 
+	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/accounts/keystore"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/gin-gonic/gin"
 )
 
 type WalletParam struct {
@@ -181,6 +182,34 @@ func (this *Controller) UpdateWallet(c *gin.Context) {
 		return
 	}
 	err = this.dao.UpdateWallet(params.WalletId, content)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
+}
+
+// @Summary 移除钱包
+// @Tags removeWallet
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param wallet_id query string true "钱包id"
+// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Router /wallet/remove [delete]
+func (this *Controller) RemoveWallet(c *gin.Context) {
+	walletIdStr := c.Query("wallet_id")
+	walletId, err := strconv.ParseUint(walletIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	_, err = this.dao.GetWallet(uint(walletId))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	err = this.dao.RemoveWallet(uint(walletId))
 	if err != nil {
 		this.echoError(c, err)
 		return

@@ -28,7 +28,8 @@ func (this *Controller) AnalysisAnchors() {
 			n, _ := strconv.Atoi(anchorId)
 			anchor, err := this.dao.GetAnchorNode(uint(n))
 			if err != nil {
-
+				fmt.Println("AnalysisAnchors", err)
+				continue
 			}
 			txAnchor := dao.TxAnchors{
 				AnchorAddress:   anchor.Address,

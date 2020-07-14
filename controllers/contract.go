@@ -2,16 +2,16 @@ package controllers
 
 import (
 	"crypto/ecdsa"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
-	"errors"
-	"fmt"
 
-	"github.com/simplechain-org/go-simplechain/common"
-	"github.com/simplechain-org/go-simplechain/crypto"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/crypto"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
@@ -395,12 +395,19 @@ type RegisterChainTwoWayParam struct {
 
 func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
 	node, err := this.dao.GetNodeById(id)
+	if err != nil {
+		return nil, err
+	}
+	chain, err := this.dao.GetChain(node.ChainId)
+	if err != nil {
+		return nil, err
+	}
 	n := &blockchain.Node{
 		Address:   node.Address,
 		Port:      node.Port,
 		ChainId:   node.ChainId,
 		IsHttps:   node.IsHttps,
-		NetworkId: node.NetworkId,
+		NetworkId: chain.NetworkId,
 	}
 	api, err := blockchain.NewApi(n)
 	if err != nil {
