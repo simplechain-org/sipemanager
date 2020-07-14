@@ -10,9 +10,9 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 
+	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/gin-gonic/gin"
 )
 
 type ServiceChargeFee struct {
@@ -39,7 +39,6 @@ type ServiceChargeResult struct {
 	PageData    []ServiceChargeView `json:"page_data"`    //页的数据
 }
 
-
 // @Summary 手续费报销记录
 // @Tags ListServiceCharge
 // @Accept  json
@@ -47,7 +46,7 @@ type ServiceChargeResult struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param current_page query string true "当前页"
-// @Success 200 {object} JSONResult{data=ServiceChargeResult}
+// @Success 200 {object} JsonResult{data=ServiceChargeResult}
 // @Router /service/charge/list [get]
 func (this *Controller) ListServiceCharge(c *gin.Context) {
 	//已报销手续费列表
@@ -111,12 +110,12 @@ func (this *Controller) ListServiceCharge(c *gin.Context) {
 }
 
 type AddServiceChargeParam struct {
-	AnchorNodeId uint     `json:"anchor_node_id" form:"anchor_node_id"`
-	NodeId       uint     `json:"node_id" form:"node_id"`
-	WalletId     uint     `json:"wallet_id" form:"wallet_id"`
-	Password     string   `json:"password" form:"password"`
+	AnchorNodeId uint   `json:"anchor_node_id" form:"anchor_node_id"`
+	NodeId       uint   `json:"node_id" form:"node_id"`
+	WalletId     uint   `json:"wallet_id" form:"wallet_id"`
+	Password     string `json:"password" form:"password"`
 	Fee          string `json:"fee" form:"fee"`   //报销手续费
-	Coin         string   `json:"coin" form:"coin"` //报销的币种
+	Coin         string `json:"coin" form:"coin"` //报销的币种
 }
 
 //这里应注意到：一条链只能报销一种token(币)
@@ -131,7 +130,7 @@ type AddServiceChargeParam struct {
 // @Param password formData string true "钱包密码"
 // @Param fee formData string true "手续费"
 // @Param coin formData string true "报销币种"
-// @Success 200 {object} JSONResult{data=nil}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /service/charge/add [post]
 func (this *Controller) AddServiceCharge(c *gin.Context) {
 	var param AddServiceChargeParam
@@ -197,7 +196,7 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 		PrivateKey: privateKey,
 		NetworkId:  chain.NetworkId,
 	}
-	fee,success:=big.NewInt(0).SetString(param.Fee,10)
+	fee, success := big.NewInt(0).SetString(param.Fee, 10)
 	if !success {
 		this.echoError(c, errors.New("fee数据非法"))
 		return
@@ -255,7 +254,7 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 // @Param anchor_node_id query uint true "锚定节点id"
 // @Param node_id formData uint true "节点id"
 // @Param coin formData string true "币种"
-// @Success 200 {object} JSONResult{data=ServiceChargeFee}
+// @Success 200 {object} JsonResult{data=ServiceChargeFee}
 // @Router /service/charge/fee [get]
 func (this *Controller) GetServiceChargeFee(c *gin.Context) {
 
@@ -315,9 +314,9 @@ func (this *Controller) GetServiceChargeFee(c *gin.Context) {
 		return
 	}
 	result := &ServiceChargeFee{
-		AccumulatedFee: accumulatedFee,                 //累计消耗手续费
-		ReimbursedFee:  reimbursedFee,                  //累计已报销手续费
-		CurrentFee:     big.NewInt(0).Sub(accumulatedFee,reimbursedFee), //计算本期应报销手续费
+		AccumulatedFee: accumulatedFee,                                   //累计消耗手续费
+		ReimbursedFee:  reimbursedFee,                                    //累计已报销手续费
+		CurrentFee:     big.NewInt(0).Sub(accumulatedFee, reimbursedFee), //计算本期应报销手续费
 	}
 
 	this.echoResult(c, result)

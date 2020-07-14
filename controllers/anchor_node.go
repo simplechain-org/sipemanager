@@ -7,9 +7,9 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 
+	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/gin-gonic/gin"
 )
 
 type AddAnchorNodeParam struct {
@@ -37,7 +37,7 @@ type AddAnchorNodeParam struct {
 // @Param anchor_name formData string true "锚定节点名称"
 // @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
-// @Success 200 {object} JSONResult{data=nil}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /anchor/node/add [post]
 func (this *Controller) AddAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
@@ -206,7 +206,7 @@ type RemoveAnchorNodeParam struct {
 // @Param target_node_id formData uint true "目标链节点id"
 // @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
-// @Success 200 {object} JSONResult{data=nil}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /anchor/node/remove [post]
 func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	//调用合约增加锚定节点，要注意是双链

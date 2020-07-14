@@ -1,6 +1,9 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"fmt"
+	"github.com/jinzhu/gorm"
+)
 
 type ChainRegister struct {
 	gorm.Model
@@ -95,4 +98,27 @@ func (this *DataBaseAccessObject) GetChainRegisterByChaiId(sourceChainId uint, t
 		Where("target_chain_id=?", targetChainId).
 		Or("target_chain_id=?", sourceChainId).First(&result).Error
 	return &result, err
+}
+
+type TokenList struct {
+	ChainID         uint
+	RemoteChainID   uint
+	AnchorAddresses string
+	Address         string
+	RemoteAddress   string
+}
+
+func (this *DataBaseAccessObject) GetTxTokenList() ([]ChainRegister, error) {
+	result := make([]ChainRegister, 0)
+	var register ChainRegister
+	//TokenList := make(map[string]TokenList)
+	err := this.db.Table((&ChainRegister{}).TableName()).Order("id desc").Find(&result).Error
+	for _, item := range result {
+		fmt.Printf("--------++%+v\n", item)
+		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, 6).First(&register).Error
+		if err == nil {
+			fmt.Printf("fdf++%+v\n---", register)
+		}
+	}
+	return result, err
 }

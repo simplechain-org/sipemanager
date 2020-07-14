@@ -7,9 +7,9 @@ import (
 	"sipemanager/dao"
 	"sipemanager/utils"
 
+	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/accounts/keystore"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/gin-gonic/gin"
 )
 
 type WalletParam struct {
@@ -157,7 +157,7 @@ type UpdateWalletParam struct {
 // @Param wallet_id formData string true "钱包id"
 // @Param old_password formData string true "钱包旧密码"
 // @Param new_password formData string true "钱包新密码"
-// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /wallet/update [post]
 func (this *Controller) UpdateWallet(c *gin.Context) {
 	var params UpdateWalletParam
