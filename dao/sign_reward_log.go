@@ -2,6 +2,7 @@ package dao
 
 import (
 	"github.com/jinzhu/gorm"
+	"math/big"
 )
 
 //签名奖励发放
@@ -60,4 +61,24 @@ func (this *DataBaseAccessObject) GetSignRewardLogCount(anchorNodeId uint) (int,
 	err := db.Count(&count).Error //表示已经成功上链的数据
 
 	return count, err
+}
+
+func (this *DataBaseAccessObject) GetSignRewardLogSumFee(anchorNodeId uint, coin string) (*big.Int, error) {
+	sum:=big.NewInt(0)
+	result:=make([]SignRewardLog,0)
+	err := this.db.Table((&SignRewardLog{}).TableName()).
+		Where("anchor_node_id=?", anchorNodeId).
+		Where("coin=?", coin).
+		Where("status=?", 1).Find(&result).Error
+	if err!=nil{
+		return nil,err
+	}
+	for _,o:=range result{
+		fee,success:=big.NewInt(0).SetString(o.Reward,10)
+		if !success{
+			continue
+		}
+		sum=sum.Add(sum,fee)
+	}
+	return sum, nil
 }

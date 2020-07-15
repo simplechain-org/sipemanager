@@ -58,3 +58,7 @@ func (this *DataBaseAccessObject) WalletExists(address string) bool {
 	}
 	return count != 0
 }
+
+func (this *DataBaseAccessObject) RemoveWallet(id uint) error {
+	return this.db.Where("id = ?", id).Delete(&Wallet{}).Error
+}

@@ -43,8 +43,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/wallet", validateLogin, c.AddWallet)
 	router.POST("/api/v1/wallet/update", validateLogin, c.UpdateWallet)
 
-	router.GET("/api/v1/chain/list", validateLogin, c.GetChains)
-
 	router.POST("/api/v1/contract", validateLogin, c.AddContract)
 	router.POST("/api/v1/contract/instance", validateLogin, c.DeployContract)
 	router.POST("/api/v1/contract/register", validateLogin, c.RegisterChain)
@@ -60,7 +58,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.POST("/api/v1/contract/instance/add", validateLogin, c.AddContractInstance)
 
-	router.POST("/api/v1/chain/address", validateLogin, c.UpdateChainContractAddress)
 	router.GET("/api/v1/chain/current", validateLogin, c.GetUserCurrentChain)
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
@@ -82,10 +79,20 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/reward/add", validateLogin, c.AddSignReward)
 	router.POST("/api/v1/reward/configure", validateLogin, c.ConfigureSignReward)
 	router.GET("/api/v1/service/charge/list", validateLogin, c.ListServiceCharge)
-	router.POST("/api/v1/service/charge/add",validateLogin, c.AddServiceCharge)
-	router.GET("/api/v1//service/charge/fee",validateLogin, c.GetServiceChargeFee)
-	router.POST("/api/v1/anchor/node/add",validateLogin, c.AddAnchorNode)
-	router.POST("/api/v1/anchor/node/remove",validateLogin, c.RemoveAnchorNode)
+	router.POST("/api/v1/service/charge/add", validateLogin, c.AddServiceCharge)
+	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
+	router.POST("/api/v1/anchor/node/add", validateLogin, c.AddAnchorNode)
+	router.POST("/api/v1/anchor/node/remove", validateLogin, c.RemoveAnchorNode)
+	router.DELETE("/api/v1/wallet/remove", validateLogin, c.RemoveWallet)
+	router.POST("/api/v1/punishment/add", validateLogin, c.AddPunishment)
+	router.GET("/api/v1/punishment/list", validateLogin, c.ListPunishment)
+	router.GET("/api/v1/anchor/node/list", validateLogin, c.ListAnchorNode)
+	router.GET("/api/v1/anchor/node/obtain", validateLogin, c.GetAnchorNode)
+	router.PUT("/api/v1/node", validateLogin, c.UpdateNode)
+	router.DELETE("/api/v1/node/remove/:id", validateLogin, c.DeleteNode)
+	router.PUT("/api/v1/chain/update", validateLogin, c.UpdateChain)
+	router.GET("/api/v1/chain/list", validateLogin, c.ListChain)
+
 
 }
 
