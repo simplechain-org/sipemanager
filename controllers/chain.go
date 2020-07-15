@@ -47,13 +47,14 @@ type UpdateChainParam struct {
 // @Tags node
 // @Accept  json
 // @Produce  json
+// @Param id formData int true "链的id"
 // @Param name formData int true "链的名称"
 // @Param network_id formData string true "链的网络编号"
 // @Param coin_name formData int true "币的名称"
 // @Param symbol formData string true "币的符号"
 // @Param contract_instance_id formData uint true "合约实例id"
 // @Security ApiKeyAuth
-// @Success 200 {object} JsonResult{data=int} "NodeId"
+// @Success 200 {object} JsonResult{data=int}
 // @Router /chain/update [put]
 func (this *Controller) UpdateChain(c *gin.Context) {
 	var param UpdateChainParam
@@ -70,7 +71,6 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 	this.echoSuccess(c, "Success")
 }
 
-//删除链信息
 // @Summary 删除链信息
 // @Tags chain
 // @Accept  json
@@ -120,7 +120,8 @@ type ChainResult struct {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param current_page query string true "当前页"
+// @Param current_page query string true "当前页，默认1"
+// @Param page_size query string true "页的记录数，默认10"
 // @Success 200 {object} JsonResult{data=ChainResult}
 // @Router /chain/list [get]
 func (this *Controller) ListChain(c *gin.Context) {
@@ -132,6 +133,16 @@ func (this *Controller) ListChain(c *gin.Context) {
 		page, err := strconv.ParseUint(currentPageStr, 10, 64)
 		if err == nil {
 			currentPage = int(page)
+		}
+	}
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
 		}
 	}
 	start := (currentPage - 1) * pageSize
@@ -155,17 +166,14 @@ func (this *Controller) ListChain(c *gin.Context) {
 	this.echoResult(c, chainResult)
 }
 
-//获取所有的链信息
-func (this *Controller) GetChains(c *gin.Context) {
-	chains, err := this.dao.GetChains()
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, chains)
-}
-
-//获取链信息
+// @Summary 获取链信息
+// @Tags GetChainInfo
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param chain_id path string true "链id"
+// @Success 200 {object} JsonResult{data=dao.ChainInfo}
+// @Router /chain/info [get]
 func (this *Controller) GetChainInfo(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
 	if chainIdStr == "" {

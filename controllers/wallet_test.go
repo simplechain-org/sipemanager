@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var token string = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTQ2MTEzODMsImlhdCI6MTU5NDYwNDE4MywiaWQiOjEsInVzZXJuYW1lIjoiZGFtaW4ifQ.lnj2gqKXe5Vv9pecWS5YHi8hQa4N6cp6nMKkdiV7PRI`
+
 
 func TestController_AddWallet(t *testing.T) {
 

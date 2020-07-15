@@ -33,22 +33,32 @@ func (this *Controller) ListContract(c *gin.Context) {
 	}
 	this.echoResult(c, contracts)
 }
+// @Summary 获取部署在链上的合约实例
+// @Tags GetContractOnChain
+// @Accept  json
+// @Produce  json
+// @Param chain_id query int true "链的id"
+// @Security ApiKeyAuth
+// @Success 200 {object} JsonResult{data=[]dao.ContractInstance}
+// @Router /contract/chain [get]
 func (this *Controller) GetContractOnChain(c *gin.Context) {
 	chainId := c.Query("chain_id")
-	if chainId != "" {
-		id, err := strconv.ParseUint(chainId, 10, 64)
-		if err != nil {
-			this.echoError(c, err)
-			return
-		}
-		contracts, err := this.dao.GetContractsByChainId(uint(id))
-		if err != nil {
-			this.echoError(c, err)
-			return
-		}
-		this.echoResult(c, contracts)
+	if chainId == "" {
+		this.echoError(c, errors.New("chain_id非法"))
 		return
 	}
+	id, err := strconv.ParseUint(chainId, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	contracts, err := this.dao.GetContractsByChainId(uint(id))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, contracts)
+
 }
 func (this *Controller) GetContractInstances(c *gin.Context) {
 	contracts, err := this.dao.GetContractInstances()

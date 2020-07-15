@@ -102,6 +102,9 @@ LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
 `
 	var result InstanceNodes
 	rows, err := this.db.Raw(sql).Rows()
+	if err!=nil{
+		return nil,err
+	}
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(

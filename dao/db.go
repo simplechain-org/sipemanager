@@ -52,7 +52,6 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Wallet{})
 	db.AutoMigrate(&Chain{})
-	//db.AutoMigrate(&ChainContract{})
 	db.AutoMigrate(&Contract{})
 	db.AutoMigrate(&ContractInstance{})
 	db.AutoMigrate(&MakerOrder{})
