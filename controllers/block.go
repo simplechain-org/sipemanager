@@ -198,7 +198,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 		BlockHash:    block.Hash().Hex(),
 		ChainId:      chainId,
 	}
-	replaceErr := this.dao.UpdateBlock(blockRecord)
+	replaceErr := this.dao.BlockReplace(blockRecord)
 	if replaceErr != nil {
 		logrus.Warn(utils.ErrLogCode{LogType: "controller => block => SyncBlock:", Code: 30003, Message: err.Error(), Err: nil})
 	}

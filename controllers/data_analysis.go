@@ -78,3 +78,20 @@ func (this *Controller) FeeAndCount(c *gin.Context) {
 	}
 	this.echoResult(c, anchors)
 }
+
+//分叉监控
+// @Summary 分叉监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=[]dao.MaxUncle}
+// @Router /chart/maxUncle/list [get]
+func (this *Controller) MaxUncle(c *gin.Context) {
+	anchors, err := this.dao.QueryMaxUncle()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	fmt.Printf("34----%+v\n", anchors)
+	this.echoResult(c, anchors)
+}
