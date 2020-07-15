@@ -3,8 +3,9 @@ package controllers
 import (
 	"errors"
 	"fmt"
-
+	"net"
 	"sipemanager/dao"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,14 +24,27 @@ import (
 // @Router /node [post]
 func (this *Controller) AddNode(c *gin.Context) {
 	var node dao.Node
-	if err := c.ShouldBindJSON(&node); err != nil {
+	if err := c.ShouldBind(&node); err != nil {
 		this.echoError(c, err)
 		return
 	}
-	//todo 校验数据
 	user, err := this.GetUser(c)
 	if err != nil {
 		this.echoError(c, err)
+		return
+	}
+	if node.Port < 0 || node.Port > 65535 {
+		this.echoError(c, errors.New("port参数非法"))
+		return
+	}
+	trial := net.ParseIP(node.Address)
+
+	if trial == nil {
+		this.echoError(c, errors.New("不是一个ip地址"))
+		return
+	}
+	if trial.To4() == nil {
+		this.echoError(c, fmt.Errorf("%v is not an IPv4 address\n", trial))
 		return
 	}
 	node.UserId = user.ID
@@ -39,7 +53,7 @@ func (this *Controller) AddNode(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	node.NetworkId = chain.NetworkId
+	node.ChainId = chain.ID
 
 	id, err := this.dao.CreateNode(&node)
 	if err != nil {
@@ -59,11 +73,83 @@ func (this *Controller) AddNode(c *gin.Context) {
 	}
 	this.echoResult(c, id)
 }
-func (this *Controller) UpdateNode(c *gin.Context) {
 
+type UpdateNodeParam struct {
+	Id      uint   `json:"id" binding:"required"`
+	Address string `gorm:"size:255" json:"address" binding:"required"` //地址
+	Port    int    `json:"port" binding:"required"`                    //端口
+	Name    string `gorm:"size:255" json:"name" binding:"required"`
+	ChainId uint   `json:"chain_id" binding:"required"` //链id
 }
-func (this *Controller) DeleteNode(c *gin.Context) {
 
+// @Summary 编辑节点
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Param id formData int true "Id"
+// @Param chain_id formData int true "关联链Id"
+// @Param address formData string true "节点地址"
+// @Param port formData int true "端口"
+// @Param name formData string true "名称"
+// @Security ApiKeyAuth
+// @Success 200 {object} JsonResult{data=int} "NodeId"
+// @Router /node [put]
+func (this *Controller) UpdateNode(c *gin.Context) {
+	var params UpdateNodeParam
+	if err := c.ShouldBind(&params); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	if params.Port < 0 || params.Port > 65535 {
+		this.echoError(c, errors.New("port参数非法"))
+		return
+	}
+	trial := net.ParseIP(params.Address)
+	if trial == nil {
+		this.echoError(c, errors.New("不是一个ip地址"))
+		return
+	}
+	if trial.To4() == nil {
+		this.echoError(c, fmt.Errorf("%v is not an IPv4 address\n", trial))
+		return
+	}
+	if params.Name == "" {
+		this.echoError(c, errors.New("name参数非法"))
+		return
+	}
+	err := this.dao.UpdateNode(params.Id, params.Address, params.Port, params.Name, params.ChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
+}
+
+// @Summary 删除节点
+// @Tags node
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Id"
+// @Security ApiKeyAuth
+// @Success 200 {object} JsonResult{msg=string}
+// @Router /node/remove/{id} [delete]
+func (this *Controller) DeleteNode(c *gin.Context) {
+	nodeIdStr := c.Param("id")
+	if nodeIdStr == "" {
+		this.echoError(c, errors.New("缺少参数 id"))
+		return
+	}
+	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	err = this.dao.RemoveNode(uint(nodeId))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
 }
 
 //切换节点
@@ -89,7 +175,6 @@ func (this *Controller) ChangeNode(c *gin.Context) {
 		return
 	}
 	var params UserNodeParam
-	fmt.Printf("fdf%+v", params)
 	if err := c.Bind(&params); err != nil {
 		this.echoError(c, err)
 		return

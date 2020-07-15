@@ -121,3 +121,53 @@ func (this *Api) RemoveAnchors(config *AnchorNodeConfig, callerConfig *CallerCon
 	return result.String(), nil
 
 }
+
+//设置锚定节点的可用与否
+func (this *Api) SetAnchorStatus(config *AnchorNodeRewardConfig, callerConfig *CallerConfig, status bool) (string, error) {
+	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
+	if err != nil {
+		return "", err
+	}
+	out, err := abi.Pack("setAnchorStatus", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress, status)
+	if err != nil {
+		return "", err
+	}
+	nonce, err := this.simpleClient.PendingNonceAt(context.Background(), callerConfig.From)
+	if err != nil {
+		return "", err
+	}
+	gasPrice, err := this.simpleClient.SuggestGasPrice(context.Background())
+
+	if err != nil {
+		return "", err
+	}
+	msg := simplechain.CallMsg{
+		From:     callerConfig.From,
+		To:       &config.ContractAddress,
+		Data:     out,
+		GasPrice: gasPrice,
+	}
+	gasLimit, err := this.simpleClient.EstimateGas(context.Background(), msg)
+	if err != nil {
+		return "", err
+	}
+
+	transaction := types.NewTransaction(nonce, config.ContractAddress, big.NewInt(0), gasLimit, gasPrice, out)
+	transaction, err = types.SignTx(transaction, types.NewEIP155Signer(big.NewInt(0).SetInt64(int64(callerConfig.NetworkId))), callerConfig.PrivateKey)
+	if err != nil {
+		return "", err
+	}
+	content, err := rlp.EncodeToBytes(transaction)
+
+	if err != nil {
+		return "", err
+	}
+	var result common.Hash
+
+	err = this.client.CallContext(context.Background(), &result, "eth_sendRawTransaction", hexutil.Bytes(content))
+
+	if err != nil {
+		return "", err
+	}
+	return result.String(), nil
+}

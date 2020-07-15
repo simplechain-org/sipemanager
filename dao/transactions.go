@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
 )
+
 //todo anchors From crossAddress makerFinish status
 type Transaction struct {
 	BlockHash        string `gorm:"column:blockHash"`
@@ -66,19 +68,31 @@ func (this *DataBaseAccessObject) GetTxByAnchors(chainId uint, from string, to s
 	}
 	return result, nil
 }
-////todo
 func (this *DataBaseAccessObject) GetTransactionSumFee(from string, to string, eventType string, chainId uint) (*big.Int, error) {
-	//type SumFee struct {
-	//	TotalFee uint64 `gorm:"total_fee"`
-	//}
-	//var sumFee SumFee
-	//err := this.db.Table((&Transaction{}).TableName()).
-	//	Where("`from`=?", from).
-	//	Where("to=?", to).
-	//	Where("eventType=?", eventType).
-	//	Where("chain_id=?", chainId).
-	//	Select("sum(fee) as total_fee").
-	//	Scan(&sumFee).Error
-	//return sumFee.TotalFee, err
-	return big.NewInt(0),nil
+	result := make([]CrossAnchors, 0)
+	err := this.db.Table((&CrossAnchors{}).TableName()).
+		Where("anchorAddress=?", from).
+		Where("contractAddress=?", to).
+		Where("eventType=?", eventType).
+		Where("chain_id=?", chainId).
+		Find(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	sum := big.NewInt(0)
+	for _, o := range result {
+		gasUsed, success := big.NewInt(0).SetString(o.GasUsed, 10)
+		if !success {
+			fmt.Println("gasUsed:", o.GasUsed)
+			continue
+		}
+		gasPrice, success := big.NewInt(0).SetString(o.GasPrice, 10)
+		if !success {
+			fmt.Println("gasPrice:", o.GasPrice)
+			continue
+		}
+		gasUsed.Mul(gasUsed, gasPrice)
+		sum.Add(sum, gasUsed)
+	}
+	return sum, nil
 }

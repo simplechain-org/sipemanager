@@ -1,4 +1,69 @@
 definitions:
+  controllers.AnchorNodeInfo:
+    properties:
+      anchor_node_name:
+        description: 锚定节点名称
+        type: string
+      chain_a:
+        description: 归属链A
+        type: string
+      chain_a_info:
+        $ref: '#/definitions/controllers.ChainFeeInfo'
+        type: object
+      chain_b:
+        description: 归属链B
+        type: string
+      chain_b_info:
+        $ref: '#/definitions/controllers.ChainFeeInfo'
+        type: object
+      created_at:
+        description: 创建时间
+        type: string
+      pledge:
+        description: 质押金额
+        type: string
+      status:
+        description: 身份状态
+        type: string
+    type: object
+  controllers.AnchorNodeResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/controllers.AnchorNodeView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
+    type: object
+  controllers.AnchorNodeView:
+    properties:
+      anchor_node_name:
+        description: 锚定节点名称
+        type: string
+      chain_a:
+        description: 归属链A
+        type: string
+      chain_b:
+        description: 归属链B
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      pledge:
+        description: 质押金额
+        type: string
+      status:
+        description: 身份状态
+        type: string
+    type: object
   controllers.AnchorWorkCount:
     properties:
       rate:
@@ -27,6 +92,40 @@ definitions:
       timestamp:
         type: integer
       transactions:
+        type: integer
+    type: object
+  controllers.ChainFeeInfo:
+    properties:
+      chain_name:
+        type: string
+      make_finish:
+        description: makefinish手续费
+        type: string
+      reimbursed_fee:
+        description: 已报销手续费
+        type: string
+      reward:
+        description: 累计发放奖励
+        type: string
+      valid_signature:
+        description: 累计有效签名
+        type: string
+    type: object
+  controllers.ChainResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/dao.ChainInfo'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
         type: integer
     type: object
   controllers.ExistsContractParam:
@@ -77,8 +176,6 @@ definitions:
         type: boolean
       name:
         type: string
-      network_id:
-        type: integer
       port:
         description: 端口
         type: integer
@@ -89,6 +186,43 @@ definitions:
     - chain_id
     - name
     - port
+    type: object
+  controllers.PunishmentView:
+    properties:
+      anchor_node_id:
+        description: 锚定节点编号
+        type: integer
+      anchor_node_name:
+        description: 锚定节点名称，冗余方便查询
+        type: string
+      coin:
+        description: 惩罚币种
+        type: string
+      created_at:
+        type: string
+      manage_type:
+        description: suspend recovery token
+        type: string
+      value:
+        description: 惩罚数量
+        type: string
+    type: object
+  controllers.PunishmentViewResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/controllers.PunishmentView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
     type: object
   controllers.ServiceChargeFee:
     properties:
@@ -198,6 +332,27 @@ definitions:
       transactionIndex:
         type: integer
       value:
+        type: string
+    type: object
+  dao.ChainInfo:
+    properties:
+      address:
+        description: 合约地址
+        type: string
+      coin_name:
+        description: 币名
+        type: string
+      contract_instance_id:
+        description: 合约实例
+        type: integer
+      name:
+        description: 链的名称
+        type: string
+      network_id:
+        description: 链的网络编号
+        type: integer
+      symbol:
+        description: 符号
         type: string
     type: object
   dao.MaxUncle:
@@ -315,6 +470,33 @@ paths:
       summary: 新增锚定节点
       tags:
       - AddAnchorNode
+  /anchor/node/obtain:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 锚定节点id
+        in: query
+        name: anchor_node_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.AnchorNodeInfo'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 锚定节点详情
+      tags:
+      - ListAnchorNode
   /anchor/node/remove:
     post:
       consumes:
@@ -540,6 +722,122 @@ paths:
       summary: 删除链信息
       tags:
       - chain
+  /chain/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 链的名称
+        in: formData
+        name: name
+        required: true
+        type: integer
+      - description: 链的网络编号
+        in: formData
+        name: network_id
+        required: true
+        type: string
+      - description: 币的名称
+        in: formData
+        name: coin_name
+        required: true
+        type: integer
+      - description: 币的符号
+        in: formData
+        name: symbol
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 添加链信息
+      tags:
+      - node
+  /chain/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页
+        in: query
+        name: current_page
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.ChainResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 链的管理
+      tags:
+      - ListChain
+  /chain/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 链的名称
+        in: formData
+        name: name
+        required: true
+        type: integer
+      - description: 链的网络编号
+        in: formData
+        name: network_id
+        required: true
+        type: string
+      - description: 币的名称
+        in: formData
+        name: coin_name
+        required: true
+        type: integer
+      - description: 币的符号
+        in: formData
+        name: symbol
+        required: true
+        type: string
+      - description: 合约实例id
+        in: formData
+        name: contract_instance_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: NodeId
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 编辑链信息
+      tags:
+      - node
   /chart/feeAndCount/list:
     get:
       consumes:
@@ -645,6 +943,52 @@ paths:
       summary: 添加node
       tags:
       - node
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Id
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: 关联链Id
+        in: formData
+        name: chain_id
+        required: true
+        type: integer
+      - description: 节点地址
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: 端口
+        in: formData
+        name: port
+        required: true
+        type: integer
+      - description: 名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: NodeId
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 编辑节点
+      tags:
+      - node
   /node/change:
     post:
       consumes:
@@ -718,6 +1062,122 @@ paths:
       summary: 节点列表
       tags:
       - node
+  /node/remove/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 删除节点
+      tags:
+      - node
+  /punishment/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 锚定节点id
+        in: formData
+        name: anchor_node_id
+        required: true
+        type: integer
+      - description: 节点id
+        in: formData
+        name: node_id
+        required: true
+        type: integer
+      - description: 钱包id
+        in: formData
+        name: wallet_id
+        required: true
+        type: integer
+      - description: 钱包密码
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: 扣减数量
+        in: formData
+        name: value
+        required: true
+        type: string
+      - description: 扣减的币种
+        in: formData
+        name: coin
+        required: true
+        type: string
+      - description: 管理类型
+        in: formData
+        name: manage_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 新增惩罚记录
+      tags:
+      - AddPunishment
+  /punishment/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 锚定节点id
+        in: query
+        name: anchor_node_id
+        required: true
+        type: string
+      - description: 当前页
+        in: query
+        name: current_page
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.PunishmentViewResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 惩罚记录
+      tags:
+      - ListPunishment
   /reward/add:
     post:
       consumes:
@@ -933,7 +1393,7 @@ paths:
         name: node_id
         required: true
         type: integer
-      - description: 节点id
+      - description: 钱包id
         in: formData
         name: wallet_id
         required: true
@@ -1161,6 +1621,33 @@ paths:
       summary: 钱包列表
       tags:
       - wallet
+  /wallet/remove:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 钱包id
+        in: query
+        name: wallet_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 移除钱包
+      tags:
+      - removeWallet
   /wallet/update:
     post:
       consumes:

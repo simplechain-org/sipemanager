@@ -221,12 +221,17 @@ func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, Node
 		if err != nil {
 			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => HeartChannel:", Code: 20005, Message: err.Error(), Err: nil})
 		}
+		chain, err := this.dao.GetChain(current.ChainId)
+		if err != nil {
+			logrus.Error(err)
+			return
+		}
 		currents := []dao.InstanceNodes{
 			dao.InstanceNodes{
 				Address:    current.Address,
 				Port:       current.Port,
 				IsHttps:    current.IsHttps,
-				NetworkId:  current.NetworkId,
+				NetworkId:  chain.NetworkId,
 				Name:       current.Name,
 				ChainId:    current.ChainId,
 				ContractId: ch.currentNode.ContractId,

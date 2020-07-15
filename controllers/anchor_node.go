@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
+	"math/big"
+	"strconv"
 	"time"
 
 	"sipemanager/blockchain"
@@ -323,20 +326,303 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}(source, target, param.AnchorNodeId, sourceHash, targetHash)
 }
 
-//锚定节点列表
-//makefinish应该是有两方面的费用，A链和B链
-func (this *Controller) ListAnchorNode(c *gin.Context) {
+type AnchorNodeView struct {
 	//创建时间
+	CreatedAt string `json:"created_at"`
 	//锚定节点名称
+	AnchorNodeName string `json:"anchor_node_name"`
 	//归属链A
+	ChainA string `json:"chain_a"`
 	//归属链B
-	//makefinish手续费
-	//已报销手续费
-	//累计有效签名  //
-	//累计发放奖励  //
+	ChainB string `json:"chain_b"`
+
 	//质押金额
+	Pledge string `json:"pledge"`
 	//身份状态
+	Status string `json:"status"`
+}
+
+type AnchorNodeResult struct {
+	TotalCount  int              `json:"total_count"`  //总记录数
+	CurrentPage int              `json:"current_page"` //当前页数
+	PageSize    int              `json:"page_size"`    //页的大小
+	PageData    []AnchorNodeView `json:"page_data"`    //页的数据
+}
+
+// @Summary 锚定节点列表
+// @Tags ListAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param current_page query string true "当前页"
+// @Success 200 {object} JsonResult{data=AnchorNodeResult}
+// @Router /service/charge/list [get]
+func (this *Controller) ListAnchorNode(c *gin.Context) {
+	var pageSize int = 10
+	//当前页（默认为第一页）
+	var currentPage int = 1
+	currentPageStr := c.Query("current_page")
+	if currentPageStr != "" {
+		page, err := strconv.ParseUint(currentPageStr, 10, 64)
+		if err == nil {
+			currentPage = int(page)
+		}
+	}
+	start := (currentPage - 1) * pageSize
+
+	objects, err := this.dao.GetAnchorNodePage(start, pageSize)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	count, err := this.dao.GetAnchorNodeCount()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	result := make([]AnchorNodeView, 0, len(objects))
 
 	//分页显示，每页10条记录
+	for _, obj := range objects {
+		chainA, err := this.dao.GetChain(obj.SourceChainId)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		chainB, err := this.dao.GetChain(obj.TargetChainId)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		var status string
+		if obj.Status {
+			status = "有效"
+		} else {
+			status = "无效"
+		}
+		result = append(result, AnchorNodeView{
+			AnchorNodeName: obj.Name,
+			ChainA:         chainA.Name,
+			ChainB:         chainB.Name,
+			CreatedAt:      obj.CreatedAt.Format("2006-01-02 15:04:05"),
+			Pledge:         obj.Pledge,
+			Status:         status,
+		})
+	}
+	anchorNodeResult := &AnchorNodeResult{
+		TotalCount:  count,
+		CurrentPage: currentPage,
+		PageSize:    pageSize,
+		PageData:    result,
+	}
+	this.echoResult(c, anchorNodeResult)
+}
 
+type AnchorNodeInfo struct {
+	//创建时间
+	CreatedAt string `json:"created_at"`
+	//锚定节点名称
+	AnchorNodeName string `json:"anchor_node_name"`
+	//归属链A
+	ChainA string `json:"chain_a"`
+	//归属链B
+	ChainB string `json:"chain_b"`
+
+	//质押金额
+	Pledge string `json:"pledge"`
+	//身份状态
+	Status string `json:"status"`
+
+	ChainAInfo *ChainFeeInfo `json:"chain_a_info"`
+
+	ChainBInfo *ChainFeeInfo `json:"chain_b_info"`
+}
+type ChainFeeInfo struct {
+	//makefinish手续费
+	MakeFinish string `json:"make_finish"`
+	//已报销手续费
+	ReimbursedFee string `json:"reimbursed_fee"`
+	//累计有效签名
+	ValidSignature string `json:"valid_signature"`
+	//累计发放奖励
+	Reward string `json:"reward"`
+
+	ChainName string `json:"chain_name"`
+}
+
+// @Summary 锚定节点详情
+// @Tags ListAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param anchor_node_id query string true "锚定节点id"
+// @Success 200 {object} JsonResult{data=AnchorNodeInfo}
+// @Router /anchor/node/obtain [get]
+func (this *Controller) GetAnchorNode(c *gin.Context) {
+	anchorNodeIdStr := c.Query("anchor_node_id")
+	if anchorNodeIdStr == "" {
+		this.echoError(c, errors.New("anchor_node_id数据非法"))
+		return
+	}
+	id, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	anchorNode, err := this.dao.GetAnchorNode(uint(id))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chainA, err := this.dao.GetChain(anchorNode.SourceChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chainB, err := this.dao.GetChain(anchorNode.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	var status string
+	if anchorNode.Status {
+		status = "有效"
+	} else {
+		status = "无效"
+	}
+
+	contractA, err := this.dao.GetContractByChainId(anchorNode.SourceChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	makeFinishA, err := this.dao.GetTransactionSumFee(anchorNode.Address, contractA.Address, "makerFinish", anchorNode.SourceChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	reimbursedFeeA, err := this.dao.GetServiceChargeSumFee(anchorNode.ID, chainA.Symbol)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	config := &blockchain.AnchorNodeRewardConfig{
+		AbiData:         []byte(contractA.Abi),
+		ContractAddress: common.HexToAddress(contractA.Address),
+		TargetNetworkId: chainB.NetworkId,
+		AnchorAddress:   common.HexToAddress(anchorNode.Address),
+	}
+
+	//根据链id选择可以节点
+	sourceNode, err := this.dao.GetNodeByChainId(anchorNode.SourceChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	source, err := this.getApiByNodeId(sourceNode.ID)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	callerConfig := &blockchain.CallerConfig{
+		NetworkId: chainA.NetworkId,
+	}
+	signCount, finishCount, err := source.GetAnchorWorkCount(config, callerConfig)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	//本期总签名数
+	count := big.NewInt(0)
+
+	count = count.Add(count, signCount)
+
+	count = count.Add(count, finishCount)
+
+	rewardA, err := this.dao.GetSignRewardLogSumFee(anchorNode.ID, chainA.Symbol)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chainFeeInfoA := &ChainFeeInfo{
+		MakeFinish:     makeFinishA.String(),
+		ReimbursedFee:  reimbursedFeeA.String(),
+		ValidSignature: count.String(),
+		Reward:         rewardA.String(),
+	}
+
+	contractB, err := this.dao.GetContractByChainId(anchorNode.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	makeFinishB, err := this.dao.GetTransactionSumFee(anchorNode.Address, contractB.Address, "makerFinish", anchorNode.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	reimbursedFeeB, err := this.dao.GetServiceChargeSumFee(anchorNode.ID, chainB.Symbol)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	config = &blockchain.AnchorNodeRewardConfig{
+		AbiData:         []byte(contractB.Abi),
+		ContractAddress: common.HexToAddress(contractB.Address),
+		TargetNetworkId: chainA.NetworkId,
+		AnchorAddress:   common.HexToAddress(anchorNode.Address),
+	}
+	//根据链id选择可以节点
+	targetNode, err := this.dao.GetNodeByChainId(anchorNode.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	target, err := this.getApiByNodeId(targetNode.ID)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	callerConfig = &blockchain.CallerConfig{
+		NetworkId: chainB.NetworkId,
+	}
+	signCount, finishCount, err = target.GetAnchorWorkCount(config, callerConfig)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	//本期总签名数
+	count = big.NewInt(0)
+
+	count = count.Add(count, signCount)
+
+	count = count.Add(count, finishCount)
+
+	rewardB, err := this.dao.GetSignRewardLogSumFee(anchorNode.ID, chainB.Symbol)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chainFeeInfoB := &ChainFeeInfo{
+		MakeFinish:     makeFinishB.String(),
+		ReimbursedFee:  reimbursedFeeB.String(),
+		ValidSignature: count.String(),
+		Reward:         rewardB.String(),
+	}
+	anchorNodeInfo := &AnchorNodeInfo{
+		CreatedAt:      anchorNode.CreatedAt.Format(dateFormat),
+		AnchorNodeName: anchorNode.Name,
+		ChainA:         chainA.Name,
+		ChainB:         chainB.Name,
+		Status:         status,
+		Pledge:         anchorNode.Pledge,
+		ChainAInfo:     chainFeeInfoA,
+		ChainBInfo:     chainFeeInfoB,
+	}
+	this.echoResult(c, anchorNodeInfo)
 }

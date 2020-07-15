@@ -30,13 +30,18 @@ func (this *Controller) getBlockChainApi(userId uint) (*blockchain.Api, error) {
 		if err != nil {
 			return nil, err
 		}
+		chain, err := this.dao.GetChain(node.ChainId)
+		if err != nil {
+			return nil, err
+		}
 		n := &blockchain.Node{
 			Address:   node.Address,
 			Port:      node.Port,
 			ChainId:   node.ChainId,
 			IsHttps:   node.IsHttps,
-			NetworkId: node.NetworkId,
+			NetworkId: chain.NetworkId,
 		}
+
 		api, err := blockchain.NewApi(n)
 		if err != nil {
 			return nil, err
@@ -152,12 +157,16 @@ func (this *Controller) onChangeNode(userId uint) (*blockchain.Api, error) {
 	if err != nil {
 		return nil, err
 	}
+	chain, err := this.dao.GetChain(node.ChainId)
+	if err != nil {
+		return nil, err
+	}
 	n := &blockchain.Node{
 		Address:   node.Address,
 		Port:      node.Port,
 		ChainId:   node.ChainId,
 		IsHttps:   node.IsHttps,
-		NetworkId: node.NetworkId,
+		NetworkId: chain.NetworkId,
 	}
 	api, err := blockchain.NewApi(n)
 	this.userClient[userId] = api
@@ -308,12 +317,16 @@ func (this *Controller) getApi(userId uint, networkId uint64) (*blockchain.Api, 
 	if err != nil {
 		return nil, err
 	}
+	chain, err := this.dao.GetChain(node.ChainId)
+	if err != nil {
+		return nil, err
+	}
 	n := &blockchain.Node{
 		Address:   node.Address,
 		Port:      node.Port,
 		ChainId:   node.ChainId,
 		IsHttps:   node.IsHttps,
-		NetworkId: node.NetworkId,
+		NetworkId: chain.NetworkId,
 	}
 	api, err := blockchain.NewApi(n)
 	if err != nil {

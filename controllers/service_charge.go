@@ -126,7 +126,7 @@ type AddServiceChargeParam struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id formData uint true "锚定节点id"
 // @Param node_id formData uint true "节点id"
-// @Param wallet_id formData uint true "节点id"
+// @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
 // @Param fee formData string true "手续费"
 // @Param coin formData string true "报销币种"
@@ -188,13 +188,13 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 	config := &blockchain.AnchorNodeRewardConfig{
 		AbiData:         []byte(contract.Abi),
 		ContractAddress: common.HexToAddress(contract.Address),
-		TargetNetworkId: source.GetNetworkId(),
+		TargetNetworkId: chain.NetworkId,
 		AnchorAddress:   common.HexToAddress(anchorNode.Address),
 	}
 	callerConfig := &blockchain.CallerConfig{
 		From:       address,
 		PrivateKey: privateKey,
-		NetworkId:  chain.NetworkId,
+		NetworkId:  source.GetNetworkId(),
 	}
 	fee, success := big.NewInt(0).SetString(param.Fee, 10)
 	if !success {
