@@ -131,7 +131,7 @@ func (this *Controller) UpdateNode(c *gin.Context) {
 // @Produce  json
 // @Param id path int true "Id"
 // @Security ApiKeyAuth
-// @Success 200 {object} JsonResult{data=nil,msg=string}
+// @Success 200 {object} JsonResult{msg=string}
 // @Router /node/remove/{id} [delete]
 func (this *Controller) DeleteNode(c *gin.Context) {
 	nodeIdStr := c.Param("id")

@@ -64,21 +64,21 @@ func (this *DataBaseAccessObject) GetSignRewardLogCount(anchorNodeId uint) (int,
 }
 
 func (this *DataBaseAccessObject) GetSignRewardLogSumFee(anchorNodeId uint, coin string) (*big.Int, error) {
-	sum:=big.NewInt(0)
-	result:=make([]SignRewardLog,0)
+	sum := big.NewInt(0)
+	result := make([]SignRewardLog, 0)
 	err := this.db.Table((&SignRewardLog{}).TableName()).
 		Where("anchor_node_id=?", anchorNodeId).
 		Where("coin=?", coin).
 		Where("status=?", 1).Find(&result).Error
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	for _,o:=range result{
-		fee,success:=big.NewInt(0).SetString(o.Reward,10)
-		if !success{
+	for _, o := range result {
+		fee, success := big.NewInt(0).SetString(o.Reward, 10)
+		if !success {
 			continue
 		}
-		sum=sum.Add(sum,fee)
+		sum = sum.Add(sum, fee)
 	}
 	return sum, nil
 }

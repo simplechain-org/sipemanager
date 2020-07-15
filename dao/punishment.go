@@ -4,8 +4,8 @@ import "github.com/jinzhu/gorm"
 
 type Punishment struct {
 	gorm.Model
-	Value         string //惩罚数量
-	Coin           string //惩罚币种
+	Value string //惩罚数量
+	Coin  string //惩罚币种
 	//suspend recovery token
 	ManageType     string //管理类型
 	AnchorNodeId   uint   `gorm:"anchor_node_id"`   //锚定节点编号

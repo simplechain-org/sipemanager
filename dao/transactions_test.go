@@ -135,29 +135,3 @@ func TestGetTxReplace(t *testing.T) {
 	}
 
 }
-
-//func TestDataBaseAccessObject_QueryTxByHours(t *testing.T) {
-//	config := &DBConfig{
-//		Username: "root",
-//		Password: "admin123",
-//		Address:  "localhost",
-//		Port:     3306,
-//		DbName:   "sipe",
-//		Charset:  "utf8mb4",
-//		MaxIdle:  1000,
-//		MaxOpen:  2000,
-//		LogMode:  true,
-//		Loc:      "Asia/Shanghai",
-//	}
-//	db, err := GetDBConnection(config)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	obj := NewDataBaseAccessObject(db)
-//	qerr := obj.QueryTxByHours("0x17529b05513e5595ceff7f4fb1e06512c271a540", "makerFinish", 2, 1)
-//	if qerr != nil {
-//		t.Fatal(qerr)
-//	}
-//	//t.Log(id)
-//
-//}

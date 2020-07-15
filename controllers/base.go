@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var dateFormat string ="2006-01-02 15:04:05"
+var dateFormat string = "2006-01-02 15:04:05"
 
 type JsonResult struct {
 	Msg  string      `json:"err_msg"`

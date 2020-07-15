@@ -11,9 +11,9 @@ import (
 	"sipemanager/blockchain"
 	"sipemanager/dao"
 
+	"github.com/gin-gonic/gin"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/gin-gonic/gin"
 )
 
 type SignRewardView struct {
@@ -43,7 +43,7 @@ type SignRewardResult struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id formData string true "keystore string"
 // @Param current_page formData string true "keystore string"
-// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /reward/list [get]
 func (this *Controller) ListSignReward(c *gin.Context) {
 	//分页显示
@@ -110,7 +110,6 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 	this.echoResult(c, serviceChargeResult)
 }
 
-
 // @Summary 剩余奖池总额
 // @Tags GetTotalReward
 // @Accept  json
@@ -118,7 +117,7 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param node_id query string true "节点id"
-// @Success 200 {object} JSONResult{data=int}
+// @Success 200 {object} JsonResult{data=int}
 // @Router /reward/total [get]
 func (this *Controller) GetTotalReward(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
@@ -192,7 +191,7 @@ func (this *Controller) GetTotalReward(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param node_id query string true "节点id"
-// @Success 200 {object} JSONResult{data=int}
+// @Success 200 {object} JsonResult{data=int}
 // @Router /reward/chain [get]
 func (this *Controller) GetChainReward(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
@@ -271,7 +270,7 @@ type AnchorWorkCount struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param node_id query string true "节点id"
-// @Success 200 {object} JSONResult{data=AnchorWorkCount}
+// @Success 200 {object} JsonResult{data=AnchorWorkCount}
 // @Router /anchor/work/count [get]
 func (this *Controller) GetAnchorWorkCount(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
@@ -392,6 +391,7 @@ type AddSignRewardParam struct {
 	Coin         string `json:"coin" form:"coin"`     //奖励币种
 
 }
+
 // @Summary 新增奖励发放
 // @Tags AddSignReward
 // @Accept  json
@@ -403,7 +403,7 @@ type AddSignRewardParam struct {
 // @Param password formData string true "钱包密码"
 // @Param reward formData string true "奖励金额"
 // @Param coin formData string true "奖励币种"
-// @Success 200 {object} JSONResult{data=nil,msg=string}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /reward/add [post]
 func (this *Controller) AddSignReward(c *gin.Context) {
 	var param AddSignRewardParam
@@ -466,12 +466,12 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 		PrivateKey: privateKey,
 		NetworkId:  chain.NetworkId,
 	}
-	bigReward,success:=big.NewInt(0).SetString(param.Reward,10)
-	if !success{
+	bigReward, success := big.NewInt(0).SetString(param.Reward, 10)
+	if !success {
 		this.echoError(c, errors.New("reward数据非法"))
 		return
 	}
-	hash, err := source.AccumulateRewards(config, callerConfig,bigReward)
+	hash, err := source.AccumulateRewards(config, callerConfig, bigReward)
 	if err != nil {
 		this.echoError(c, err)
 		return
@@ -515,12 +515,12 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 }
 
 type ConfigureSignRewardParam struct {
-	AnchorNodeId uint     `json:"anchor_node_id" form:"anchor_node_id"`
-	NodeId       uint     `json:"node_id" form:"node_id"`
-	WalletId     uint     `json:"wallet_id" form:"wallet_id"`
-	Password     string   `json:"password" form:"password"`
+	AnchorNodeId uint   `json:"anchor_node_id" form:"anchor_node_id"`
+	NodeId       uint   `json:"node_id" form:"node_id"`
+	WalletId     uint   `json:"wallet_id" form:"wallet_id"`
+	Password     string `json:"password" form:"password"`
 	Reward       string `json:"reward" form:"reward"` //奖励值
-	Coin         string   `json:"coin" form:"coin"`     //奖励币种
+	Coin         string `json:"coin" form:"coin"`     //奖励币种
 }
 
 // @Summary 配置签名奖励
@@ -534,7 +534,7 @@ type ConfigureSignRewardParam struct {
 // @Param password formData string true "钱包密码"
 // @Param reward formData string true "奖励金额"
 // @Param coin formData string true "奖励币种"
-// @Success 200 {object} JSONResult{data=nil,msg=string}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /reward/configure [post]
 func (this *Controller) ConfigureSignReward(c *gin.Context) {
 	var param ConfigureSignRewardParam
@@ -597,12 +597,12 @@ func (this *Controller) ConfigureSignReward(c *gin.Context) {
 		PrivateKey: privateKey,
 		NetworkId:  source.GetNetworkId(),
 	}
-	reward,success:=big.NewInt(0).SetString(param.Reward,10)
-	if !success{
+	reward, success := big.NewInt(0).SetString(param.Reward, 10)
+	if !success {
 		this.echoError(c, errors.New("reward数据非法"))
 		return
 	}
-	hash, err := source.SetReward(config, callerConfig,reward)
+	hash, err := source.SetReward(config, callerConfig, reward)
 	if err != nil {
 		this.echoError(c, err)
 		return

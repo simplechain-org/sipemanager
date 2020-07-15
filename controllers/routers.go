@@ -72,6 +72,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 
 	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
+	router.GET("/api/v1/chart/maxUncle/list", c.MaxUncle)
+
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
 	router.GET("/api/v1/reward/chain", validateLogin, c.GetChainReward)
@@ -93,7 +95,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.PUT("/api/v1/chain/update", validateLogin, c.UpdateChain)
 	router.GET("/api/v1/chain/list", validateLogin, c.ListChain)
 
-
 }
 
 type BlockChannel struct {
@@ -106,7 +107,7 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao: object,
 	}
-	//go c.ListenCrossEvent()
+	go c.ListenCrossEvent()
 	go c.ListenBlock()
 	go c.ListenAnchors()
 

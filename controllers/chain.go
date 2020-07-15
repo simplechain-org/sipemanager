@@ -77,7 +77,7 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param chain_id path int true "chainId"
-// @Success 200 {object} JsonResult{data=string} "成功删除链信息"
+// @Success 200 {object} JsonResult{data=object} "成功删除链信息"
 // @Router /chain/{chain_id} [delete]
 func (this *Controller) RemoveChain(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
@@ -121,7 +121,7 @@ type ChainResult struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param current_page query string true "当前页"
-// @Success 200 {object} JSONResult{data=ChainResult}
+// @Success 200 {object} JsonResult{data=ChainResult}
 // @Router /chain/list [get]
 func (this *Controller) ListChain(c *gin.Context) {
 	var pageSize int = 10

@@ -39,6 +39,7 @@ func (this *Controller) AnalysisAnchors() {
 				ChainId:         register.SourceChainId,
 				SourceNetworkId: sourceChain.NetworkId,
 				TargetNetworkId: targetChain.NetworkId,
+				ContractAddress: register.Address,
 			}
 			TxHourErr := this.dao.QueryTxByHours(txAnchor, "makerFinish")
 			TxDayErr := this.dao.QueryTxByDays(txAnchor, "makerFinish")

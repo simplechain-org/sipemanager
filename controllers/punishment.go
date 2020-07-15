@@ -33,7 +33,7 @@ type AddPunishmentParam struct {
 // @Param value formData string true "扣减数量"
 // @Param coin formData string true "扣减的币种"
 // @Param manage_type formData string true "管理类型"
-// @Success 200 {object} JSONResult{data=int}
+// @Success 200 {object} JsonResult{data=int}
 // @Router /punishment/add [post]
 func (this *Controller) AddPunishment(c *gin.Context) {
 	var param AddPunishmentParam
@@ -150,9 +150,9 @@ type PunishmentView struct {
 }
 
 type PunishmentViewResult struct {
-	TotalCount  int                 `json:"total_count"`  //总记录数
-	CurrentPage int                 `json:"current_page"` //当前页数
-	PageSize    int                 `json:"page_size"`    //页的大小
+	TotalCount  int              `json:"total_count"`  //总记录数
+	CurrentPage int              `json:"current_page"` //当前页数
+	PageSize    int              `json:"page_size"`    //页的大小
 	PageData    []PunishmentView `json:"page_data"`    //页的数据
 }
 
@@ -163,7 +163,7 @@ type PunishmentViewResult struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param current_page query string true "当前页"
-// @Success 200 {object} JSONResult{data=PunishmentViewResult}
+// @Success 200 {object} JsonResult{data=PunishmentViewResult}
 // @Router /punishment/list [get]
 func (this *Controller) ListPunishment(c *gin.Context) {
 	var anchorNodeId uint

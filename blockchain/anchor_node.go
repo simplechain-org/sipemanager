@@ -121,13 +121,14 @@ func (this *Api) RemoveAnchors(config *AnchorNodeConfig, callerConfig *CallerCon
 	return result.String(), nil
 
 }
+
 //设置锚定节点的可用与否
 func (this *Api) SetAnchorStatus(config *AnchorNodeRewardConfig, callerConfig *CallerConfig, status bool) (string, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
 		return "", err
 	}
-	out, err := abi.Pack("setAnchorStatus", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress,status)
+	out, err := abi.Pack("setAnchorStatus", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress, status)
 	if err != nil {
 		return "", err
 	}

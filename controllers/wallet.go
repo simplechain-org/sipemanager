@@ -158,7 +158,7 @@ type UpdateWalletParam struct {
 // @Param wallet_id formData string true "钱包id"
 // @Param old_password formData string true "钱包旧密码"
 // @Param new_password formData string true "钱包新密码"
-// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /wallet/update [post]
 func (this *Controller) UpdateWallet(c *gin.Context) {
 	var params UpdateWalletParam
@@ -195,7 +195,7 @@ func (this *Controller) UpdateWallet(c *gin.Context) {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param wallet_id query string true "钱包id"
-// @Success 200 {object} JSONResult{data=nil,msg="Success"}
+// @Success 200 {object} JsonResult{msg=string}
 // @Router /wallet/remove [delete]
 func (this *Controller) RemoveWallet(c *gin.Context) {
 	walletIdStr := c.Query("wallet_id")

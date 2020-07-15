@@ -7,18 +7,18 @@ import (
 
 type Node struct {
 	gorm.Model
-	Address   string `gorm:"size:255" json:"address" binding:"required"` //地址
-	Port      int    `json:"port" binding:"required"`                    //端口
-	IsHttps   bool   `json:"is_https"`
-	UserId    uint   `json:"user_id"`
-	Name      string `gorm:"size:255" json:"name" binding:"required"`
-	ChainId   uint   `json:"chain_id" binding:"required"` //链id
+	Address string `gorm:"size:255" json:"address" binding:"required"` //地址
+	Port    int    `json:"port" binding:"required"`                    //端口
+	IsHttps bool   `json:"is_https"`
+	UserId  uint   `json:"user_id"`
+	Name    string `gorm:"size:255" json:"name" binding:"required"`
+	ChainId uint   `json:"chain_id" binding:"required"` //链id
 }
 
 type NodeView struct {
 	gorm.Model
 	Address   string `gorm:"size:255" json:"address"` //地址
-	Port      int    `json:"port" binding:"required"`                    //端口
+	Port      int    `json:"port" binding:"required"` //端口
 	Name      string `gorm:"size:255" json:"name" `
 	ChainId   uint   `json:"chain_id"` //链id
 	ChainName string `gorm:"chain_name" json:"chain_name"`

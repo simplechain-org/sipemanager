@@ -40,7 +40,7 @@ type AddAnchorNodeParam struct {
 // @Param anchor_name formData string true "锚定节点名称"
 // @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
-// @Success 200 {object} JSONResult{data=nil}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /anchor/node/add [post]
 func (this *Controller) AddAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
@@ -209,7 +209,7 @@ type RemoveAnchorNodeParam struct {
 // @Param target_node_id formData uint true "目标链节点id"
 // @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
-// @Success 200 {object} JSONResult{data=nil}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /anchor/node/remove [post]
 func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	//调用合约增加锚定节点，要注意是双链
@@ -355,7 +355,7 @@ type AnchorNodeResult struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param current_page query string true "当前页"
-// @Success 200 {object} JSONResult{data=AnchorNodeResult}
+// @Success 200 {object} JsonResult{data=AnchorNodeResult}
 // @Router /service/charge/list [get]
 func (this *Controller) ListAnchorNode(c *gin.Context) {
 	var pageSize int = 10
@@ -456,7 +456,7 @@ type ChainFeeInfo struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
-// @Success 200 {object} JSONResult{data=AnchorNodeInfo}
+// @Success 200 {object} JsonResult{data=AnchorNodeInfo}
 // @Router /anchor/node/obtain [get]
 func (this *Controller) GetAnchorNode(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")

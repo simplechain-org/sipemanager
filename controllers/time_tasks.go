@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/robfig/cron/v3"
 	"github.com/simplechain-org/go-simplechain"
 	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/core/types"
-	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 
 	"sipemanager/blockchain"
@@ -94,7 +94,6 @@ func (this *Controller) ListenBlock() {
 }
 
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
-	a := time.Now()
 	for i := 0; i < len(nodes); i++ {
 		//fmt.Printf("current nodes %+v ", nodes[i])
 		contract, err := this.dao.GetContractById(nodes[i].ContractId)
@@ -121,7 +120,6 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 		this.EventLog(logs, abiParsed, nodes[i])
 
 	}
-	fmt.Println(time.Since(a))
 }
 
 type CrossMakerTx struct {
@@ -223,8 +221,8 @@ func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, Node
 		if err != nil {
 			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => HeartChannel:", Code: 20005, Message: err.Error(), Err: nil})
 		}
-		chain,err:=this.dao.GetChain(current.ChainId)
-		if err!=nil{
+		chain, err := this.dao.GetChain(current.ChainId)
+		if err != nil {
 			logrus.Error(err)
 			return
 		}
