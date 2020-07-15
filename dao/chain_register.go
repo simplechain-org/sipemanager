@@ -110,6 +110,7 @@ type TokenListInterface struct {
 	NetworkId          uint64
 	RemoteNetworkId    uint64
 	Name               string
+	Count              int
 }
 
 func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterface, error) {

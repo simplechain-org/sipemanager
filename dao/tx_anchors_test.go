@@ -22,7 +22,7 @@ func TestDataBaseAccessObject_QueryAnchors(t *testing.T) {
 	obj := NewDataBaseAccessObject(db)
 	tokenList, err := obj.GetTxTokenList()
 	token := tokenList["1,2"]
-	result, err := obj.TokenListCount(token, "202028", "202028", "week")
+	result, err := obj.TokenListAnchorCount(token, "202028", "202028", "week")
 	if err != nil {
 		t.Fatal(err)
 	}

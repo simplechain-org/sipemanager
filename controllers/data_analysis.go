@@ -124,10 +124,31 @@ func (this *Controller) AnchorCount(c *gin.Context) {
 	timeType := c.Query("timeType")
 	tokenList, err := this.dao.GetTxTokenList()
 	token := tokenList[tokenKey]
-	anchors, err := this.dao.TokenListCount(token, startTime, endTime, timeType)
+	anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
 	this.echoResult(c, anchors)
+}
+
+// @Summary 跨链交易数监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/crossTxCount/list [get]
+func (this *Controller) CrossTxCount(c *gin.Context) {
+	tokenList, err := this.dao.GetTxTokenList()
+	for key, value := range tokenList {
+		count := this.dao.TokenListCount(value)
+		value.Count = count
+		tokenList[key] = value
+	}
+
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, tokenList)
 }

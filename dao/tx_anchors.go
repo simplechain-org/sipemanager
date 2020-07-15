@@ -91,7 +91,7 @@ type TokenListCount struct {
 	TimeType string
 }
 
-func (this *DataBaseAccessObject) TokenListCount(data TokenListInterface, startTime string, endTime string, timeType string) ([]TokenListCount, error) {
+func (this *DataBaseAccessObject) TokenListAnchorCount(data TokenListInterface, startTime string, endTime string, timeType string) ([]TokenListCount, error) {
 	txAnchors := make([]TokenListCount, 0)
 
 	var sql = `
@@ -101,7 +101,6 @@ FROM (
 WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' GROUP BY anchor_id
 `
 	sql = fmt.Sprintf(sql, data.ChainID, data.RemoteChainID, data.RemoteChainID, data.ChainID, startTime, endTime, timeType)
-	fmt.Println(sql)
 	rows, err := this.db.Raw(sql).Rows()
 	defer rows.Close()
 	var result TokenListCount
@@ -118,4 +117,27 @@ WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' GROUP BY anchor_id
 		txAnchors = append(txAnchors, result)
 	}
 	return txAnchors, err
+}
+
+func (this *DataBaseAccessObject) TokenListCount(data TokenListInterface) int {
+
+	var Number int
+	var sql = `
+     select count(*) count from(
+      select event,transaction_hash,'from',block_number, remote_network_id, network_id,
+        case 
+        when event = 'MakerTx' 
+        then (select 'to' from cross_events where t.tx_id=tx_id and event = 'MakerFinish')
+        else 'to' 
+        end 
+        'to'
+      from cross_events t) t 
+    where (event='MakerTx' or event='TakerTx')
+		and ('to' is not null)
+		and (remote_network_id= %d and network_id = %d) or (remote_network_id= %d and network_id = %d)
+`
+	sql = fmt.Sprintf(sql, data.NetworkId, data.RemoteNetworkId, data.RemoteNetworkId, data.NetworkId)
+	row := this.db.Raw(sql).Row()
+	row.Scan(&Number)
+	return Number
 }
