@@ -93,6 +93,41 @@ func (this *Controller) MaxUncle(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	fmt.Printf("34----%+v\n", anchors)
+	this.echoResult(c, anchors)
+}
+
+// @Summary 跨链交易对列表
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/txTokenList/list [get]
+func (this *Controller) TxTokenList(c *gin.Context) {
+	tokenList, err := this.dao.GetTxTokenList()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, tokenList)
+}
+
+// @Summary 签名监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/anchorCount/list [get]
+func (this *Controller) AnchorCount(c *gin.Context) {
+	startTime := c.Query("startTime")
+	endTime := c.Query("endTime")
+	tokenKey := c.Query("tokenKey")
+	timeType := c.Query("timeType")
+	tokenList, err := this.dao.GetTxTokenList()
+	token := tokenList[tokenKey]
+	anchors, err := this.dao.TokenListCount(token, startTime, endTime, timeType)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
 	this.echoResult(c, anchors)
 }

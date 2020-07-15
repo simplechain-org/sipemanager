@@ -73,6 +73,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
 	router.GET("/api/v1/chart/maxUncle/list", c.MaxUncle)
+	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
+	router.GET("/api/v1/chart/anchorCount/list", c.AnchorCount)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)

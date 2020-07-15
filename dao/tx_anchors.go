@@ -47,7 +47,6 @@ func (this *TxAnchors) TableName() string {
 //}
 
 func (this *DataBaseAccessObject) QueryAnchors(startTime string, endTime string, chainId int, timeType string) ([]TxAnchorsNode, error) {
-	fmt.Printf("----45----%+v, %+v, %+v, %+v\n", startTime, endTime, chainId, timeType)
 	txAnchors := make([]TxAnchorsNode, 0)
 	var sql = `
 SELECT anchorAddress, contractAddress, source_chain_id,target_chain_id, source_network_id, target_network_id, anchor_id, fee, date, count,chain_id,timeType, name  FROM
@@ -74,7 +73,6 @@ LEFT JOIN (SELECT id, name from anchor_nodes) t2 on t1.anchor_id = t2.id
 			&result.Name)
 		txAnchors = append(txAnchors, result)
 	}
-	fmt.Printf("----4545----%+v\n", txAnchors)
 	return txAnchors, err
 }
 
@@ -84,4 +82,40 @@ func (this *DataBaseAccessObject) TxAnchorsReplace(data TxAnchors) error {
 		data.AnchorAddress, data.ContractAddress, data.SourceChainId,
 		data.TargetChainId, data.SourceNetworkId, data.TargetChainId, data.AnchorId, data.Fee,
 		data.Date, data.Count, data.ChainId, data.TimeType).Error
+}
+
+type TokenListCount struct {
+	Count    uint
+	AnchorId uint
+	Fee      uint64
+	TimeType string
+}
+
+func (this *DataBaseAccessObject) TokenListCount(data TokenListInterface, startTime string, endTime string, timeType string) ([]TokenListCount, error) {
+	txAnchors := make([]TokenListCount, 0)
+
+	var sql = `
+SELECT sum(t1.count) count, anchor_id, sum(t1.fee) fee , t1.timeType timeType 
+FROM (
+	SELECT * from tx_anchors WHERE (source_chain_id= %d and target_chain_id = %d ) or (source_chain_id=%d and target_chain_id =%d)) t1 
+WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' GROUP BY anchor_id
+`
+	sql = fmt.Sprintf(sql, data.ChainID, data.RemoteChainID, data.RemoteChainID, data.ChainID, startTime, endTime, timeType)
+	fmt.Println(sql)
+	rows, err := this.db.Raw(sql).Rows()
+	defer rows.Close()
+	var result TokenListCount
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		rows.Scan(
+			&result.Count,
+			&result.AnchorId,
+			&result.Fee,
+			&result.TimeType,
+		)
+		txAnchors = append(txAnchors, result)
+	}
+	return txAnchors, err
 }
