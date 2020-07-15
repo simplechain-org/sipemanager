@@ -81,16 +81,25 @@ type InstanceNodes struct {
 
 func (this *DataBaseAccessObject) GetInstancesJoinNode() ([]InstanceNodes, error) {
 	insNodes := make([]InstanceNodes, 0)
-	var sql = `SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, n.network_id, n.name, n.chain_id 
-				from
-				(select address cross_address, chain_id, contract_id from 
-					contract_instances
-					WHERE id in 
-						(SELECT contract_instance_id id from chain_contracts )
-						and 
-						deleted_at is null
-				) t
-				LEFT JOIN nodes n on n.chain_id = t.chain_id`
+	//var sql = `SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, n.network_id, n.name, n.chain_id
+	//			from
+	//			(select address cross_address, chain_id, contract_id from
+	//				contract_instances
+	//				WHERE id in
+	//					(SELECT contract_instance_id id from chain_contracts )
+	//					and
+	//					deleted_at is null
+	//			) t
+	//			LEFT JOIN nodes n on n.chain_id = t.chain_id`
+	var sql = `
+SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, n.network_id, n.name, n.chain_id  from (
+	SELECT chain_id id, contract_instance_id, contract_instances.address cross_address, contract_instances.contract_id contract_id
+	from 
+	chains
+	INNER JOIN contract_instances on chains.contract_instance_id = contract_instances.id and chains.deleted_at is null
+) t 
+LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
+`
 	var result InstanceNodes
 	rows, err := this.db.Raw(sql).Rows()
 	defer rows.Close()
