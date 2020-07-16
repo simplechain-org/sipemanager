@@ -340,6 +340,8 @@ type AnchorNodeView struct {
 	Pledge string `json:"pledge"`
 	//身份状态
 	Status string `json:"status"`
+
+	ID uint `json:"ID"`
 }
 
 type AnchorNodeResult struct {
@@ -412,6 +414,7 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 			status = "无效"
 		}
 		result = append(result, AnchorNodeView{
+			ID:             obj.ID,
 			AnchorNodeName: obj.Name,
 			ChainA:         chainA.Name,
 			ChainB:         chainB.Name,
