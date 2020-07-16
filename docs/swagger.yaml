@@ -362,6 +362,38 @@ definitions:
       chainId:
         type: integer
     type: object
+  dao.TokenListCount:
+    properties:
+      anchorId:
+        type: integer
+      count:
+        type: integer
+      fee:
+        type: integer
+      timeType:
+        type: string
+    type: object
+  dao.TokenListInterface:
+    properties:
+      anchorAddresses:
+        type: string
+      chainID:
+        type: integer
+      count:
+        type: integer
+      name:
+        type: string
+      networkId:
+        type: integer
+      remoteChainID:
+        type: integer
+      remoteCrossAddress:
+        type: string
+      remoteNetworkId:
+        type: integer
+      sourceCrossAddress:
+        type: string
+    type: object
   dao.TxAnchorsNode:
     properties:
       anchor_id:
@@ -838,6 +870,65 @@ paths:
       summary: 编辑链信息
       tags:
       - node
+  /chart/anchorCount/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: hour:2020-07-10 12:00:00 day:2020-07-10 week:202025
+        in: query
+        name: startTime
+        required: true
+        type: string
+      - description: hour:2020-07-12 12:00:00 day:2020-07-12 week:202029
+        in: query
+        name: endTime
+        required: true
+        type: string
+      - description: 1,2
+        in: query
+        name: tokenKey
+        required: true
+        type: string
+      - description: hour,day,week
+        in: query
+        name: timeType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListCount'
+              type: object
+      summary: 签名监控
+      tags:
+      - Chart
+  /chart/crossTxCount/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListInterface'
+              type: object
+      summary: 跨链交易数监控
+      tags:
+      - Chart
   /chart/feeAndCount/list:
     get:
       consumes:
@@ -899,6 +990,25 @@ paths:
                   type: array
               type: object
       summary: 分叉监控
+      tags:
+      - Chart
+  /chart/txTokenList/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListInterface'
+              type: object
+      summary: 跨链交易对列表
       tags:
       - Chart
   /node:

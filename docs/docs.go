@@ -744,6 +744,104 @@ var doc = `{
                 }
             }
         },
+        "/chart/anchorCount/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "签名监控",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-10 12:00:00 day:2020-07-10 week:202025",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-12 12:00:00 day:2020-07-12 week:202029",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "1,2",
+                        "name": "tokenKey",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour,day,week",
+                        "name": "timeType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListCount"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/crossTxCount/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "跨链交易数监控",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListInterface"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/chart/feeAndCount/list": {
             "get": {
                 "consumes": [
@@ -839,6 +937,40 @@ var doc = `{
                                             "items": {
                                                 "$ref": "#/definitions/dao.MaxUncle"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/txTokenList/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "跨链交易对列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListInterface"
                                         }
                                     }
                                 }
@@ -2683,6 +2815,55 @@ var doc = `{
                 },
                 "chainId": {
                     "type": "integer"
+                }
+            }
+        },
+        "dao.TokenListCount": {
+            "type": "object",
+            "properties": {
+                "anchorId": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "fee": {
+                    "type": "integer"
+                },
+                "timeType": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.TokenListInterface": {
+            "type": "object",
+            "properties": {
+                "anchorAddresses": {
+                    "type": "string"
+                },
+                "chainID": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "networkId": {
+                    "type": "integer"
+                },
+                "remoteChainID": {
+                    "type": "integer"
+                },
+                "remoteCrossAddress": {
+                    "type": "string"
+                },
+                "remoteNetworkId": {
+                    "type": "integer"
+                },
+                "sourceCrossAddress": {
+                    "type": "string"
                 }
             }
         },

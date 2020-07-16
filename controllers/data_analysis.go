@@ -115,7 +115,11 @@ func (this *Controller) TxTokenList(c *gin.Context) {
 // @Tags Chart
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Param startTime query string true "hour:2020-07-10 12:00:00 day:2020-07-10 week:202025"
+// @Param endTime query string true "hour:2020-07-12 12:00:00 day:2020-07-12 week:202029"
+// @Param tokenKey query string true "1,2"
+// @Param timeType query string true "hour,day,week"
+// @Success 200 {object} JsonResult{data=dao.TokenListCount}
 // @Router /chart/anchorCount/list [get]
 func (this *Controller) AnchorCount(c *gin.Context) {
 	startTime := c.Query("startTime")
