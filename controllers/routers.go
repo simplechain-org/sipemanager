@@ -43,7 +43,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/wallet", validateLogin, c.AddWallet)
 	router.POST("/api/v1/wallet/update", validateLogin, c.UpdateWallet)
 
-
 	router.POST("/api/v1/contract/produce", validateLogin, c.Produce)
 	router.POST("/api/v1/contract/consume", validateLogin, c.Consume)
 	router.GET("/api/v1/contract/transaction", validateLogin, c.ListCrossTransaction)
@@ -97,18 +96,16 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	//合约管理（分页）
 	router.GET("/api/v1/contract/list", validateLogin, c.ListContract)
 	//引用链上合约
-	router.POST("/api/v1/contract/instance/import",validateLogin, c.AddExistsContract)
+	router.POST("/api/v1/contract/instance/import", validateLogin, c.AddExistsContract)
 	//注册新的跨链对
-	router.POST("/api/v1/contract/register/once",validateLogin, c.RegisterChainTwoWay)
+	router.POST("/api/v1/contract/register/once", validateLogin, c.RegisterChainTwoWay)
 	//本地合约上链
 	router.POST("/api/v1/contract/instance", validateLogin, c.InstanceContract)
-    //合约上链
+	//合约上链
 	router.GET("/api/v1/contract/instance/list", validateLogin, c.ListContractInstances)
 
 	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
 	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
-
-
 
 }
 

@@ -19,5 +19,3 @@ func TestDataBaseAccessObject_UserIsValid(t *testing.T) {
 	t.Log(obj.UserIsValid("yangdamin", "123456"))
 	t.Log(obj.UserIsValid("yangdamin", "1234567"))
 }
-
-

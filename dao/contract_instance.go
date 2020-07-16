@@ -13,7 +13,6 @@ type ContractInstance struct {
 	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
 }
 
-
 func (this *ContractInstance) TableName() string {
 	return "contract_instances"
 }

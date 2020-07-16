@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"math/big"
 	"fmt"
+	"math/big"
 
 	"github.com/jinzhu/gorm"
 )
@@ -74,7 +74,7 @@ func (this *DataBaseAccessObject) GetSignRewardLogPage(start, pageSize int, anch
     status from sign_reward_logs where status=1 and deleted_at is null`
 	db := this.db.Raw(sql)
 	if anchorNodeId != 0 {
-		sql+= fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
 	err := db.Offset(start).
 		Limit(pageSize).

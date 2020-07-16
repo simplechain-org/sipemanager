@@ -11,10 +11,10 @@ import (
 
 func TestController_CreateChain(t *testing.T) {
 	chain := &dao.Chain{
-		Name:     "simplechain",
-		NetworkId:1,
-		CoinName:"SIPC",
-		Symbol:"SIPC",
+		Name:      "simplechain",
+		NetworkId: 1,
+		CoinName:  "SIPC",
+		Symbol:    "SIPC",
 	}
 	data, err := json.Marshal(chain)
 	if err != nil {

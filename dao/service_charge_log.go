@@ -71,9 +71,9 @@ func (this *DataBaseAccessObject) GetServiceChargeLogPage(start, pageSize int, a
     sender,
     status from service_charge_logs where status=1 and deleted_at is null`
 	if anchorNodeId != 0 {
-		sql+= fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
-	db:=this.db.Raw(sql)
+	db := this.db.Raw(sql)
 
 	err := db.Offset(start).
 		Limit(pageSize).

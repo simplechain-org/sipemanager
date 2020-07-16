@@ -128,12 +128,23 @@ func (this *Controller) AnchorCount(c *gin.Context) {
 	timeType := c.Query("timeType")
 	tokenList, err := this.dao.GetTxTokenList()
 	token := tokenList[tokenKey]
-	anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType)
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	tokenCount := make(map[string][]dao.TokenListCount, 0)
+	for _, id := range anchorIds {
+		n, _ := strconv.Atoi(id)
+		anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType, uint(n))
+		fmt.Println(anchors)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		tokenCount[id] = anchors
+	}
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-	this.echoResult(c, anchors)
+	this.echoResult(c, tokenCount)
 }
 
 // @Summary 跨链交易数监控

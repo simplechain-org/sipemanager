@@ -77,7 +77,7 @@ func (this *DataBaseAccessObject) RemoveContract(contractId uint) error {
 func (this *DataBaseAccessObject) GetContractPage(start, pageSize int) ([]*Contract, error) {
 	result := make([]*Contract, 0)
 	db := this.db.Table((&Contract{}).TableName()).
-	Select("id,name")
+		Select("id,name")
 	err := db.Offset(start).
 		Limit(pageSize).
 		Find(&result).Error
