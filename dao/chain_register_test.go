@@ -5,10 +5,10 @@ import "testing"
 func TestDataBaseAccessObject_GetTxTokenList(t *testing.T) {
 	config := &DBConfig{
 		Username: "root",
-		Password: "admin123",
-		Address:  "localhost",
+		Password: "root",
+		Address:  "192.168.3.116",
 		Port:     3306,
-		DbName:   "sipe",
+		DbName:   "sipe_manager",
 		Charset:  "utf8mb4",
 		MaxIdle:  1000,
 		MaxOpen:  2000,

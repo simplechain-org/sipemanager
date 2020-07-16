@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
+	"strconv"
+	"strings"
 )
 
 type ChainRegister struct {
@@ -100,25 +101,56 @@ func (this *DataBaseAccessObject) GetChainRegisterByChaiId(sourceChainId uint, t
 	return &result, err
 }
 
-type TokenList struct {
-	ChainID         uint
-	RemoteChainID   uint
-	AnchorAddresses string
-	Address         string
-	RemoteAddress   string
+type TokenListInterface struct {
+	ChainID            uint
+	RemoteChainID      uint
+	AnchorAddresses    string
+	SourceCrossAddress string
+	RemoteCrossAddress string
+	NetworkId          uint64
+	RemoteNetworkId    uint64
+	Name               string
+	Count              int
 }
 
-func (this *DataBaseAccessObject) GetTxTokenList() ([]ChainRegister, error) {
+func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterface, error) {
 	result := make([]ChainRegister, 0)
-	var register ChainRegister
-	//TokenList := make(map[string]TokenList)
-	err := this.db.Table((&ChainRegister{}).TableName()).Order("id desc").Find(&result).Error
+	opposite := make([]ChainRegister, 0)
+	TokenList := make(map[string]TokenListInterface, 0)
+	err := this.db.Table((&ChainRegister{}).TableName()).Order("id asc").Find(&result).Error
 	for _, item := range result {
-		fmt.Printf("--------++%+v\n", item)
-		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, 6).First(&register).Error
+		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, item.SourceChainId).Find(&opposite).Error
 		if err == nil {
-			fmt.Printf("fdf++%+v\n---", register)
+		}
+		if len(opposite) == 1 {
+			sourceId := strconv.Itoa(int(item.SourceChainId))
+			targetId := strconv.Itoa(int(item.TargetChainId))
+			source, err := this.GetChain(item.SourceChainId)
+			target, err := this.GetChain(item.TargetChainId)
+			if err != nil {
+
+			}
+			tokenList := TokenListInterface{
+				ChainID:            item.SourceChainId,
+				RemoteChainID:      item.TargetChainId,
+				AnchorAddresses:    item.AnchorAddresses,
+				SourceCrossAddress: item.Address,
+				RemoteCrossAddress: opposite[0].Address,
+				NetworkId:          source.NetworkId,
+				RemoteNetworkId:    target.NetworkId,
+				Name:               source.Name + " <=> " + target.Name,
+			}
+			if len(TokenList) != 0 {
+				for key, _ := range TokenList {
+					if !(strings.Contains(key, sourceId) && strings.Contains(key, targetId)) {
+						TokenList[sourceId+","+targetId] = tokenList
+					}
+				}
+			} else {
+				TokenList[sourceId+","+targetId] = tokenList
+			}
 		}
 	}
-	return result, err
+
+	return TokenList, err
 }
