@@ -154,3 +154,55 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 
 	return TokenList, err
 }
+
+type ChainRegisterView struct {
+	//创建时间
+	CreatedAt       string `json:"CreatedAt" gorm:"CreatedAt"`
+	SourceChainId   uint   `json:"source_chain_id" gorm:"source_chain_id"`
+	TargetChainId   uint   `json:"target_chain_id" gorm:"target_chain_id"`
+	SourceChainName string `json:"source_chain_name" gorm:"source_chain_name"`
+	TargetChainName string `json:"target_chain_name" gorm:"target_chain_name"`
+	Confirm         uint   `json:"confirm" gorm:"confirm"`
+	AnchorAddresses string `json:"anchor_addresses" gorm:"anchor_addresses"`
+	TxHash          string `json:"tx_hash" gorm:"tx_hash"`
+}
+
+func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*ChainRegisterView, error) {
+	sql := `select 
+     id,
+    (select name from chains where chains.id=chain_registers.source_chain_id) as source_chain_name,
+    (select name from chains where chains.id=chain_registers.target_chain_id) as target_chain_name,
+    date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at,
+    source_chain_id,
+    target_chain_id,
+    anchor_addresses,
+    confirm,
+    tx_Hash from chain_registers`
+	result := make([]*ChainRegisterView, 0)
+	db := this.db.Raw(sql)
+	err := db.Offset(start).
+		Limit(pageSize).
+		Scan(&result).Error
+	return result, err
+}
+func (this *DataBaseAccessObject) GetChainRegisterCount() (int, error) {
+	var count int
+	err := this.db.Table((&ChainRegister{}).TableName()).Count(&count).Error
+	return count, err
+}
+func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView, error) {
+	sql := `select 
+     id,
+    (select name from chains where chains.id=chain_registers.source_chain_id) as source_chain_name,
+    (select name from chains where chains.id=chain_registers.target_chain_id) as target_chain_name,
+    date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at,
+    source_chain_id,
+    target_chain_id,
+    anchor_addresses,
+    confirm,
+    tx_Hash from chain_registers where chain_registers.id=?`
+	var result ChainRegisterView
+	db := this.db.Raw(sql, id)
+	err := db.First(&result).Error
+	return &result, err
+}

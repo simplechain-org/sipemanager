@@ -25,7 +25,6 @@ func TestDataBaseAccessObject_CreateServiceChargeLog(t *testing.T) {
 	//}
 	serviceChargeLog:=&ServiceChargeLog{
          AnchorNodeId:1,
-         AnchorNodeName:"锚定节点1",
          TransactionHash:"交易哈希",
          Fee:"1000000000000000000000000",
          Coin:"SIPC",
@@ -70,12 +69,6 @@ func TestDataBaseAccessObject_GetServiceChargeLogCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetServiceChargeLogPage(t *testing.T) {
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	obj := NewDataBaseAccessObject(db)
 	result,err:=obj.GetServiceChargeLogPage(0,10,uint(1))
 	if err!=nil{
 		t.Fatal(err)

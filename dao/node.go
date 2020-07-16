@@ -30,7 +30,6 @@ func (this *Node) TableName() string {
 
 var nodeTableName = (&Node{}).TableName()
 
-//{"address":"127.0.0.1","port":9545,"chain_id":1,"name":"主链节点1"}
 func (this *DataBaseAccessObject) CreateNode(node *Node) (uint, error) {
 	var count int
 	err := this.db.Table(nodeTableName).Where("address=?", node.Address).
@@ -105,4 +104,14 @@ func (this *DataBaseAccessObject) UpdateNode(id uint, address string, port int, 
 }
 func (this *DataBaseAccessObject) RemoveNode(nodeId uint) error {
 	return this.db.Where("id = ?", nodeId).Delete(&Node{}).Error
+}
+
+//根据链id获取节点列表
+func (this *DataBaseAccessObject) ListNodeByChainId(chainId uint) ([]Node, error) {
+	nodes := make([]Node, 0)
+	err := this.db.Table(nodeTableName).Where("chain_id=?", chainId).Find(&nodes).Error
+	if err != nil {
+		return nil, err
+	}
+	return nodes, nil
 }

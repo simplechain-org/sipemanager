@@ -6,11 +6,6 @@ import (
 )
 
 func TestDataBaseAccessObject_CreateNode(t *testing.T) {
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	obj := NewDataBaseAccessObject(db)
 	node := &Node{
 		Address: "127.0.0.1",
 		Port:    8545,
@@ -40,11 +35,6 @@ func TestDataBaseAccessObject_CreateNode(t *testing.T) {
 
 }
 func TestDataBaseAccessObject_ListAllNode(t *testing.T) {
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	obj := NewDataBaseAccessObject(db)
 	nodes, err := obj.ListAllNode()
 	if err == nil {
 		for _, node := range nodes {

@@ -7,11 +7,12 @@ import (
 //合约实例
 type ContractInstance struct {
 	gorm.Model
-	ChainId    uint   `json:"chain_id"` //链id ,合约部署在那条链上
-	TxHash     string `json:"tx_hash"`
-	Address    string `json:"address"`
-	ContractId uint   `json:"contract_id"` //合约id
+	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
+	Address    string `gorm:"address" json:"address"`
+	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
 }
+
 
 func (this *ContractInstance) TableName() string {
 	return "contract_instances"
@@ -102,6 +103,9 @@ LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
 `
 	var result InstanceNodes
 	rows, err := this.db.Raw(sql).Rows()
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(
@@ -116,4 +120,28 @@ LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
 		insNodes = append(insNodes, result)
 	}
 	return insNodes, err
+}
+
+type ContractInstanceView struct {
+	gorm.Model
+	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
+	Address    string `gorm:"address" json:"address"`
+	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
+	Name       string `gorm:"name" json:"name"`
+}
+
+func (this *DataBaseAccessObject) GetContractInstancePage(start, pageSize int) ([]*ContractInstanceView, error) {
+	result := make([]*ContractInstanceView, 0)
+	db := this.db.Table((&ContractInstance{}).TableName()).Joins("inner join contracts on contract_instances.contract_id=contracts.id").
+		Select("contract_instances.id,contract_instances.chain_id,contract_instances.tx_hash,contract_instances.address,contract_instances.created_at,contract_instances.updated_at,contract_instances.deleted_at,contracts.name")
+	err := db.Offset(start).
+		Limit(pageSize).
+		Find(&result).Error
+	return result, err
+}
+func (this *DataBaseAccessObject) GetContractInstanceCount() (int, error) {
+	var count int
+	err := this.db.Table((&ContractInstance{}).TableName()).Joins("inner join contracts on contract_instances.contract_id=contracts.id").Count(&count).Error
+	return count, err
 }
