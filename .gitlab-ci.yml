@@ -9,7 +9,6 @@ prebuild:
   script:
     - go env -w GO111MODULE=on
     - go env -w GOPROXY=https://goproxy.io,direct
-    - go env
 
 build:
   stage: build
