@@ -5,7 +5,6 @@ import (
 )
 
 func TestDataBaseAccessObject_GetTxTokenList(t *testing.T) {
-<<<<<<< HEAD
 	config := &DBConfig{
 		Username: "root",
 		Password: "root",
@@ -19,9 +18,11 @@ func TestDataBaseAccessObject_GetTxTokenList(t *testing.T) {
 		Loc:      "Asia/Shanghai",
 	}
 	db, err := GetDBConnection(config)
-=======
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj := NewDataBaseAccessObject(db)
 	result, err := obj.GetTxTokenList()
->>>>>>> cross chain
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,39 +44,38 @@ func TestDataBaseAccessObject_CreateChainRegister(t *testing.T) {
 	//	Address         string `json:"address"` // 合约地址
 	//}
 
-	chainRegister:=&ChainRegister{
-		SourceChainId:1,
-		TargetChainId:2,
-		Confirm:3,
-		Status:1,
-		StatusText:"success",
-		TxHash:"0xijasdiojfaiosjfdsojf",
+	chainRegister := &ChainRegister{
+		SourceChainId: 1,
+		TargetChainId: 2,
+		Confirm:       3,
+		Status:        1,
+		StatusText:    "success",
+		TxHash:        "0xijasdiojfaiosjfdsojf",
 	}
 
-
-	id,err:=obj.CreateChainRegister(chainRegister)
-	if err!=nil{
+	id, err := obj.CreateChainRegister(chainRegister)
+	if err != nil {
 		t.Fatal(err)
 		return
 
 	}
-	t.Log("id:",id)
+	t.Log("id:", id)
 }
 
 func TestDataBaseAccessObject_GetChainRegisterPage(t *testing.T) {
-	result,err:=obj.GetChainRegisterPage(0,10)
-	if err!=nil{
+	result, err := obj.GetChainRegisterPage(0, 10)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	for _,o:=range result{
+	for _, o := range result {
 		t.Log(o)
 	}
 }
 
 func TestDataBaseAccessObject_GetChainRegisterCount(t *testing.T) {
-	result,err:=obj.GetChainRegisterCount()
-	if err!=nil{
+	result, err := obj.GetChainRegisterCount()
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -83,8 +83,8 @@ func TestDataBaseAccessObject_GetChainRegisterCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetChainRegister(t *testing.T) {
-	result,err:=obj.GetChainRegister(1)
-	if err!=nil{
+	result, err := obj.GetChainRegister(1)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}

@@ -79,7 +79,7 @@ func (this *Controller) updateContract(c *gin.Context) {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param id path string true "合约id"
-// @Success 200 {object}
+// @Success 200 {object} JsonResult{}
 // @Router /contract/remove/{contract_id} [delete]
 func (this *Controller) RemoveContract(c *gin.Context) {
 	contractIdStr := c.Param("contract_id")

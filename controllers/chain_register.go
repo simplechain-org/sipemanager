@@ -40,8 +40,8 @@ type RegisterChainTwoWayParam struct {
 //@Param source_node_id formData uint true "源链节点Id"
 //@Param target_node_id formData uint true "目标链节点Id"
 //@Param sign_confirm_count formData uint true "最小确认数"
-//@Param anchor_addresses formData []string true "锚定节点地址"
-//@Param anchor_names formData []string true "锚定节点名称"
+//@Param anchor_addresses formData array true "锚定节点地址 字符串数组"
+//@Param anchor_names formData array true "锚定节点名称 字符串数组"
 //@Param wallet_id formData uint true "钱包id"
 //@Param password formData string true "钱包密码"
 //@Success 200 {object} JsonResult
