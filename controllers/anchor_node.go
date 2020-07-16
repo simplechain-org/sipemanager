@@ -330,6 +330,11 @@ type AnchorNodeView struct {
 	Status string `json:"status"`
 
 	ID uint `json:"ID"`
+
+	//归属链A
+	ChainAId uint `json:"chain_a_id"`
+	//归属链B
+	ChainBId uint `json:"chain_b_id"`
 }
 
 type AnchorNodeResult struct {
@@ -409,6 +414,8 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 			CreatedAt:      obj.CreatedAt.Format("2006-01-02 15:04:05"),
 			Pledge:         obj.Pledge,
 			Status:         status,
+			ChainAId:       obj.SourceChainId,
+			ChainBId:       obj.TargetChainId,
 		})
 	}
 	anchorNodeResult := &AnchorNodeResult{
