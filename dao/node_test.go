@@ -42,3 +42,15 @@ func TestDataBaseAccessObject_ListAllNode(t *testing.T) {
 		}
 	}
 }
+
+func TestDataBaseAccessObject_ListNodeByUserId(t *testing.T) {
+	result,err:=obj.ListNodeByUserId(1)
+	if err!=nil{
+		t.Fatal(err)
+		return
+	}
+	for _,o:=range result{
+		t.Log(o)
+	}
+
+}

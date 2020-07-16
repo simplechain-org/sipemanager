@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
@@ -16,12 +17,15 @@ type Node struct {
 }
 
 type NodeView struct {
-	gorm.Model
+	CreatedAt string `gorm:"created_at" json:"created_at"`
 	Address   string `gorm:"size:255" json:"address"` //地址
 	Port      int    `json:"port" binding:"required"` //端口
 	Name      string `gorm:"size:255" json:"name" `
 	ChainId   uint   `json:"chain_id"` //链id
 	ChainName string `gorm:"chain_name" json:"chain_name"`
+	NetworkId uint64 `json:"network_id" binding:"required"` //链的网络编号
+	CoinName  string `json:"coin_name" binding:"required"`  //币名
+	Symbol    string `json:"symbol" binding:"required"`
 }
 
 func (this *Node) TableName() string {
@@ -63,9 +67,22 @@ func (this *DataBaseAccessObject) GetNodeById(nodeId uint) (*Node, error) {
 	}
 	return &node, nil
 }
-func (this *DataBaseAccessObject) ListNodeByUserId(userId uint) ([]Node, error) {
-	nodes := make([]Node, 0)
-	err := this.db.Table(nodeTableName).Where("user_id=?", userId).Find(&nodes).Error
+
+func (this *DataBaseAccessObject) ListNodeByUserId(userId uint) ([]NodeView, error) {
+	nodes := make([]NodeView, 0)
+	sql := `select 
+    date_format(nodes.created_at,'%Y-%m-%d %H:%i:%S') as created_at,
+    nodes.id,
+    nodes.address,
+    nodes.port,
+    nodes.name,
+    nodes.chain_id,
+    chains.name as chain_name,
+    chains.network_id, 
+    chains.coin_name,
+    chains.symbol from nodes,chains where nodes.chain_id=chains.id`
+	sql += fmt.Sprintf(" and user_id=%d", userId)
+	err := this.db.Raw(sql).Scan(&nodes).Error
 	if err != nil {
 		return nil, err
 	}

@@ -192,11 +192,7 @@ func (this *Controller) ChangeNode(c *gin.Context) {
 	this.echoResult(c, "success")
 }
 
-type Node struct {
-	dao.Node
-	Description string `json:"description"`
-	ChainName   string `json:"chain_name"`
-}
+
 
 // @Summary 节点列表
 // @Tags node
@@ -216,17 +212,7 @@ func (this *Controller) GetNodes(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	result := make([]Node, 0)
-	for _, node := range nodes {
-		chain, err := this.dao.GetChain(node.ChainId)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		description := fmt.Sprintf("%s_%s_%s:%d", chain.Name, node.Name, node.Address, node.Port)
-		result = append(result, Node{Node: node, Description: description, ChainName: chain.Name})
-	}
-	this.echoResult(c, result)
+	this.echoResult(c, nodes)
 }
 
 // @Summary 获取当前登录账户的节点
