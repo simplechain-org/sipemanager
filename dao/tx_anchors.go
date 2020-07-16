@@ -89,18 +89,19 @@ type TokenListCount struct {
 	AnchorId uint
 	Fee      uint64
 	TimeType string
+	Date     string
 }
 
-func (this *DataBaseAccessObject) TokenListAnchorCount(data TokenListInterface, startTime string, endTime string, timeType string) ([]TokenListCount, error) {
+func (this *DataBaseAccessObject) TokenListAnchorCount(data TokenListInterface, startTime string, endTime string, timeType string, anchorId uint) ([]TokenListCount, error) {
 	txAnchors := make([]TokenListCount, 0)
 
 	var sql = `
-SELECT sum(t1.count) count, anchor_id, sum(t1.fee) fee , t1.timeType timeType 
+SELECT sum(t1.count) count, sum(t1.fee) fee , t1.timeType timeType, t1.date date
 FROM (
 	SELECT * from tx_anchors WHERE (source_chain_id= %d and target_chain_id = %d ) or (source_chain_id=%d and target_chain_id =%d)) t1 
-WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' GROUP BY anchor_id
+WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' and anchor_id= %d GROUP BY t1.date
 `
-	sql = fmt.Sprintf(sql, data.ChainID, data.RemoteChainID, data.RemoteChainID, data.ChainID, startTime, endTime, timeType)
+	sql = fmt.Sprintf(sql, data.ChainID, data.RemoteChainID, data.RemoteChainID, data.ChainID, startTime, endTime, timeType, anchorId)
 	rows, err := this.db.Raw(sql).Rows()
 	defer rows.Close()
 	var result TokenListCount
@@ -110,9 +111,9 @@ WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' GROUP BY anchor_id
 	for rows.Next() {
 		rows.Scan(
 			&result.Count,
-			&result.AnchorId,
 			&result.Fee,
 			&result.TimeType,
+			&result.Date,
 		)
 		txAnchors = append(txAnchors, result)
 	}
