@@ -193,7 +193,7 @@ type ChainRegisterResult struct {
 	PageData    []*dao.ChainRegisterView `json:"page_data"`    //页的数据
 }
 
-// @Summary 跨链管理(获取注册日志)
+// @Summary 跨链管理(获取注册日志类表)
 // @Tags ListChainRegister
 // @Accept  json
 // @Produce  json
@@ -255,8 +255,8 @@ type ChainRegisterInfo struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param id query string true "注册日志id"
-// @Success 200 {object} JsonResult{data=ChainRegisterResult}
-// @Router /chain/register/list [get]
+// @Success 200 {object} JsonResult{data=ChainRegisterInfo}
+// @Router /chain/register/info [get]
 func (this *Controller) GetChainRegisterInfo(c *gin.Context) {
 	chainRegisterIdStr := c.Query("id")
 	if chainRegisterIdStr == "" {

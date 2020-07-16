@@ -105,6 +105,10 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
     //合约上链
 	router.GET("/api/v1/contract/instance/list", validateLogin, c.ListContractInstances)
 
+	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
+	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
+
+
 
 }
 
