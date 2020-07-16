@@ -1,15 +1,12 @@
 package controllers
 
 import (
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/crypto"
 
@@ -17,22 +14,157 @@ import (
 	"sipemanager/dao"
 )
 
-type Contract struct {
-	Password string `json:"password" binding:"required"`
-	WalletId uint   `json:"wallet_id" binding:"required"`
-	Sol      string `json:"sol"`
-	Abi      string `json:"abi" binding:"required"`
-	Bin      string `json:"bin" binding:"required"`
-}
-
-func (this *Controller) ListContract(c *gin.Context) {
-	contracts, err := this.dao.GetContracts()
+// @Summary 上传本地合约
+// @Tags AddContract
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param name formData string true "合约名称"
+// @Param sol formData string true "合约源码"
+// @Param abi formData string true "合约abi"
+// @Param bin formData string true "合约bin"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /contract/add [post]
+func (this *Controller) AddContract(c *gin.Context) {
+	var param dao.Contract
+	if err := c.ShouldBindJSON(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	id, err := this.dao.CreateContract(&param)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-	this.echoResult(c, contracts)
+	this.echoResult(c, id)
 }
+
+type UpdateContractParam struct {
+	Id   uint   `json:"id" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	Sol  string `gorm:"type:text" json:"sol" binding:"required"`
+	Abi  string `gorm:"type:text" json:"abi" binding:"required"`
+	Bin  string `gorm:"type:text" json:"bin" binding:"required"`
+}
+
+// @Summary 更新合约内容
+// @Tags AddContract
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id formData string true "合约id"
+// @Param name formData string true "合约名称"
+// @Param sol formData string true "合约源码"
+// @Param abi formData string true "合约abi"
+// @Param bin formData string true "合约bin"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /contract/update [put]
+func (this *Controller) updateContract(c *gin.Context) {
+	var param UpdateContractParam
+	if err := c.ShouldBind(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	err := this.dao.UpdateContract(param.Id, param.Name, param.Sol, param.Abi, param.Bin)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
+}
+
+// @Summary 删除合约
+// @Tags RemoveContract
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id path string true "合约id"
+// @Success 200 {object}
+// @Router /contract/remove/{contract_id} [delete]
+func (this *Controller) RemoveContract(c *gin.Context) {
+	contractIdStr := c.Param("contract_id")
+	if contractIdStr == "" {
+		this.echoError(c, errors.New("缺少参数 contract_id"))
+		return
+	}
+	contractId, err := strconv.ParseUint(contractIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	can, err := this.dao.ContractCanDelete(uint(contractId))
+	if err == nil && !can {
+		this.echoError(c, errors.New("合约还在使用中，不可以删除"))
+		return
+	}
+	err = this.dao.RemoveContract(uint(contractId))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
+}
+
+type ContractResult struct {
+	TotalCount  int             `json:"total_count"`  //总记录数
+	CurrentPage int             `json:"current_page"` //当前页数
+	PageSize    int             `json:"page_size"`    //页的大小
+	PageData    []*dao.Contract `json:"page_data"`    //页的数据
+}
+
+// @Summary 合约管理
+// @Tags ListContract
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param current_page query string true "当前页，默认1"
+// @Param page_size query string true "页的记录数，默认10"
+// @Success 200 {object} JsonResult{data=ContractResult}
+// @Router /contract/list [get]
+func (this *Controller) ListContract(c *gin.Context) {
+	//分页
+	var pageSize int = 10
+	//当前页（默认为第一页）
+	var currentPage int = 1
+	currentPageStr := c.Query("current_page")
+	if currentPageStr != "" {
+		page, err := strconv.ParseUint(currentPageStr, 10, 64)
+		if err == nil {
+			currentPage = int(page)
+		}
+	}
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
+		}
+	}
+	start := (currentPage - 1) * pageSize
+
+	objects, err := this.dao.GetContractPage(start, pageSize)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	count, err := this.dao.GetContractCount()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	contractResult := &ContractResult{
+		TotalCount:  count,
+		CurrentPage: currentPage,
+		PageSize:    pageSize,
+		PageData:    objects,
+	}
+	this.echoResult(c, contractResult)
+
+}
+
 // @Summary 获取部署在链上的合约实例
 // @Tags GetContractOnChain
 // @Accept  json
@@ -58,51 +190,33 @@ func (this *Controller) GetContractOnChain(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, contracts)
-
-}
-func (this *Controller) GetContractInstances(c *gin.Context) {
-	contracts, err := this.dao.GetContractInstances()
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, contracts)
-	return
 }
 
 type ContractParam struct {
-	Password   string `json:"password" binding:"required"`
-	WalletId   uint   `json:"wallet_id" binding:"required"`
-	ContractId uint   `json:"contract_id" binding:"required"`
+	Password   string `json:"password" form:"password" binding:"required"`
+	WalletId   uint   `json:"wallet_id" form:"wallet_id" binding:"required"`
+	ContractId uint   `json:"contract_id" form:"contract_id" binding:"required"`
+	NodeId     uint   `json:"node_id" form:"node_id" binding:"required"`
 }
 
-func (this *Controller) AddContract(c *gin.Context) {
-	var param dao.Contract
-	if err := c.ShouldBindJSON(&param); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	id, err := this.dao.CreateContract(&param)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, id)
-}
-
-//部署合约
-func (this *Controller) DeployContract(c *gin.Context) {
+// @Summary 本地合约上链
+// @Tags InstanceContract
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param node_id formData string true "节点id"
+// @Param contract_id formData string true "合约id"
+// @Param wallet_id formData string true "钱包id"
+// @Param password formData string true "钱包密码"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /contract/instance [post]
+func (this *Controller) InstanceContract(c *gin.Context) {
 	var param ContractParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	if err := c.ShouldBind(&param); err != nil {
 		this.echoError(c, err)
 		return
 	}
-	user, err := this.GetUser(c)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	api, err := this.getBlockChainApi(user.ID)
+	api, err := this.getApiByNodeId(param.NodeId)
 	if err != nil {
 		this.echoError(c, err)
 		return
@@ -165,200 +279,29 @@ func (this *Controller) DeployContract(c *gin.Context) {
 	this.echoResult(c, hash)
 }
 
-type RegisterChainParam struct {
-	TargetChainId    uint     `json:"target_chain_id"`
-	SignConfirmCount uint     `json:"sign_confirm_count"`
-	AnchorAddresses  []string `json:"anchor_addresses"`
-	WalletId         uint     `json:"wallet_id"`
-	Password         string   `json:"password"`
-}
-
-func (this *Controller) ListRegisterChain(c *gin.Context) {
-	result, err := this.dao.ListChainRegister()
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, result)
-}
-
-func (this *Controller) RegisterChain(c *gin.Context) {
-	var param RegisterChainParam
-	if err := c.ShouldBindJSON(&param); err != nil {
-		fmt.Println("ShouldBindJSON:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	user, err := this.GetUser(c)
-	if err != nil {
-		fmt.Println("GetUser:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	api, err := this.getBlockChainApi(user.ID)
-	if err != nil {
-		fmt.Println("getBlockChainApi:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	wallet, err := this.dao.GetWallet(param.WalletId)
-	if err != nil {
-		fmt.Println("GetWallet:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
-	if err != nil {
-		fmt.Println("GetPrivateKey:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	address := crypto.PubkeyToAddress(privateKey.PublicKey)
-	callerConfig := &blockchain.CallerConfig{
-		From:       address,
-		PrivateKey: privateKey,
-		NetworkId:  api.GetNetworkId(),
-	}
-	chain, err := this.dao.GetChain(param.TargetChainId)
-	if err != nil {
-		fmt.Println("GetChain:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	anchorAddresses := make([]common.Address, 0, len(param.AnchorAddresses))
-
-	for _, v := range param.AnchorAddresses {
-		anchorAddresses = append(anchorAddresses, common.HexToAddress(v))
-	}
-	contract, err := this.dao.GetContractByChainId(api.GetChainId())
-
-	if err != nil {
-		fmt.Println("GetContractByChainId:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-
-	registerConfig := &blockchain.RegisterChainConfig{
-		AbiData:          []byte(contract.Abi),
-		ContractAddress:  common.HexToAddress(contract.Address),
-		TargetNetworkId:  uint64(chain.NetworkId),
-		AnchorAddresses:  anchorAddresses,
-		SignConfirmCount: uint8(param.SignConfirmCount),
-	}
-	hash, err := api.RegisterChain(registerConfig, callerConfig)
-	if err != nil {
-		fmt.Println("RegisterChain:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	register := &dao.ChainRegister{
-		SourceChainId:   api.GetChainId(),
-		TargetChainId:   param.TargetChainId,
-		TxHash:          hash,
-		Confirm:         param.SignConfirmCount,
-		AnchorAddresses: strings.Join(param.AnchorAddresses, ","),
-	}
-	registerId, err := this.dao.CreateChainRegister(register)
-	if err != nil {
-		fmt.Println("CreateChainRegister:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	go func(id uint, hash string) {
-		ticker := time.NewTicker(15 * time.Second)
-		defer ticker.Stop()
-		maxCount := 300 //最多尝试300次
-		i := 0
-		for {
-			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
-			//时间到，做一下检测
-			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
-			if err == nil && receipt != nil {
-				err = this.dao.UpdateChainRegisterStatus(id, int(receipt.Status))
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				break
-			}
-			if i >= maxCount {
-				break
-			}
-			i++
-		}
-	}(registerId, hash)
-
-	this.echoResult(c, hash)
-}
-
-//todo 判重
-func (this *Controller) AddContractInstance(c *gin.Context) {
-	var param dao.ContractInstance
-	if err := c.ShouldBindJSON(&param); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	contractId, err := this.dao.CreateContractInstance(&param)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, contractId)
-}
-
-type RegisterChainAddParam struct {
-	SourceChainId    uint     `json:"source_chain_id"`
-	TargetChainId    uint     `json:"target_chain_id"`
-	SignConfirmCount uint     `json:"sign_confirm_count"`
-	AnchorAddresses  []string `json:"anchor_addresses"`
-	TxHash           string   `json:"tx_hash"`
-}
-
-func (this *Controller) RegisterChainAdd(c *gin.Context) {
-	var param RegisterChainAddParam
-	if err := c.ShouldBindJSON(&param); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	register := &dao.ChainRegister{
-		SourceChainId:   param.SourceChainId,
-		TargetChainId:   param.TargetChainId,
-		TxHash:          param.TxHash,
-		Confirm:         param.SignConfirmCount,
-		AnchorAddresses: strings.Join(param.AnchorAddresses, ","),
-		Status:          1,
-		StatusText:      "成功",
-	}
-	registerId, err := this.dao.CreateChainRegister(register)
-	if err != nil {
-		fmt.Println("CreateChainRegister:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, registerId)
-}
-
 type ExistsContractParam struct {
-	ChainId     uint   `json:"chain_id"` //链id ,合约部署在那条链上
-	TxHash      string `json:"tx_hash"`
-	Address     string `json:"address"`
-	Description string `json:"description" binding:"required"`
-	Sol         string `json:"sol"`
-	Abi         string `json:"abi" binding:"required"`
-	Bin         string `json:"bin"`
+	ChainId uint   `json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash  string `json:"tx_hash"`
+	Address string `json:"address"`
+	Name    string `json:"name" binding:"required"`
+	Sol     string `json:"sol"`
+	Abi     string `json:"abi" binding:"required"`
+	Bin     string `json:"bin"`
 }
-
-//引用链上合约
 
 //@Summary 引用链上合约
-//@Description 引用链上合约
 //@Accept application/x-www-form-urlencoded
 //@Accept application/json
 //@Produce application/json
-//@Param "" body ExistsContractParam true "请求体"
+//@Param chain_id formData uint true "链id"
+//@Param tx_hash formData string true "交易哈希"
+//@Param address formData string true "合约地址"
+//@Param name formData string true "合约名称"
+//@Param sol formData string true "合约源码"
+//@Param abi formData string true "合约abi"
+//@Param bin formData string bin "合约bin"
 //@Success 200 {object} JsonResult
-//@Router /api/v1/contract/instance/import [post]
+//@Router /contract/instance/import [post]
 func (this *Controller) AddExistsContract(c *gin.Context) {
 	var param ExistsContractParam
 	if err := c.ShouldBind(&param); err != nil {
@@ -366,10 +309,10 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 		return
 	}
 	contract := &dao.Contract{
-		Description: param.Description,
-		Sol:         param.Sol,
-		Bin:         param.Bin,
-		Abi:         param.Abi,
+		Name: param.Name,
+		Sol:  param.Sol,
+		Bin:  param.Bin,
+		Abi:  param.Abi,
 	}
 	//创建合约对象
 	id, err := this.dao.CreateContract(contract)
@@ -388,192 +331,100 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	this.echoResult(c, "success")
+	this.echoResult(c, "Success")
 }
 
-type RegisterChainTwoWayParam struct {
-	SourceChainId    uint     `json:"source_chain_id" form:"source_chain_id"`
-	TargetChainId    uint     `json:"target_chain_id" form:"target_chain_id"`
-	SourceNodeId     uint     `json:"source_node_id" form:"source_node_id"`
-	TargetNodeId     uint     `json:"target_node_id" form:"target_node_id"`
-	SignConfirmCount uint     `json:"sign_confirm_count" form:"sign_confirm_count"`
-	AnchorAddresses  []string `json:"anchor_addresses" form:"anchor_addresses"`
-	AnchorNames      []string `json:"anchor_names" form:"anchor_names"`
-	WalletId         uint     `json:"wallet_id" form:"wallet_id"`
-	Password         string   `json:"password" form:"password"`
+func (this *Controller) ListContractAll(c *gin.Context) {
+	contracts, err := this.dao.GetContracts()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, contracts)
 }
 
-func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
-	node, err := this.dao.GetNodeById(id)
-	if err != nil {
-		return nil, err
-	}
-	chain, err := this.dao.GetChain(node.ChainId)
-	if err != nil {
-		return nil, err
-	}
-	n := &blockchain.Node{
-		Address:   node.Address,
-		Port:      node.Port,
-		ChainId:   node.ChainId,
-		IsHttps:   node.IsHttps,
-		NetworkId: chain.NetworkId,
-	}
-	api, err := blockchain.NewApi(n)
-	if err != nil {
-		return nil, err
-	}
-	return api, nil
+type ContractInstanceView struct {
+	ID         uint   `json:"ID"`
+	CreatedAt  string `json:"CreatedAt"`
+	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
+	Address    string `gorm:"address" json:"address"`
+	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
+	Name       string `gorm:"name" json:"name"`
+	ChainName  string `json:"chain_name"`
+}
+type ContractInstanceResult struct {
+	TotalCount  int                    `json:"total_count"`  //总记录数
+	CurrentPage int                    `json:"current_page"` //当前页数
+	PageSize    int                    `json:"page_size"`    //页的大小
+	PageData    []ContractInstanceView `json:"page_data"`    //页的数据
 }
 
-//@Summary 引用链上合约
-//@Description 引用链上合约
-//@Accept application/x-www-form-urlencoded
-//@Accept application/json
-//@Produce application/json
-//@Param "" body ExistsContractParam true "请求体"
-//@Success 200 {object} JsonResult
-//@Router /api/v1/contract/register/once [post]
-func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
-	var param RegisterChainTwoWayParam
-	if err := c.ShouldBind(&param); err != nil {
-		fmt.Println("ShouldBind:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	wallet, err := this.dao.GetWallet(param.WalletId)
-	if err != nil {
-		fmt.Println("GetWallet:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
-	if err != nil {
-		fmt.Println("GetPrivateKey:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	address := crypto.PubkeyToAddress(privateKey.PublicKey)
-
-	errChan := make(chan error, 2)
-
-	source, err := this.getApiByNodeId(param.SourceNodeId)
-	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	target, err := this.getApiByNodeId(param.TargetNodeId)
-	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
-		this.echoError(c, err)
-		return
-	}
-	db := this.dao.BeginTransaction()
-	for index, address := range param.AnchorAddresses {
-		anchorNode := &dao.AnchorNode{
-			Name:          param.AnchorNames[index],
-			Address:       address,
-			SourceChainId: param.SourceChainId,
-			TargetChainId: param.TargetChainId,
-		}
-		_, err := this.dao.CreateAnchorNodeByTx(db, anchorNode)
-		if err != nil {
-			db.Rollback()
-			this.echoError(c, err)
-			return
+// @Summary 合约上链
+// @Tags ListChain
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param current_page query string true "当前页，默认1"
+// @Param page_size query string true "页的记录数，默认10"
+// @Success 200 {object} JsonResult{data=ContractInstanceResult}
+// @Router /contract/instance/list [get]
+func (this *Controller) ListContractInstances(c *gin.Context) {
+	var pageSize int = 10
+	//当前页（默认为第一页）
+	var currentPage int = 1
+	currentPageStr := c.Query("current_page")
+	if currentPageStr != "" {
+		page, err := strconv.ParseUint(currentPageStr, 10, 64)
+		if err == nil {
+			currentPage = int(page)
 		}
 	}
-	//注册一条链 source->target
-	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount)
-	//注册另一条链 target->source
-	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount)
-
-	errMsg := ""
-	for i := 0; i < 2; i++ {
-		err := <-errChan
-		if err != nil {
-			errMsg += err.Error()
-		}
-	}
-	if errMsg != "" {
-		db.Rollback()
-		this.echoError(c, errors.New(errMsg))
-		return
-	}
-	db.Commit()
-	this.echoSuccess(c, "链注册成功")
-}
-
-func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint) {
-	callerConfig := &blockchain.CallerConfig{
-		From:       from,
-		PrivateKey: privateKey,
-		NetworkId:  api.GetNetworkId(),
-	}
-	chain, err := this.dao.GetChain(targetChainId)
-	if err != nil {
-		errChan <- err
-		return
-	}
-	contract, err := this.dao.GetContractByChainId(api.GetChainId())
-	if err != nil {
-		errChan <- err
-		return
-	}
-	anchorAddresses := make([]common.Address, 0, len(strAnchorAddresses))
-
-	for _, v := range strAnchorAddresses {
-		anchorAddresses = append(anchorAddresses, common.HexToAddress(v))
-	}
-	registerConfig := &blockchain.RegisterChainConfig{
-		AbiData:          []byte(contract.Abi),
-		ContractAddress:  common.HexToAddress(contract.Address),
-		TargetNetworkId:  uint64(chain.NetworkId),
-		AnchorAddresses:  anchorAddresses,
-		SignConfirmCount: uint8(signConfirmCount),
-	}
-	hash, err := api.RegisterChain(registerConfig, callerConfig)
-	if err != nil {
-		errChan <- err
-		return
-	}
-	fmt.Println("hash=", hash)
-	register := &dao.ChainRegister{
-		SourceChainId:   api.GetChainId(),
-		TargetChainId:   targetChainId,
-		TxHash:          hash,
-		Confirm:         signConfirmCount,
-		AnchorAddresses: strings.Join(strAnchorAddresses, ","),
-		Address:         contract.Address,
-	}
-	registerId, err := this.dao.CreateChainRegisterByTx(db, register)
-	if err != nil {
-		errChan <- err
-		return
-	}
-	go func(id uint, hash string) {
-		ticker := time.NewTicker(15 * time.Second)
-		defer ticker.Stop()
-		maxCount := 300 //最多尝试300次
-		i := 0
-		for {
-			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
-			//时间到，做一下检测
-			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
-			if err == nil && receipt != nil {
-				err = this.dao.UpdateChainRegisterStatus(id, int(receipt.Status))
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				break
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
 			}
-			if i >= maxCount {
-				break
-			}
-			i++
 		}
-	}(registerId, hash)
+	}
+	start := (currentPage - 1) * pageSize
+
+	objects, err := this.dao.GetContractInstancePage(start, pageSize)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	result := make([]ContractInstanceView, 0, len(objects))
+	for _, obj := range objects {
+		chain, err := this.dao.GetChain(obj.ChainId)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		result = append(result, ContractInstanceView{
+			ID:         obj.ID,
+			ChainId:    obj.ChainId,
+			TxHash:     obj.TxHash,
+			Address:    obj.Address,
+			ContractId: obj.ContractId,
+			Name:       obj.Name,
+			ChainName:  chain.Name,
+			CreatedAt:  obj.CreatedAt.Format(dateFormat),
+		})
+	}
+	count, err := this.dao.GetContractInstanceCount()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chainResult := &ContractInstanceResult{
+		TotalCount:  count,
+		CurrentPage: currentPage,
+		PageSize:    pageSize,
+		PageData:    result,
+	}
+	this.echoResult(c, chainResult)
 }

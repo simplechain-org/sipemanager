@@ -38,7 +38,7 @@ func (this *DataBaseAccessObject) GetChainByNetWorkId(NetWorkId uint64) (*Chain,
 	}
 	return &chain, nil
 }
-func (this *DataBaseAccessObject) GetChains() ([]*Chain, error) {
+func (this *DataBaseAccessObject) ListAllChain() ([]*Chain, error) {
 	chains := make([]*Chain, 0)
 	err := this.db.Table((&Chain{}).TableName()).Find(&chains).Error
 	if err != nil {
@@ -134,7 +134,7 @@ type ChainInfo struct {
 func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*ChainInfo, error) {
 	result := make([]*ChainInfo, 0)
 	db := this.db.Table((&Chain{}).TableName()).Joins("left join contract_instances on contract_instances.id=chains.contract_instance_id").
-		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,contract_instances.address")
+		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address")
 	err := db.Offset(start).
 		Limit(pageSize).
 		Find(&result).Error
@@ -148,7 +148,7 @@ func (this *DataBaseAccessObject) GetChainInfoCount() (int, error) {
 func (this *DataBaseAccessObject) GetChainInfo(chainId uint) (*ChainInfo, error) {
 	var chain ChainInfo
 	err := this.db.Table((&Chain{}).TableName()).Joins("left join contract_instances on contract_instances.id=chains.contract_instance_id").
-		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,contract_instances.address").Where("id=?", chainId).First(&chain).Error
+		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address").Where("id=?", chainId).First(&chain).Error
 	if err != nil {
 		return nil, err
 	}

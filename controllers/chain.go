@@ -173,7 +173,7 @@ func (this *Controller) ListChain(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param chain_id path string true "链id"
 // @Success 200 {object} JsonResult{data=dao.ChainInfo}
-// @Router /chain/info [get]
+// @Router /chain/info/{chain_id} [get]
 func (this *Controller) GetChainInfo(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
 	if chainIdStr == "" {
@@ -191,4 +191,47 @@ func (this *Controller) GetChainInfo(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, chain)
+}
+
+// @Summary 获取链相关的节点
+// @Tags GetNodeByChain
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param chain_id query string true "链id"
+// @Success 200 {object} JsonResult{data=[]dao.Node}
+// @Router /chain/node [get]
+func (this *Controller) GetNodeByChain(c *gin.Context) {
+	chainIdStr := c.Query("chain_id")
+	if chainIdStr == "" {
+		this.echoError(c, errors.New("缺少参数 chain_id"))
+		return
+	}
+	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	chain, err := this.dao.ListNodeByChainId(uint(chainId))
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, chain)
+}
+
+// @Summary 获取所有链信息
+// @Tags ListAllChain
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} JsonResult{data=dao.Chain}
+// @Router /chain/list/all [get]
+func (this *Controller) ListAllChain(c *gin.Context) {
+	chains, err := this.dao.ListAllChain()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, chains)
 }

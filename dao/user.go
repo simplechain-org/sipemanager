@@ -68,3 +68,5 @@ func (this *DataBaseAccessObject) UserIsValid(username, password string) bool {
 	}
 	return CheckPassword(user.Password, password)
 }
+
+

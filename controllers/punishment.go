@@ -125,11 +125,10 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		}
 	}
 	punishment := &dao.Punishment{
-		AnchorNodeId:   param.AnchorNodeId,
-		AnchorNodeName: anchorNode.Name,
-		ManageType:     param.ManageType,
-		Value:          param.Value,
-		Coin:           param.Coin,
+		AnchorNodeId: param.AnchorNodeId,
+		ManageType:   param.ManageType,
+		Value:        param.Value,
+		Coin:         param.Coin,
 	}
 	id, err := this.dao.CreatePunishment(punishment)
 	if err != nil {
@@ -139,21 +138,11 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 	this.echoResult(c, id)
 }
 
-type PunishmentView struct {
-	Value string `json:"value"` //惩罚数量
-	Coin  string `json:"coin"`  //惩罚币种
-	//suspend recovery token
-	ManageType     string `json:"manage_type"`      //管理类型
-	AnchorNodeId   uint   `json:"anchor_node_id"`   //锚定节点编号
-	AnchorNodeName string `json:"anchor_node_name"` //锚定节点名称，冗余方便查询
-	CreatedAt      string `json:"created_at"`
-}
-
 type PunishmentViewResult struct {
-	TotalCount  int              `json:"total_count"`  //总记录数
-	CurrentPage int              `json:"current_page"` //当前页数
-	PageSize    int              `json:"page_size"`    //页的大小
-	PageData    []PunishmentView `json:"page_data"`    //页的数据
+	TotalCount  int                   `json:"total_count"`  //总记录数
+	CurrentPage int                   `json:"current_page"` //当前页数
+	PageSize    int                   `json:"page_size"`    //页的大小
+	PageData    []*dao.PunishmentView `json:"page_data"`    //页的数据
 }
 
 // @Summary 惩罚记录
@@ -194,16 +183,6 @@ func (this *Controller) ListPunishment(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	result := make([]PunishmentView, 0, len(objects))
-	for _, obj := range objects {
-		result = append(result, PunishmentView{
-			AnchorNodeId:   obj.AnchorNodeId,
-			AnchorNodeName: obj.AnchorNodeName,
-			Coin:           obj.Coin,
-			ManageType:     obj.ManageType,
-			CreatedAt:      obj.CreatedAt.Format(dateFormat),
-		})
-	}
 	count, err := this.dao.GetPunishmentCount(anchorNodeId)
 	if err != nil {
 		this.echoError(c, err)
@@ -213,7 +192,7 @@ func (this *Controller) ListPunishment(c *gin.Context) {
 		TotalCount:  count,
 		CurrentPage: currentPage,
 		PageSize:    pageSize,
-		PageData:    result,
+		PageData:    objects,
 	}
 	this.echoResult(c, punishmentViewResult)
 }

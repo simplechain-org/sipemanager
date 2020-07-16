@@ -67,4 +67,5 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&CrossAnchors{})
 	db.AutoMigrate(&ServiceChargeLog{})
 	db.AutoMigrate(&SignRewardLog{})
+	db.AutoMigrate(&Punishment{})
 }

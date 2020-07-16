@@ -4,10 +4,10 @@ import "github.com/jinzhu/gorm"
 
 type Contract struct {
 	gorm.Model
-	Description string `json:"description" binding:"required"`
-	Sol         string `gorm:"type:text" json:"sol" binding:"required"`
-	Abi         string `gorm:"type:text" json:"abi" binding:"required"`
-	Bin         string `gorm:"type:text" json:"bin" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	Sol  string `gorm:"type:text" json:"sol" binding:"required"`
+	Abi  string `gorm:"type:text" json:"abi" binding:"required"`
+	Bin  string `gorm:"type:text" json:"bin" binding:"required"`
 }
 
 func (this *Contract) TableName() string {
@@ -42,7 +42,7 @@ func (this *DataBaseAccessObject) UpdateContractBin(id uint, bin string) error {
 //列出所有的合约，因为Sol，bin,abi较大，不加载
 func (this *DataBaseAccessObject) GetContracts() ([]*Contract, error) {
 	contracts := make([]*Contract, 0)
-	err := this.db.Table((&Contract{}).TableName()).Select("id,description").Find(&contracts).Error
+	err := this.db.Table((&Contract{}).TableName()).Select("id,name").Find(&contracts).Error
 	return contracts, err
 }
 
@@ -54,15 +54,37 @@ func (this *DataBaseAccessObject) GetContractById(id uint) (*Contract, error) {
 	return &contract, err
 
 }
+func (this *DataBaseAccessObject) UpdateContract(id uint, name string, sol string, abi string, bin string) error {
+	return this.db.Table((&Contract{}).TableName()).
+		Where("id=?", id).
+		Updates(Contract{Name: name, Sol: sol, Abi: abi, Bin: bin}).Error
+}
 
-//链使用哪个合约进行跨链
-//type ChainContract struct {
-//	ID                 uint `gorm:"primary_key"`
-//	ChainId            uint //链id
-//	ContractInstanceId uint `gorm:"contract_instance_id"` //合约实例id
-//
-//}
-//
-//func (this *ChainContract) TableName() string {
-//	return "chain_contracts"
-//}
+//判断合约是否可以删除
+//合约还在使用，不可以删除
+func (this *DataBaseAccessObject) ContractCanDelete(contractId uint) (bool, error) {
+	var count int
+	err := this.db.Table((&Chain{}).TableName()).
+		Joins("inner join contract_instances on contract_instances.id=chains.contract_instance_id").
+		Where("contract_instances.contract_id=?", contractId).
+		Count(&count).Error
+	return !(count > 0), err
+}
+func (this *DataBaseAccessObject) RemoveContract(contractId uint) error {
+	return this.db.Where("id = ?", contractId).Delete(&Contract{}).Error
+}
+
+func (this *DataBaseAccessObject) GetContractPage(start, pageSize int) ([]*Contract, error) {
+	result := make([]*Contract, 0)
+	db := this.db.Table((&Contract{}).TableName()).
+	Select("id,name")
+	err := db.Offset(start).
+		Limit(pageSize).
+		Find(&result).Error
+	return result, err
+}
+func (this *DataBaseAccessObject) GetContractCount() (int, error) {
+	var count int
+	err := this.db.Table((&Contract{}).TableName()).Count(&count).Error
+	return count, err
+}

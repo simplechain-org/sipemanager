@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"sipemanager/blockchain"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,4 +39,26 @@ func (this *Controller) echoSuccess(c *gin.Context, msg string) {
 
 func (this *Controller) CheckHealth(c *gin.Context) {
 	this.echoSuccess(c, "server is running")
+}
+func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
+	node, err := this.dao.GetNodeById(id)
+	if err != nil {
+		return nil, err
+	}
+	chain, err := this.dao.GetChain(node.ChainId)
+	if err != nil {
+		return nil, err
+	}
+	n := &blockchain.Node{
+		Address:   node.Address,
+		Port:      node.Port,
+		ChainId:   node.ChainId,
+		IsHttps:   node.IsHttps,
+		NetworkId: chain.NetworkId,
+	}
+	api, err := blockchain.NewApi(n)
+	if err != nil {
+		return nil, err
+	}
+	return api, nil
 }
