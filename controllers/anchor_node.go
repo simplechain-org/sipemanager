@@ -355,10 +355,21 @@ type AnchorNodeResult struct {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param current_page query string true "当前页"
+// @Param page_size query string true "页的记录数"
 // @Success 200 {object} JsonResult{data=AnchorNodeResult}
 // @Router /service/charge/list [get]
 func (this *Controller) ListAnchorNode(c *gin.Context) {
 	var pageSize int = 10
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
+		}
+	}
 	//当前页（默认为第一页）
 	var currentPage int = 1
 	currentPageStr := c.Query("current_page")

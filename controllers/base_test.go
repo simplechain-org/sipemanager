@@ -1,0 +1,3 @@
+package controllers
+
+var token string = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTQ3OTAxNDksImlhdCI6MTU5NDc4Mjk0OSwiaWQiOjEsInVzZXJuYW1lIjoiZGFtaW4ifQ.KVNK6ky63X_Q96x-rs6WnCdF1y5lpcphB_JB_ud01Xk`

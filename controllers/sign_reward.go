@@ -30,10 +30,10 @@ type SignRewardView struct {
 }
 
 type SignRewardResult struct {
-	TotalCount  int              `json:"total_count"`  //总记录数
-	CurrentPage int              `json:"current_page"` //当前页数
-	PageSize    int              `json:"page_size"`    //页的大小
-	PageData    []SignRewardView `json:"page_data"`    //页的数据
+	TotalCount  int                      `json:"total_count"`  //总记录数
+	CurrentPage int                      `json:"current_page"` //当前页数
+	PageSize    int                      `json:"page_size"`    //页的大小
+	PageData    []*dao.SignRewardLogView `json:"page_data"`    //页的数据
 }
 
 // @Summary 签名奖励
@@ -41,8 +41,9 @@ type SignRewardResult struct {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param anchor_node_id formData string true "keystore string"
-// @Param current_page formData string true "keystore string"
+// @Param anchor_node_id formData string true "锚定节点id"
+// @Param current_page formData string true "当前页"
+// @Param page_size formData string true "页的记录数"
 // @Success 200 {object} JsonResult{data=object}
 // @Router /reward/list [get]
 func (this *Controller) ListSignReward(c *gin.Context) {
@@ -53,7 +54,6 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 	//签名量占比
 	//奖励值
 	//交易哈希
-
 	var anchorNodeId uint
 	//获取所有锚定节点的数据时，anchor_node_id设置为0
 	anchorNodeIdStr := c.Query("anchor_node_id")
@@ -66,6 +66,16 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 		}
 	}
 	var pageSize int = 10
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
+		}
+	}
 	//当前页（默认为第一页）
 	var currentPage int = 1
 	currentPageStr := c.Query("current_page")
@@ -81,21 +91,6 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	result := make([]SignRewardView, 0, len(objects))
-	for _, obj := range objects {
-		result = append(result, SignRewardView{
-			AnchorNodeId:    obj.AnchorNodeId,
-			AnchorNodeName:  obj.AnchorNodeName,
-			TransactionHash: obj.TransactionHash,
-			Coin:            obj.Coin,
-			Reward:          obj.Reward,
-			Rate:            obj.Rate,
-			TotalReward:     obj.TotalReward,
-			Sender:          obj.Sender,
-			Status:          obj.Status,
-			CreatedAt:       obj.CreatedAt.Format("2006-01-02 15:04:05"),
-		})
-	}
 	count, err := this.dao.GetServiceChargeLogCount(anchorNodeId)
 	if err != nil {
 		this.echoError(c, err)
@@ -105,7 +100,7 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 		TotalCount:  count,
 		CurrentPage: currentPage,
 		PageSize:    pageSize,
-		PageData:    result,
+		PageData:    objects,
 	}
 	this.echoResult(c, serviceChargeResult)
 }

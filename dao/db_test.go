@@ -15,6 +15,17 @@ var config = &DBConfig{
 	Loc:      "Asia/Shanghai",
 }
 
+var obj *DataBaseAccessObject
+
+func init() {
+	db, err := GetDBConnection(config)
+	if err != nil {
+		panic(err)
+	}
+	AutoMigrate(db)
+	obj = NewDataBaseAccessObject(db)
+}
+
 func TestGetDBConnection(t *testing.T) {
 	db, err := GetDBConnection(config)
 	if err != nil {
