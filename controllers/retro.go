@@ -3,20 +3,34 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"math/big"
+	"sipemanager/blockchain"
+	"sipemanager/utils"
+	"time"
 
-	"github.com/simplechain-org/go-simplechain/cross/core"
-	"github.com/simplechain-org/go-simplechain/common"
-	"github.com/simplechain-org/go-simplechain/params"
 	"github.com/gin-gonic/gin"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/cross/core"
+	"github.com/simplechain-org/go-simplechain/params"
 
 	"sipemanager/dao"
 )
 
+// @Summary 补签列表
+// @Tags RetroActiveList
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param current_page formData uint32 true "当前页，默认1"
+// @Param page_size formData uint32 true "页的记录数，默认10"
+// @Param status formData int false "补签状态"
+// @Success 200 {object} JsonResult{data=result}
+// @Router /api/v1/retro/list [post]
 func (this *Controller) RetroActiveList(c *gin.Context) {
 	type Param struct {
-		Page  uint32 `json:"page"`
-		Limit uint32 `json:"limit"`
+		CurrentPage  uint32 `json:"current_page"`
+		PageSize uint32 `json:"page_size"`
 		Status int `json:"status"`
 	}
 	var param Param
@@ -24,151 +38,34 @@ func (this *Controller) RetroActiveList(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	offset := (param.Page - 1) * param.Limit
+	offset := (param.CurrentPage - 1) * param.PageSize
 	var result []dao.RetroActive
 	var err error
 	if param.Status == 0 {
-		result, err = this.dao.ListRetroActive(offset,param.Limit)
+		result, err = this.dao.ListRetroActive(offset,param.PageSize)
 		if err != nil {
 			this.echoError(c, err)
 			return
 		}
 	} else {
-		result, err = this.dao.ListRetroActiveByStatus(param.Status,offset,param.Limit)
+		result, err = this.dao.ListRetroActiveByStatus(param.Status,offset,param.PageSize)
 		if err != nil {
 			this.echoError(c, err)
 			return
-		}
-	}
-
-	user, err := this.GetUser(c)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-
-	wallets, err := this.dao.ListWalletByUserId(user.ID)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	var wallet dao.Wallet
-	if len(wallets) > 0 {
-		wallet = wallets[0]
-	} else {
-		this.echoError(c, errors.New("no wallets"))
-		return
-	}
-
-	for k,v := range result {
-		if v.Status == 1 {
-			chainId,err :=  this.dao.GetChainIdByNetworkId(v.NetworkId)
-			if err != nil {
-				fmt.Println("2",err)
-				this.echoError(c, err)
-				return
-			}
-			if v.Event == 1 {
-				api, err := this.getApi(user.ID,v.NetworkId)
-				if err != nil {
-					fmt.Println("5",err)
-					this.echoError(c, err)
-					return
-				}
-				contract, err := this.dao.GetContractByChainId(chainId)
-				if err != nil {
-					this.echoError(c, err)
-					return
-				}
-				targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
-				if err != nil {
-					fmt.Println("12",err)
-					this.echoError(c, err)
-					return
-				}
-				chain,err := this.dao.GetChain(targetId)
-				if err != nil {
-					fmt.Println("14",err)
-
-					this.echoError(c, err)
-					return
-				}
-
-				stat,err := api.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(contract.Abi),big.NewInt(int64(chain.NetworkId)))
-				fmt.Println("777",stat,chain.NetworkId,v.CtxId)
-				if err != nil {
-					this.echoError(c, err)
-					return
-				}
-				if stat {
-					t,err := api.CtxGet(common.HexToHash(v.CtxId))
-					if err != nil {
-						this.echoError(c, err)
-						return
-					}
-					fmt.Println("999",t,stat)
-					if t == nil || t.Status == core.CtxStatusPending {
-						v.Status = 1
-					} else {
-						v.Status = 2
-					}
-				} else {
-					v.Status = 2
-				}
-			} else {
-				targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
-				if err != nil {
-					fmt.Println("12",err)
-					this.echoError(c, err)
-					return
-				}
-				objContract, err := this.dao.GetContractByChainId(targetId)
-				if err != nil {
-					fmt.Println("13",err)
-					this.echoError(c, err)
-					return
-				}
-				chain,err := this.dao.GetChain(targetId)
-				if err != nil {
-					fmt.Println("14",err)
-
-					this.echoError(c, err)
-					return
-				}
-				obApi, err := this.getApi(user.ID,chain.NetworkId)
-				if err != nil {
-					fmt.Println("5",err)
-					this.echoError(c, err)
-					return
-				}
-				//todo obApi对称
-				fmt.Println(objContract.Address,v.NetworkId)
-				stat,err := obApi.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(objContract.Abi),big.NewInt(int64(v.NetworkId)))
-				if err != nil {
-					fmt.Println("16",err)
-					this.echoError(c, err)
-					return
-				}
-				fmt.Println("111", stat)
-				if stat {
-					v.Status = 1
-				} else {
-					v.Status = 2
-				}
-			}
-			if v.Status == 2 {
-				err := this.dao.UpdateRetroActiveStatus(v.ID, 2)
-				if err != nil {
-					this.echoError(c, err)
-					return
-				}
-				result[k].Status = 2
-			}
 		}
 	}
 	this.echoResult(c, result)
 }
 
+// @Summary 添加补签记录
+// @Tags RetroActiveAdd
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param tx_hash formData string true "交易hash"
+// @Param network_id formData uint64 true "交易所在链"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /api/v1/retro/add [post]
 func (this *Controller) RetroActiveAdd(c *gin.Context) {
 	var param dao.RetroActive
 	if err := c.ShouldBindJSON(&param); err != nil {
@@ -334,4 +231,147 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, id)
+}
+
+// 每30分钟遍历更新一次补签状态
+func (this *Controller)UpdateRetroActive()  {
+	cron := cron.New()
+	cron.AddFunc("@every 30m", func() {
+		fmt.Println("current UpdateRetroActive time is ", time.Now())
+		var offset uint32
+		var result []dao.RetroActive
+		var err error
+		wallet, err := this.dao.GetWallet(1)
+		if err != nil {
+			return
+		}
+		nodes, err := this.dao.GetInstancesJoinNode()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		filterNodes := utils.RemoveRepByLoop(nodes)
+		for ;;offset += 20 {
+			result, err = this.dao.ListRetroActive(offset,20)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			if len(result) == 0 {
+				break
+			}
+
+			for _,v := range result {
+				if v.Status == 1 {
+					chainId,err :=  this.dao.GetChainIdByNetworkId(v.NetworkId)
+					if err != nil {
+						fmt.Println("2",err)
+						break
+					}
+					if v.Event == 1 {
+						var node *dao.InstanceNodes
+						for _,v := range filterNodes {
+							if v.NetworkId == v.NetworkId {
+								node = &v
+							}
+						}
+
+						var api *blockchain.Api
+						if node != nil {
+							api, err = GetRpcApi(*node)
+							if err != nil {
+								fmt.Println("5",err)
+								break
+							}
+						}
+						contract, err := this.dao.GetContractByChainId(chainId)
+						if err != nil {
+							break
+						}
+						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+						if err != nil {
+							fmt.Println("12",err)
+							break
+						}
+						chain,err := this.dao.GetChain(targetId)
+						if err != nil {
+							fmt.Println("14",err)
+							break
+						}
+
+						stat,err := api.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(contract.Abi),big.NewInt(int64(chain.NetworkId)))
+						fmt.Println("777",stat,chain.NetworkId,v.CtxId)
+						if err != nil {
+							break
+						}
+						if stat {
+							t,err := api.CtxGet(common.HexToHash(v.CtxId))
+							if err != nil {
+								break
+							}
+							fmt.Println("999",t,stat)
+							if t == nil || t.Status == core.CtxStatusPending {
+								v.Status = 1
+							} else {
+								v.Status = 2
+							}
+						} else {
+							v.Status = 2
+						}
+					} else {
+						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+						if err != nil {
+							fmt.Println("12",err)
+							break
+						}
+						objContract, err := this.dao.GetContractByChainId(targetId)
+						if err != nil {
+							fmt.Println("13",err)
+							break
+						}
+						chain,err := this.dao.GetChain(targetId)
+						if err != nil {
+							fmt.Println("14",err)
+							break
+						}
+						var node *dao.InstanceNodes
+						for _,v := range filterNodes {
+							if v.NetworkId == chain.NetworkId {
+								node = &v
+							}
+						}
+
+						var obApi *blockchain.Api
+						if node != nil {
+							obApi, err = GetRpcApi(*node)
+							if err != nil {
+								fmt.Println("5",err)
+								break
+							}
+						}
+						fmt.Println(objContract.Address,v.NetworkId)
+						stat,err := obApi.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(objContract.Abi),big.NewInt(int64(v.NetworkId)))
+						if err != nil {
+							fmt.Println("16",err)
+							break
+						}
+						fmt.Println("111", stat)
+						if stat {
+							v.Status = 1
+						} else {
+							v.Status = 2
+						}
+					}
+					if v.Status == 2 {
+						err := this.dao.UpdateRetroActiveStatus(v.ID, 2)
+						if err != nil {
+							fmt.Println(err)
+							break
+						}
+					}
+				}
+			}
+		}
+	})
+	cron.Start()
 }
