@@ -25,8 +25,8 @@ import (
 // @Param current_page formData uint32 true "当前页，默认1"
 // @Param page_size formData uint32 true "页的记录数，默认10"
 // @Param status formData int false "补签状态"
-// @Success 200 {object} JsonResult{data=result}
-// @Router /api/v1/retro/list [post]
+// @Success 200 {object} JsonResult{data=[]dao.RetroActive}
+// @Router /retro/list [post]
 func (this *Controller) RetroActiveList(c *gin.Context) {
 	type Param struct {
 		CurrentPage  uint32 `json:"current_page"`
@@ -65,7 +65,7 @@ func (this *Controller) RetroActiveList(c *gin.Context) {
 // @Param tx_hash formData string true "交易hash"
 // @Param network_id formData uint64 true "交易所在链"
 // @Success 200 {object} JsonResult{data=int}
-// @Router /api/v1/retro/add [post]
+// @Router /retro/add [post]
 func (this *Controller) RetroActiveAdd(c *gin.Context) {
 	var param dao.RetroActive
 	if err := c.ShouldBindJSON(&param); err != nil {

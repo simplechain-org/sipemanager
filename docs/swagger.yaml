@@ -539,6 +539,21 @@ definitions:
         description: 惩罚数量
         type: string
     type: object
+  dao.RetroActive:
+    properties:
+      ctx_id:
+        type: string
+      event:
+        description: 1 maker  2 taker
+        type: integer
+      network_id:
+        type: integer
+      status:
+        description: 1 待签  2 签名完成
+        type: integer
+      tx_hash:
+        type: string
+    type: object
   dao.ServiceChargeLogView:
     properties:
       CreatedAt:
@@ -573,6 +588,8 @@ definitions:
         type: integer
       count:
         type: integer
+      date:
+        type: string
       fee:
         type: integer
       timeType:
@@ -1950,6 +1967,76 @@ paths:
       summary: 惩罚记录
       tags:
       - ListPunishment
+  /retro/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 交易hash
+        in: formData
+        name: tx_hash
+        required: true
+        type: string
+      - description: 交易所在链
+        in: formData
+        name: network_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 添加补签记录
+      tags:
+      - RetroActiveAdd
+  /retro/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: formData
+        name: current_page
+        required: true
+        type: integer
+      - description: 页的记录数，默认10
+        in: formData
+        name: page_size
+        required: true
+        type: integer
+      - description: 补签状态
+        in: formData
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dao.RetroActive'
+                  type: array
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 补签列表
+      tags:
+      - RetroActiveList
   /reward/add:
     post:
       consumes:
@@ -2249,11 +2336,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: 锚定节点id
-        in: query
-        name: anchor_node_id
-        required: true
-        type: string
       - description: 当前页
         in: query
         name: current_page
@@ -2274,13 +2356,13 @@ paths:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  $ref: '#/definitions/controllers.ServiceChargeResult'
+                  $ref: '#/definitions/controllers.AnchorNodeResult'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 手续费报销记录
+      summary: 锚定节点列表
       tags:
-      - ListServiceCharge
+      - ListAnchorNode
   /user/login:
     post:
       consumes:

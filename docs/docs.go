@@ -2200,6 +2200,125 @@ var doc = `{
                 }
             }
         },
+        "/retro/add": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RetroActiveAdd"
+                ],
+                "summary": "添加补签记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "交易hash",
+                        "name": "tx_hash",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "交易所在链",
+                        "name": "network_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retro/list": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RetroActiveList"
+                ],
+                "summary": "补签列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "补签状态",
+                        "name": "status",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dao.RetroActive"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/reward/add": {
             "post": {
                 "security": [
@@ -2697,17 +2816,10 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListServiceCharge"
+                    "ListAnchorNode"
                 ],
-                "summary": "手续费报销记录",
+                "summary": "锚定节点列表",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "锚定节点id",
-                        "name": "anchor_node_id",
-                        "in": "query",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -2735,7 +2847,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
+                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
                                         }
                                     }
                                 }
@@ -3842,6 +3954,28 @@ var doc = `{
                 }
             }
         },
+        "dao.RetroActive": {
+            "type": "object",
+            "properties": {
+                "ctx_id": {
+                    "type": "string"
+                },
+                "event": {
+                    "description": "1 maker  2 taker",
+                    "type": "integer"
+                },
+                "network_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "1 待签  2 签名完成",
+                    "type": "integer"
+                },
+                "tx_hash": {
+                    "type": "string"
+                }
+            }
+        },
         "dao.ServiceChargeLogView": {
             "type": "object",
             "properties": {
@@ -3889,6 +4023,9 @@ var doc = `{
                 },
                 "count": {
                     "type": "integer"
+                },
+                "date": {
+                    "type": "string"
                 },
                 "fee": {
                     "type": "integer"
