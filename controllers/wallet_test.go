@@ -8,8 +8,6 @@ import (
 	"testing"
 )
 
-var token string = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTQ2MTEzODMsImlhdCI6MTU5NDYwNDE4MywiaWQiOjEsInVzZXJuYW1lIjoiZGFtaW4ifQ.lnj2gqKXe5Vv9pecWS5YHi8hQa4N6cp6nMKkdiV7PRI`
-
 func TestController_AddWallet(t *testing.T) {
 
 	walletParam := &WalletParam{
@@ -119,6 +117,7 @@ func TestController_AddWallet3(t *testing.T) {
 		t.Log(string(body))
 	}
 }
+
 //没有加载keystore文件，所以content为空
 func TestController_ListWallet(t *testing.T) {
 	var url string = "http://127.0.0.1:8092" + "/api/v1/wallet/list"
@@ -145,9 +144,9 @@ func TestController_ListWallet(t *testing.T) {
 
 func TestController_UpdateWallet(t *testing.T) {
 	paramObj := &UpdateWalletParam{
-	    WalletId:8,
-	    NewPassword:"12345678",
-	    OldPassword:"123456",
+		WalletId:    8,
+		NewPassword: "12345678",
+		OldPassword: "123456",
 	}
 	data, err := json.Marshal(paramObj)
 	if err != nil {
@@ -181,9 +180,9 @@ func TestController_UpdateWallet(t *testing.T) {
 }
 func TestController_UpdateWallet2(t *testing.T) {
 	paramObj := &UpdateWalletParam{
-		WalletId:7,
-		NewPassword:"12345678",
-		OldPassword:"12345645",
+		WalletId:    7,
+		NewPassword: "12345678",
+		OldPassword: "12345645",
 	}
 	data, err := json.Marshal(paramObj)
 	if err != nil {

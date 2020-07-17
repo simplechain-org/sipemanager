@@ -33,10 +33,10 @@ type ServiceChargeView struct {
 }
 
 type ServiceChargeResult struct {
-	TotalCount  int                 `json:"total_count"`  //总记录数
-	CurrentPage int                 `json:"current_page"` //当前页数
-	PageSize    int                 `json:"page_size"`    //页的大小
-	PageData    []ServiceChargeView `json:"page_data"`    //页的数据
+	TotalCount  int                         `json:"total_count"`  //总记录数
+	CurrentPage int                         `json:"current_page"` //当前页数
+	PageSize    int                         `json:"page_size"`    //页的大小
+	PageData    []*dao.ServiceChargeLogView `json:"page_data"`    //页的数据
 }
 
 // @Summary 手续费报销记录
@@ -46,6 +46,7 @@ type ServiceChargeResult struct {
 // @Security ApiKeyAuth
 // @Param anchor_node_id query string true "锚定节点id"
 // @Param current_page query string true "当前页"
+// @Param page_size query string true "页的记录数"
 // @Success 200 {object} JsonResult{data=ServiceChargeResult}
 // @Router /service/charge/list [get]
 func (this *Controller) ListServiceCharge(c *gin.Context) {
@@ -67,6 +68,16 @@ func (this *Controller) ListServiceCharge(c *gin.Context) {
 		}
 	}
 	var pageSize int = 10
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
+		}
+	}
 	//当前页（默认为第一页）
 	var currentPage int = 1
 	currentPageStr := c.Query("current_page")
@@ -82,19 +93,6 @@ func (this *Controller) ListServiceCharge(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	result := make([]ServiceChargeView, 0, len(objects))
-	for _, obj := range objects {
-		result = append(result, ServiceChargeView{
-			AnchorNodeId:    obj.AnchorNodeId,
-			AnchorNodeName:  obj.AnchorNodeName,
-			TransactionHash: obj.TransactionHash,
-			Fee:             obj.Fee,
-			Coin:            obj.Coin,
-			Sender:          obj.Sender,
-			Status:          obj.Status,
-			CreatedAt:       obj.CreatedAt.Format("2006-01-02 15:04:05"),
-		})
-	}
 	count, err := this.dao.GetServiceChargeLogCount(anchorNodeId)
 	if err != nil {
 		this.echoError(c, err)
@@ -104,7 +102,7 @@ func (this *Controller) ListServiceCharge(c *gin.Context) {
 		TotalCount:  count,
 		CurrentPage: currentPage,
 		PageSize:    pageSize,
-		PageData:    result,
+		PageData:    objects,
 	}
 	this.echoResult(c, serviceChargeResult)
 }
@@ -208,7 +206,6 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 	}
 	serviceChargeLog := &dao.ServiceChargeLog{
 		AnchorNodeId:    param.AnchorNodeId,
-		AnchorNodeName:  anchorNode.Name,
 		TransactionHash: hash,
 		Fee:             param.Fee,
 		Coin:            param.Coin,

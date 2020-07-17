@@ -111,6 +111,47 @@ definitions:
         description: 累计有效签名
         type: string
     type: object
+  controllers.ChainRegisterInfo:
+    properties:
+      CreatedAt:
+        description: 创建时间
+        type: string
+      anchor_addresses:
+        type: string
+      anchor_nodes:
+        items:
+          $ref: '#/definitions/dao.AnchorNode'
+        type: array
+      confirm:
+        type: integer
+      source_chain_id:
+        type: integer
+      source_chain_name:
+        type: string
+      target_chain_id:
+        type: integer
+      target_chain_name:
+        type: string
+      tx_hash:
+        type: string
+    type: object
+  controllers.ChainRegisterResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/dao.ChainRegisterView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
+    type: object
   controllers.ChainResult:
     properties:
       current_page:
@@ -128,26 +169,60 @@ definitions:
         description: 总记录数
         type: integer
     type: object
-  controllers.ExistsContractParam:
+  controllers.ContractInstanceResult:
     properties:
-      abi:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/controllers.ContractInstanceView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
+    type: object
+  controllers.ContractInstanceView:
+    properties:
+      CreatedAt:
         type: string
+      ID:
+        type: integer
       address:
-        type: string
-      bin:
         type: string
       chain_id:
         description: 链id ,合约部署在那条链上
         type: integer
-      description:
+      chain_name:
         type: string
-      sol:
+      contract_id:
+        description: 合约id
+        type: integer
+      name:
         type: string
       tx_hash:
         type: string
-    required:
-    - abi
-    - description
+    type: object
+  controllers.ContractResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/dao.Contract'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
     type: object
   controllers.JsonResult:
     properties:
@@ -187,26 +262,6 @@ definitions:
     - name
     - port
     type: object
-  controllers.PunishmentView:
-    properties:
-      anchor_node_id:
-        description: 锚定节点编号
-        type: integer
-      anchor_node_name:
-        description: 锚定节点名称，冗余方便查询
-        type: string
-      coin:
-        description: 惩罚币种
-        type: string
-      created_at:
-        type: string
-      manage_type:
-        description: suspend recovery token
-        type: string
-      value:
-        description: 惩罚数量
-        type: string
-    type: object
   controllers.PunishmentViewResult:
     properties:
       current_page:
@@ -215,7 +270,7 @@ definitions:
       page_data:
         description: 页的数据
         items:
-          $ref: '#/definitions/controllers.PunishmentView'
+          $ref: '#/definitions/dao.PunishmentView'
         type: array
       page_size:
         description: 页的大小
@@ -244,7 +299,7 @@ definitions:
       page_data:
         description: 页的数据
         items:
-          $ref: '#/definitions/controllers.ServiceChargeView'
+          $ref: '#/definitions/dao.ServiceChargeLogView'
         type: array
       page_size:
         description: 页的大小
@@ -252,31 +307,6 @@ definitions:
       total_count:
         description: 总记录数
         type: integer
-    type: object
-  controllers.ServiceChargeView:
-    properties:
-      anchor_node_id:
-        description: 锚定节点编号
-        type: integer
-      anchor_node_name:
-        description: 锚定节点名称，冗余方便查询
-        type: string
-      coin:
-        description: 报销的币种
-        type: string
-      created_at:
-        type: string
-      fee:
-        description: 报销手续费
-        type: string
-      sender:
-        description: 出账账户地址
-        type: string
-      status:
-        type: integer
-      transaction_hash:
-        description: 交易哈希
-        type: string
     type: object
   controllers.Transaction:
     properties:
@@ -334,6 +364,59 @@ definitions:
       value:
         type: string
     type: object
+  dao.AnchorNode:
+    properties:
+      address:
+        description: 锚定节点地址
+        type: string
+      name:
+        description: 锚定节点名称
+        type: string
+      pledge:
+        description: 质押sipc的金额
+        type: string
+      sourceChainId:
+        type: integer
+      sourceHash:
+        description: 链上的交易哈希
+        type: string
+      sourceStatus:
+        description: 链上达成的状态  锚定节点添加成功
+        type: integer
+      status:
+        type: boolean
+      targetChainId:
+        type: integer
+      targetHash:
+        description: 链上的交易哈希
+        type: string
+      targetStatus:
+        description: 链上达成的状态  锚定节点添加成功
+        type: integer
+    type: object
+  dao.Chain:
+    properties:
+      coin_name:
+        description: 币名
+        type: string
+      contractInstanceId:
+        description: 合约实例
+        type: integer
+      name:
+        description: 链的名称
+        type: string
+      network_id:
+        description: 链的网络编号
+        type: integer
+      symbol:
+        description: 符号
+        type: string
+    required:
+    - coin_name
+    - name
+    - network_id
+    - symbol
+    type: object
   dao.ChainInfo:
     properties:
       address:
@@ -355,12 +438,166 @@ definitions:
         description: 符号
         type: string
     type: object
+  dao.ChainRegisterView:
+    properties:
+      CreatedAt:
+        description: 创建时间
+        type: string
+      anchor_addresses:
+        type: string
+      confirm:
+        type: integer
+      source_chain_id:
+        type: integer
+      source_chain_name:
+        type: string
+      target_chain_id:
+        type: integer
+      target_chain_name:
+        type: string
+      tx_hash:
+        type: string
+    type: object
+  dao.Contract:
+    properties:
+      abi:
+        type: string
+      bin:
+        type: string
+      name:
+        type: string
+      sol:
+        type: string
+    required:
+    - abi
+    - bin
+    - name
+    - sol
+    type: object
+  dao.ContractInstance:
+    properties:
+      address:
+        type: string
+      chain_id:
+        description: 链id ,合约部署在那条链上
+        type: integer
+      contract_id:
+        description: 合约id
+        type: integer
+      tx_hash:
+        type: string
+    type: object
   dao.MaxUncle:
     properties:
       blockNumber:
         type: integer
       chainId:
         type: integer
+    type: object
+  dao.Node:
+    properties:
+      address:
+        description: 地址
+        type: string
+      chain_id:
+        description: 链id
+        type: integer
+      is_https:
+        type: boolean
+      name:
+        type: string
+      port:
+        description: 端口
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - address
+    - chain_id
+    - name
+    - port
+    type: object
+  dao.PunishmentView:
+    properties:
+      CreatedAt:
+        type: string
+      ID:
+        type: integer
+      anchor_node_id:
+        description: 锚定节点编号
+        type: integer
+      anchor_node_name:
+        description: 锚定节点名称
+        type: string
+      coin:
+        description: 惩罚币种
+        type: string
+      manage_type:
+        description: 管理类型
+        type: string
+      value:
+        description: 惩罚数量
+        type: string
+    type: object
+  dao.ServiceChargeLogView:
+    properties:
+      CreatedAt:
+        type: string
+      ID:
+        type: integer
+      anchorNodeId:
+        description: 锚定节点编号
+        type: integer
+      anchorNodeName:
+        description: 锚定节点名称
+        type: string
+      coin:
+        description: 报销的币种
+        type: string
+      fee:
+        description: 报销手续费
+        type: string
+      sender:
+        description: 出账账户地址
+        type: string
+      status:
+        description: 状态
+        type: integer
+      transactionHash:
+        description: 交易哈希
+        type: string
+    type: object
+  dao.TokenListCount:
+    properties:
+      anchorId:
+        type: integer
+      count:
+        type: integer
+      fee:
+        type: integer
+      timeType:
+        type: string
+    type: object
+  dao.TokenListInterface:
+    properties:
+      anchorAddresses:
+        type: string
+      chainID:
+        type: integer
+      count:
+        type: integer
+      name:
+        type: string
+      networkId:
+        type: integer
+      remoteChainID:
+        type: integer
+      remoteCrossAddress:
+        type: string
+      remoteNetworkId:
+        type: integer
+      sourceCrossAddress:
+        type: string
     type: object
   dao.TxAnchorsNode:
     properties:
@@ -576,48 +813,6 @@ paths:
       summary: 本期总签名数及签名工作量占比
       tags:
       - GetAnchorWorkCount
-  /api/v1/contract/instance/import:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      - application/json
-      description: 引用链上合约
-      parameters:
-      - description: 请求体
-        in: body
-        name: '""'
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.ExistsContractParam'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controllers.JsonResult'
-      summary: 引用链上合约
-  /api/v1/contract/register/once:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      - application/json
-      description: 引用链上合约
-      parameters:
-      - description: 请求体
-        in: body
-        name: '""'
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.ExistsContractParam'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controllers.JsonResult'
-      summary: 引用链上合约
   /block/list:
     get:
       consumes:
@@ -764,14 +959,46 @@ paths:
       summary: 添加链信息
       tags:
       - node
+  /chain/info/{chain_id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 链id
+        in: path
+        name: chain_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.ChainInfo'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取链信息
+      tags:
+      - GetChainInfo
   /chain/list:
     get:
       consumes:
       - application/json
       parameters:
-      - description: 当前页
+      - description: 当前页，默认1
         in: query
         name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
         required: true
         type: string
       produces:
@@ -791,11 +1018,125 @@ paths:
       summary: 链的管理
       tags:
       - ListChain
+  /chain/list/all:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.Chain'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取所有链信息
+      tags:
+      - ListAllChain
+  /chain/node:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 链id
+        in: query
+        name: chain_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dao.Node'
+                  type: array
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取链相关的节点
+      tags:
+      - GetNodeByChain
+  /chain/register/info:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 注册日志id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.ChainRegisterInfo'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取注册日志详情
+      tags:
+      - GetChainRegisterInfo
+  /chain/register/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.ChainRegisterResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 跨链管理(获取注册日志类表)
+      tags:
+      - ListChainRegister
   /chain/update:
     put:
       consumes:
       - application/json
       parameters:
+      - description: 链的id
+        in: formData
+        name: id
+        required: true
+        type: integer
       - description: 链的名称
         in: formData
         name: name
@@ -825,7 +1166,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: NodeId
+          description: OK
           schema:
             allOf:
             - $ref: '#/definitions/controllers.JsonResult'
@@ -838,6 +1179,65 @@ paths:
       summary: 编辑链信息
       tags:
       - node
+  /chart/anchorCount/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: hour:2020-07-10 12:00:00 day:2020-07-10 week:202025
+        in: query
+        name: startTime
+        required: true
+        type: string
+      - description: hour:2020-07-12 12:00:00 day:2020-07-12 week:202029
+        in: query
+        name: endTime
+        required: true
+        type: string
+      - description: 1,2
+        in: query
+        name: tokenKey
+        required: true
+        type: string
+      - description: hour,day,week
+        in: query
+        name: timeType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListCount'
+              type: object
+      summary: 签名监控
+      tags:
+      - Chart
+  /chart/crossTxCount/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListInterface'
+              type: object
+      summary: 跨链交易数监控
+      tags:
+      - Chart
   /chart/feeAndCount/list:
     get:
       consumes:
@@ -901,6 +1301,378 @@ paths:
       summary: 分叉监控
       tags:
       - Chart
+  /chart/txTokenList/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.TokenListInterface'
+              type: object
+      summary: 跨链交易对列表
+      tags:
+      - Chart
+  /contract/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 合约名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 合约源码
+        in: formData
+        name: sol
+        required: true
+        type: string
+      - description: 合约abi
+        in: formData
+        name: abi
+        required: true
+        type: string
+      - description: 合约bin
+        in: formData
+        name: bin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 上传本地合约
+      tags:
+      - AddContract
+  /contract/chain:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 链的id
+        in: query
+        name: chain_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dao.ContractInstance'
+                  type: array
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取部署在链上的合约实例
+      tags:
+      - GetContractOnChain
+  /contract/instance:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 节点id
+        in: formData
+        name: node_id
+        required: true
+        type: string
+      - description: 合约id
+        in: formData
+        name: contract_id
+        required: true
+        type: string
+      - description: 钱包id
+        in: formData
+        name: wallet_id
+        required: true
+        type: string
+      - description: 钱包密码
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 本地合约上链
+      tags:
+      - InstanceContract
+  /contract/instance/import:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      parameters:
+      - description: 链id
+        in: formData
+        name: chain_id
+        required: true
+        type: integer
+      - description: 交易哈希
+        in: formData
+        name: tx_hash
+        required: true
+        type: string
+      - description: 合约地址
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: 合约名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 合约源码
+        in: formData
+        name: sol
+        required: true
+        type: string
+      - description: 合约abi
+        in: formData
+        name: abi
+        required: true
+        type: string
+      - description: 合约bin
+        in: formData
+        name: bin
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      summary: 引用链上合约
+  /contract/instance/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.ContractInstanceResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 合约上链
+      tags:
+      - ListChain
+  /contract/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.ContractResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 合约管理
+      tags:
+      - ListContract
+  /contract/register/once:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      parameters:
+      - description: 源链Id
+        in: formData
+        name: source_chain_id
+        required: true
+        type: integer
+      - description: 目标链Id
+        in: formData
+        name: target_chain_id
+        required: true
+        type: integer
+      - description: 源链节点Id
+        in: formData
+        name: source_node_id
+        required: true
+        type: integer
+      - description: 目标链节点Id
+        in: formData
+        name: target_node_id
+        required: true
+        type: integer
+      - description: 最小确认数
+        in: formData
+        name: sign_confirm_count
+        required: true
+        type: integer
+      - description: 锚定节点地址 字符串数组
+        in: formData
+        name: anchor_addresses
+        required: true
+        type: array
+      - description: 锚定节点名称 字符串数组
+        in: formData
+        name: anchor_names
+        required: true
+        type: array
+      - description: 钱包id
+        in: formData
+        name: wallet_id
+        required: true
+        type: integer
+      - description: 钱包密码
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      summary: 注册新的跨链对
+  /contract/remove/{contract_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 合约id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      security:
+      - ApiKeyAuth: []
+      summary: 删除合约
+      tags:
+      - RemoveContract
+  /contract/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 合约id
+        in: formData
+        name: id
+        required: true
+        type: string
+      - description: 合约名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 合约源码
+        in: formData
+        name: sol
+        required: true
+        type: string
+      - description: 合约abi
+        in: formData
+        name: abi
+        required: true
+        type: string
+      - description: 合约bin
+        in: formData
+        name: bin
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 更新合约内容
+      tags:
+      - AddContract
   /node:
     post:
       consumes:
@@ -1319,14 +2091,19 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: keystore string
+      - description: 锚定节点id
         in: formData
         name: anchor_node_id
         required: true
         type: string
-      - description: keystore string
+      - description: 当前页
         in: formData
         name: current_page
+        required: true
+        type: string
+      - description: 页的记录数
+        in: formData
+        name: page_size
         required: true
         type: string
       produces:
@@ -1480,6 +2257,11 @@ paths:
       - description: 当前页
         in: query
         name: current_page
+        required: true
+        type: string
+      - description: 页的记录数
+        in: query
+        name: page_size
         required: true
         type: string
       produces:

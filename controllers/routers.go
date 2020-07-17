@@ -43,36 +43,27 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/wallet", validateLogin, c.AddWallet)
 	router.POST("/api/v1/wallet/update", validateLogin, c.UpdateWallet)
 
-	router.POST("/api/v1/contract", validateLogin, c.AddContract)
-	router.POST("/api/v1/contract/instance", validateLogin, c.DeployContract)
-	router.POST("/api/v1/contract/register", validateLogin, c.RegisterChain)
 	router.POST("/api/v1/contract/produce", validateLogin, c.Produce)
 	router.POST("/api/v1/contract/consume", validateLogin, c.Consume)
 	router.GET("/api/v1/contract/transaction", validateLogin, c.ListCrossTransaction)
-	router.GET("/api/v1/contract/list", validateLogin, c.ListContract)
+
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
-	router.GET("/api/v1/contract/instance/list", validateLogin, c.GetContractInstances)
-	router.POST("/api/v1/contract/instance/import", validateLogin, c.GetContractInstances)
-
-	router.POST("/api/v1/contract/register/once", validateLogin, c.RegisterChainTwoWay)
-
-	router.POST("/api/v1/contract/instance/add", validateLogin, c.AddContractInstance)
 
 	router.GET("/api/v1/chain/current", validateLogin, c.GetUserCurrentChain)
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
 
-	router.GET("/api/v1/contract/register/list", validateLogin, c.ListRegisterChain)
 	router.GET("/api/v1/contract/produce/list", validateLogin, c.ListMakerOrder)
 	router.GET("/api/v1/contract/consume/list", validateLogin, c.ListTakerOrder)
-
-	router.POST("/api/v1/contract/register/add", validateLogin, c.RegisterChainAdd)
 
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 
 	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
 	router.GET("/api/v1/chart/maxUncle/list", c.MaxUncle)
+	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
+	router.GET("/api/v1/chart/anchorCount/list", c.AnchorCount)
+	router.GET("/api/v1/chart/crossTxCount/list", c.CrossTxCount)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
@@ -94,6 +85,27 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.DELETE("/api/v1/node/remove/:id", validateLogin, c.DeleteNode)
 	router.PUT("/api/v1/chain/update", validateLogin, c.UpdateChain)
 	router.GET("/api/v1/chain/list", validateLogin, c.ListChain)
+	router.GET("/api/v1/chain/node", validateLogin, c.GetNodeByChain)
+	router.GET("/api/v1/chain/list/all", validateLogin, c.ListAllChain)
+
+	router.POST("/api/v1/contract/add", validateLogin, c.AddContract)
+	router.PUT("/api/v1/contract/update", validateLogin, c.updateContract)
+	router.DELETE("/api/v1/contract/remove/:contract_id", validateLogin, c.RemoveContract)
+	//获取所有的合约
+	router.GET("/api/v1/contract/list/all", validateLogin, c.ListContractAll)
+	//合约管理（分页）
+	router.GET("/api/v1/contract/list", validateLogin, c.ListContract)
+	//引用链上合约
+	router.POST("/api/v1/contract/instance/import", validateLogin, c.AddExistsContract)
+	//注册新的跨链对
+	router.POST("/api/v1/contract/register/once", validateLogin, c.RegisterChainTwoWay)
+	//本地合约上链
+	router.POST("/api/v1/contract/instance", validateLogin, c.InstanceContract)
+	//合约上链
+	router.GET("/api/v1/contract/instance/list", validateLogin, c.ListContractInstances)
+
+	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
+	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
 
 }
 

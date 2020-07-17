@@ -93,6 +93,77 @@ func (this *Controller) MaxUncle(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	fmt.Printf("34----%+v\n", anchors)
 	this.echoResult(c, anchors)
+}
+
+// @Summary 跨链交易对列表
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/txTokenList/list [get]
+func (this *Controller) TxTokenList(c *gin.Context) {
+	tokenList, err := this.dao.GetTxTokenList()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, tokenList)
+}
+
+// @Summary 签名监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Param startTime query string true "hour:2020-07-10 12:00:00 day:2020-07-10 week:202025"
+// @Param endTime query string true "hour:2020-07-12 12:00:00 day:2020-07-12 week:202029"
+// @Param tokenKey query string true "1,2"
+// @Param timeType query string true "hour,day,week"
+// @Success 200 {object} JsonResult{data=dao.TokenListCount}
+// @Router /chart/anchorCount/list [get]
+func (this *Controller) AnchorCount(c *gin.Context) {
+	startTime := c.Query("startTime")
+	endTime := c.Query("endTime")
+	tokenKey := c.Query("tokenKey")
+	timeType := c.Query("timeType")
+	tokenList, err := this.dao.GetTxTokenList()
+	token := tokenList[tokenKey]
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	tokenCount := make(map[string][]dao.TokenListCount, 0)
+	for _, id := range anchorIds {
+		n, _ := strconv.Atoi(id)
+		anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType, uint(n))
+		fmt.Println(anchors)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		tokenCount[id] = anchors
+	}
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, tokenCount)
+}
+
+// @Summary 跨链交易数监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/crossTxCount/list [get]
+func (this *Controller) CrossTxCount(c *gin.Context) {
+	tokenList, err := this.dao.GetTxTokenList()
+	for key, value := range tokenList {
+		count := this.dao.TokenListCount(value)
+		value.Count = count
+		tokenList[key] = value
+	}
+
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, tokenList)
 }

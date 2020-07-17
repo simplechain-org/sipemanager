@@ -301,70 +301,6 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/contract/instance/import": {
-            "post": {
-                "description": "引用链上合约",
-                "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "引用链上合约",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "\"\"",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.ExistsContractParam"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.JsonResult"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/contract/register/once": {
-            "post": {
-                "description": "引用链上合约",
-                "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "引用链上合约",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "\"\"",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.ExistsContractParam"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.JsonResult"
-                        }
-                    }
-                }
-            }
-        },
         "/block/list": {
             "get": {
                 "security": [
@@ -572,6 +508,54 @@ var doc = `{
                 }
             }
         },
+        "/chain/info/{chain_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetChainInfo"
+                ],
+                "summary": "获取链信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "链id",
+                        "name": "chain_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.ChainInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/chain/list": {
             "get": {
                 "security": [
@@ -592,8 +576,15 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "当前页",
+                        "description": "当前页，默认1",
                         "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
                         "in": "query",
                         "required": true
                     }
@@ -611,6 +602,199 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/controllers.ChainResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/list/all": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListAllChain"
+                ],
+                "summary": "获取所有链信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.Chain"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/node": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetNodeByChain"
+                ],
+                "summary": "获取链相关的节点",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "链id",
+                        "name": "chain_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dao.Node"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/register/info": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetChainRegisterInfo"
+                ],
+                "summary": "获取注册日志详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "注册日志id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.ChainRegisterInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/register/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListChainRegister"
+                ],
+                "summary": "跨链管理(获取注册日志类表)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.ChainRegisterResult"
                                         }
                                     }
                                 }
@@ -638,6 +822,13 @@ var doc = `{
                 ],
                 "summary": "编辑链信息",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "链的id",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "链的名称",
@@ -676,7 +867,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "NodeId",
+                        "description": "OK",
                         "schema": {
                             "allOf": [
                                 {
@@ -735,6 +926,104 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/anchorCount/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "签名监控",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-10 12:00:00 day:2020-07-10 week:202025",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour:2020-07-12 12:00:00 day:2020-07-12 week:202029",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "1,2",
+                        "name": "tokenKey",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "hour,day,week",
+                        "name": "timeType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListCount"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/crossTxCount/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "跨链交易数监控",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListInterface"
                                         }
                                     }
                                 }
@@ -839,6 +1128,606 @@ var doc = `{
                                             "items": {
                                                 "$ref": "#/definitions/dao.MaxUncle"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/txTokenList/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "跨链交易对列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.TokenListInterface"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/add": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddContract"
+                ],
+                "summary": "上传本地合约",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "合约名称",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约源码",
+                        "name": "sol",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约abi",
+                        "name": "abi",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约bin",
+                        "name": "bin",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/chain": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetContractOnChain"
+                ],
+                "summary": "获取部署在链上的合约实例",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "链的id",
+                        "name": "chain_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dao.ContractInstance"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/instance": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "InstanceContract"
+                ],
+                "summary": "本地合约上链",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "节点id",
+                        "name": "node_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约id",
+                        "name": "contract_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包id",
+                        "name": "wallet_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包密码",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/instance/import": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "引用链上合约",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "链id",
+                        "name": "chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "交易哈希",
+                        "name": "tx_hash",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约地址",
+                        "name": "address",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约名称",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约源码",
+                        "name": "sol",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约abi",
+                        "name": "abi",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约bin",
+                        "name": "bin",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/instance/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListChain"
+                ],
+                "summary": "合约上链",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.ContractInstanceResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListContract"
+                ],
+                "summary": "合约管理",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.ContractResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/register/once": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "注册新的跨链对",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "源链Id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链Id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "源链节点Id",
+                        "name": "source_node_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链节点Id",
+                        "name": "target_node_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "最小确认数",
+                        "name": "sign_confirm_count",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "description": "锚定节点地址 字符串数组",
+                        "name": "anchor_addresses",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "description": "锚定节点名称 字符串数组",
+                        "name": "anchor_names",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "钱包id",
+                        "name": "wallet_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包密码",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/remove/{contract_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RemoveContract"
+                ],
+                "summary": "删除合约",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "合约id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/update": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddContract"
+                ],
+                "summary": "更新合约内容",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "合约id",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约名称",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约源码",
+                        "name": "sol",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约abi",
+                        "name": "abi",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "合约bin",
+                        "name": "bin",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
                                         }
                                     }
                                 }
@@ -1552,15 +2441,22 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "keystore string",
+                        "description": "锚定节点id",
                         "name": "anchor_node_id",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "keystore string",
+                        "description": "当前页",
                         "name": "current_page",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数",
+                        "name": "page_size",
                         "in": "formData",
                         "required": true
                     }
@@ -1816,6 +2712,13 @@ var doc = `{
                         "type": "string",
                         "description": "当前页",
                         "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数",
+                        "name": "page_size",
                         "in": "query",
                         "required": true
                     }
@@ -2323,6 +3226,66 @@ var doc = `{
                 }
             }
         },
+        "controllers.ChainRegisterInfo": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "anchor_addresses": {
+                    "type": "string"
+                },
+                "anchor_nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.AnchorNode"
+                    }
+                },
+                "confirm": {
+                    "type": "integer"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_chain_name": {
+                    "type": "string"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_name": {
+                    "type": "string"
+                },
+                "tx_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.ChainRegisterResult": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "当前页数",
+                    "type": "integer"
+                },
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.ChainRegisterView"
+                    }
+                },
+                "page_size": {
+                    "description": "页的大小",
+                    "type": "integer"
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
+                }
+            }
+        },
         "controllers.ChainResult": {
             "type": "object",
             "properties": {
@@ -2347,34 +3310,82 @@ var doc = `{
                 }
             }
         },
-        "controllers.ExistsContractParam": {
+        "controllers.ContractInstanceResult": {
             "type": "object",
-            "required": [
-                "abi",
-                "description"
-            ],
             "properties": {
-                "abi": {
+                "current_page": {
+                    "description": "当前页数",
+                    "type": "integer"
+                },
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.ContractInstanceView"
+                    }
+                },
+                "page_size": {
+                    "description": "页的大小",
+                    "type": "integer"
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.ContractInstanceView": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "address": {
-                    "type": "string"
-                },
-                "bin": {
                     "type": "string"
                 },
                 "chain_id": {
                     "description": "链id ,合约部署在那条链上",
                     "type": "integer"
                 },
-                "description": {
+                "chain_name": {
                     "type": "string"
                 },
-                "sol": {
+                "contract_id": {
+                    "description": "合约id",
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 },
                 "tx_hash": {
                     "type": "string"
+                }
+            }
+        },
+        "controllers.ContractResult": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "当前页数",
+                    "type": "integer"
+                },
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.Contract"
+                    }
+                },
+                "page_size": {
+                    "description": "页的大小",
+                    "type": "integer"
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
                 }
             }
         },
@@ -2433,34 +3444,6 @@ var doc = `{
                 }
             }
         },
-        "controllers.PunishmentView": {
-            "type": "object",
-            "properties": {
-                "anchor_node_id": {
-                    "description": "锚定节点编号",
-                    "type": "integer"
-                },
-                "anchor_node_name": {
-                    "description": "锚定节点名称，冗余方便查询",
-                    "type": "string"
-                },
-                "coin": {
-                    "description": "惩罚币种",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "manage_type": {
-                    "description": "suspend recovery token",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "惩罚数量",
-                    "type": "string"
-                }
-            }
-        },
         "controllers.PunishmentViewResult": {
             "type": "object",
             "properties": {
@@ -2472,7 +3455,7 @@ var doc = `{
                     "description": "页的数据",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controllers.PunishmentView"
+                        "$ref": "#/definitions/dao.PunishmentView"
                     }
                 },
                 "page_size": {
@@ -2513,7 +3496,7 @@ var doc = `{
                     "description": "页的数据",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controllers.ServiceChargeView"
+                        "$ref": "#/definitions/dao.ServiceChargeLogView"
                     }
                 },
                 "page_size": {
@@ -2523,41 +3506,6 @@ var doc = `{
                 "total_count": {
                     "description": "总记录数",
                     "type": "integer"
-                }
-            }
-        },
-        "controllers.ServiceChargeView": {
-            "type": "object",
-            "properties": {
-                "anchor_node_id": {
-                    "description": "锚定节点编号",
-                    "type": "integer"
-                },
-                "anchor_node_name": {
-                    "description": "锚定节点名称，冗余方便查询",
-                    "type": "string"
-                },
-                "coin": {
-                    "description": "报销的币种",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "fee": {
-                    "description": "报销手续费",
-                    "type": "string"
-                },
-                "sender": {
-                    "description": "出账账户地址",
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "transaction_hash": {
-                    "description": "交易哈希",
-                    "type": "string"
                 }
             }
         },
@@ -2646,6 +3594,79 @@ var doc = `{
                 }
             }
         },
+        "dao.AnchorNode": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "锚定节点地址",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "锚定节点名称",
+                    "type": "string"
+                },
+                "pledge": {
+                    "description": "质押sipc的金额",
+                    "type": "string"
+                },
+                "sourceChainId": {
+                    "type": "integer"
+                },
+                "sourceHash": {
+                    "description": "链上的交易哈希",
+                    "type": "string"
+                },
+                "sourceStatus": {
+                    "description": "链上达成的状态  锚定节点添加成功",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "boolean"
+                },
+                "targetChainId": {
+                    "type": "integer"
+                },
+                "targetHash": {
+                    "description": "链上的交易哈希",
+                    "type": "string"
+                },
+                "targetStatus": {
+                    "description": "链上达成的状态  锚定节点添加成功",
+                    "type": "integer"
+                }
+            }
+        },
+        "dao.Chain": {
+            "type": "object",
+            "required": [
+                "coin_name",
+                "name",
+                "network_id",
+                "symbol"
+            ],
+            "properties": {
+                "coin_name": {
+                    "description": "币名",
+                    "type": "string"
+                },
+                "contractInstanceId": {
+                    "description": "合约实例",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "链的名称",
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "链的网络编号",
+                    "type": "integer"
+                },
+                "symbol": {
+                    "description": "符号",
+                    "type": "string"
+                }
+            }
+        },
         "dao.ChainInfo": {
             "type": "object",
             "properties": {
@@ -2675,6 +3696,78 @@ var doc = `{
                 }
             }
         },
+        "dao.ChainRegisterView": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "anchor_addresses": {
+                    "type": "string"
+                },
+                "confirm": {
+                    "type": "integer"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_chain_name": {
+                    "type": "string"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_name": {
+                    "type": "string"
+                },
+                "tx_hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.Contract": {
+            "type": "object",
+            "required": [
+                "abi",
+                "bin",
+                "name",
+                "sol"
+            ],
+            "properties": {
+                "abi": {
+                    "type": "string"
+                },
+                "bin": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sol": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.ContractInstance": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id ,合约部署在那条链上",
+                    "type": "integer"
+                },
+                "contract_id": {
+                    "description": "合约id",
+                    "type": "integer"
+                },
+                "tx_hash": {
+                    "type": "string"
+                }
+            }
+        },
         "dao.MaxUncle": {
             "type": "object",
             "properties": {
@@ -2683,6 +3776,157 @@ var doc = `{
                 },
                 "chainId": {
                     "type": "integer"
+                }
+            }
+        },
+        "dao.Node": {
+            "type": "object",
+            "required": [
+                "address",
+                "chain_id",
+                "name",
+                "port"
+            ],
+            "properties": {
+                "address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id",
+                    "type": "integer"
+                },
+                "is_https": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "port": {
+                    "description": "端口",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dao.PunishmentView": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "anchor_node_id": {
+                    "description": "锚定节点编号",
+                    "type": "integer"
+                },
+                "anchor_node_name": {
+                    "description": "锚定节点名称",
+                    "type": "string"
+                },
+                "coin": {
+                    "description": "惩罚币种",
+                    "type": "string"
+                },
+                "manage_type": {
+                    "description": "管理类型",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "惩罚数量",
+                    "type": "string"
+                }
+            }
+        },
+        "dao.ServiceChargeLogView": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "anchorNodeId": {
+                    "description": "锚定节点编号",
+                    "type": "integer"
+                },
+                "anchorNodeName": {
+                    "description": "锚定节点名称",
+                    "type": "string"
+                },
+                "coin": {
+                    "description": "报销的币种",
+                    "type": "string"
+                },
+                "fee": {
+                    "description": "报销手续费",
+                    "type": "string"
+                },
+                "sender": {
+                    "description": "出账账户地址",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                },
+                "transactionHash": {
+                    "description": "交易哈希",
+                    "type": "string"
+                }
+            }
+        },
+        "dao.TokenListCount": {
+            "type": "object",
+            "properties": {
+                "anchorId": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "fee": {
+                    "type": "integer"
+                },
+                "timeType": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.TokenListInterface": {
+            "type": "object",
+            "properties": {
+                "anchorAddresses": {
+                    "type": "string"
+                },
+                "chainID": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "networkId": {
+                    "type": "integer"
+                },
+                "remoteChainID": {
+                    "type": "integer"
+                },
+                "remoteCrossAddress": {
+                    "type": "string"
+                },
+                "remoteNetworkId": {
+                    "type": "integer"
+                },
+                "sourceCrossAddress": {
+                    "type": "string"
                 }
             }
         },
