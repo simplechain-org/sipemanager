@@ -34,7 +34,6 @@ func (this *DataBaseAccessObject) CrossAnchorsReplace(data CrossAnchors) error {
 		data.TxId).Error
 }
 
-//toDo 增加跨链合约地址进行查询
 func (this *DataBaseAccessObject) QueryTxByHours(txAnchors TxAnchors, EventType string) error {
 	var sql = `
 SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM

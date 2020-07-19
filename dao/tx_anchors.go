@@ -36,16 +36,6 @@ func (this *TxAnchors) TableName() string {
 	return "tx_anchors"
 }
 
-//func (this *DataBaseAccessObject) QueryAnchors(startTime string, endTime string, chainId uint, timeType string) ([]TxAnchors, error) {
-//	result := make([]TxAnchors, 0)
-//	err := this.db.Table((&TxAnchors{}).TableName()).Where("date BETWEEN ? and ? and chain_id = ? and timeType = ? ", startTime, endTime, chainId, timeType).Order("chain_id desc").Find(&result).Error
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//	return result, nil
-//}
-
 func (this *DataBaseAccessObject) QueryAnchors(startTime string, endTime string, chainId int, timeType string) ([]TxAnchorsNode, error) {
 	txAnchors := make([]TxAnchorsNode, 0)
 	var sql = `
@@ -86,7 +76,6 @@ func (this *DataBaseAccessObject) TxAnchorsReplace(data TxAnchors) error {
 
 type TokenListCount struct {
 	Count    uint
-	AnchorId uint
 	Fee      uint64
 	TimeType string
 	Date     string

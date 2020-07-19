@@ -3,6 +3,8 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"sipemanager/utils"
 	"strconv"
 	"strings"
 
@@ -45,7 +47,7 @@ func (this *Controller) AnalysisAnchors() {
 			TxDayErr := this.dao.QueryTxByDays(txAnchor, "makerFinish")
 			TxWeekErr := this.dao.QueryTxByWeeks(txAnchor, "makerFinish")
 			if TxHourErr != nil || TxDayErr != nil || TxWeekErr != nil {
-				fmt.Printf("-------23-----%+v\n", TxHourErr.Error())
+				logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40001, Message: "Analysis Anchors Failed", Err: nil})
 			}
 		}
 	}
