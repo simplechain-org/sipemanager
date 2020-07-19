@@ -39,10 +39,10 @@ func (this *DataBaseAccessObject) UpdateContractBin(id uint, bin string) error {
 		Update("bin", bin).Error
 }
 
-//列出所有的合约，因为Sol，bin,abi较大，不加载
+//列出所有的合约
 func (this *DataBaseAccessObject) GetContracts() ([]*Contract, error) {
 	contracts := make([]*Contract, 0)
-	err := this.db.Table((&Contract{}).TableName()).Select("id,name").Find(&contracts).Error
+	err := this.db.Table((&Contract{}).TableName()).Find(&contracts).Error
 	return contracts, err
 }
 
@@ -76,9 +76,7 @@ func (this *DataBaseAccessObject) RemoveContract(contractId uint) error {
 
 func (this *DataBaseAccessObject) GetContractPage(start, pageSize int) ([]*Contract, error) {
 	result := make([]*Contract, 0)
-	db := this.db.Table((&Contract{}).TableName()).
-		Select("id,name")
-	err := db.Offset(start).
+	err := this.db.Table((&Contract{}).TableName()).Offset(start).
 		Limit(pageSize).
 		Find(&result).Error
 	return result, err

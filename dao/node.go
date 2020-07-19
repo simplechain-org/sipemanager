@@ -17,6 +17,7 @@ type Node struct {
 }
 
 type NodeView struct {
+	ID        uint   `gorm:"id" json:"ID"`
 	CreatedAt string `gorm:"created_at" json:"created_at"`
 	Address   string `gorm:"size:255" json:"address"` //地址
 	Port      int    `json:"port" binding:"required"` //端口
