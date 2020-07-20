@@ -82,6 +82,7 @@ func (this *DataBaseAccessObject) ListNodeByUserId(userId uint) ([]NodeView, err
     chains.network_id, 
     chains.coin_name,
     chains.symbol from nodes,chains where nodes.chain_id=chains.id`
+	sql += " and `nodes`.`deleted_at` IS NULL"
 	sql += fmt.Sprintf(" and user_id=%d", userId)
 	err := this.db.Raw(sql).Scan(&nodes).Error
 	if err != nil {

@@ -151,49 +151,6 @@ func (this *Controller) DeleteNode(c *gin.Context) {
 	}
 	this.echoSuccess(c, "Success")
 }
-
-//切换节点
-type UserNodeParam struct {
-	UserId uint `json:"user_id"`
-	NodeId uint `json:"node_id"`
-}
-
-//切换node
-// @Summary 切换node
-// @Tags node
-// @Accept  json
-// @Produce  json
-// @Security ApiKeyAuth
-// @Param user_id formData int true "useId"
-// @Param node_id formData int true "nodeId"
-// @Success 200 {object} string "success"
-// @Router /node/change [post]
-func (this *Controller) ChangeNode(c *gin.Context) {
-	user, err := this.GetUser(c)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	var params UserNodeParam
-	if err := c.Bind(&params); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	if user.ID != params.UserId {
-		this.echoError(c, errors.New("invalid operation"))
-		return
-	}
-	err = this.dao.UpdateUserCurrentNode(&dao.UserNode{UserId: user.ID, NodeId: params.NodeId})
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.onChangeNode(user.ID)
-	this.echoResult(c, "success")
-}
-
-
-
 // @Summary 节点列表
 // @Tags node
 // @Accept  json
@@ -215,48 +172,3 @@ func (this *Controller) GetNodes(c *gin.Context) {
 	this.echoResult(c, nodes)
 }
 
-// @Summary 获取当前登录账户的节点
-// @Tags node
-// @Accept  json
-// @Produce  json
-// @Security ApiKeyAuth
-// @Success 200 {object} JsonResult{data=[]Node}
-// @Router /node/current [get]
-func (this *Controller) GetUserCurrentNode(c *gin.Context) {
-	user, err := this.GetUser(c)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	node, err := this.dao.GetUserCurrentNode(user.ID)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	chain, err := this.dao.GetChain(node.ChainId)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	description := fmt.Sprintf("%s_%s_%s:%d", chain.Name, node.Name, node.Address, node.Port)
-	result := Node{Node: *node, Description: description}
-	this.echoResult(c, result)
-}
-func (this *Controller) GetUserCurrentChain(c *gin.Context) {
-	user, err := this.GetUser(c)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	node, err := this.dao.GetUserCurrentNode(user.ID)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	nodeInfo, err := this.dao.GetNodeById(node.ID)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	this.echoResult(c, nodeInfo)
-}
