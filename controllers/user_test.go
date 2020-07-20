@@ -20,7 +20,7 @@ func TestController_Login(t *testing.T) {
 		return
 	}
 	params := bytes.NewBuffer(data)
-	var url string = "http://127.0.0.1:8092" + "/api/v1/user/login"
+	var url string = "http://192.168.3.14:8092" + "/api/v1/user/login"
 	request, err := http.NewRequest(http.MethodPost, url, params)
 	if err != nil {
 		t.Error(err)
@@ -56,7 +56,7 @@ func TestController_Register(t *testing.T) {
 		return
 	}
 	params := bytes.NewBuffer(data)
-	var url string = "http://127.0.0.1:8092" + "/api/v1/user/register"
+	var url string = "http://192.168.3.14:8092" + "/api/v1/user/register"
 	request, err := http.NewRequest(http.MethodPost, url, params)
 	if err != nil {
 		t.Error(err)

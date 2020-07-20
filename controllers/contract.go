@@ -27,7 +27,7 @@ import (
 // @Router /contract/add [post]
 func (this *Controller) AddContract(c *gin.Context) {
 	var param dao.Contract
-	if err := c.ShouldBindJSON(&param); err != nil {
+	if err := c.ShouldBind(&param); err != nil {
 		this.echoError(c, err)
 		return
 	}
@@ -143,14 +143,16 @@ func (this *Controller) ListContract(c *gin.Context) {
 			}
 		}
 	}
+	status := c.Query("status")
+
 	start := (currentPage - 1) * pageSize
 
-	objects, err := this.dao.GetContractPage(start, pageSize)
+	objects, err := this.dao.GetContractPage(start, pageSize, status)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-	count, err := this.dao.GetContractCount()
+	count, err := this.dao.GetContractCount(status)
 	if err != nil {
 		this.echoError(c, err)
 		return
@@ -250,7 +252,6 @@ func (this *Controller) InstanceContract(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-
 	go func(id uint, hash string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()

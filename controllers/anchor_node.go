@@ -57,13 +57,11 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		fmt.Println("GetWallet:", err.Error())
 		this.echoError(c, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)
 		return
 	}
@@ -71,17 +69,14 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
 		this.echoError(c, err)
 		return
 	}
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
 		this.echoError(c, err)
 		return
 	}
-
 	configSource := &blockchain.AnchorNodeConfig{
 		AbiData:         []byte(sourceContract.Abi),
 		ContractAddress: common.HexToAddress(sourceContract.Address),
@@ -93,19 +88,16 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		PrivateKey: privateKey,
 		NetworkId:  source.GetNetworkId(),
 	}
-
 	sourceHash, err := source.AddAnchors(configSource, callerConfigSource)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-
 	targetContract, err := this.dao.GetContractByChainId(param.TargetChainId)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-
 	configTarget := &blockchain.AnchorNodeConfig{
 		AbiData:         []byte(targetContract.Abi),
 		ContractAddress: common.HexToAddress(targetContract.Address),
@@ -198,7 +190,7 @@ type RemoveAnchorNodeParam struct {
 	Password     string `json:"password" form:"password"`
 }
 
-//锚定节点管理
+// 锚定节点管理
 // @Summary 删除锚定节点
 // @Tags RemoveAnchorNode
 // @Accept  json
@@ -236,25 +228,21 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
 		this.echoError(c, err)
 		return
 	}
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
 		this.echoError(c, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		fmt.Println("GetWallet:", err.Error())
 		this.echoError(c, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		fmt.Println("GetPrivateKey:", err.Error())
 		this.echoError(c, err)
 		return
 	}
@@ -340,6 +328,13 @@ type AnchorNodeView struct {
 	Pledge string `json:"pledge"`
 	//身份状态
 	Status string `json:"status"`
+
+	ID uint `json:"ID"`
+
+	//归属链A
+	ChainAId uint `json:"chain_a_id"`
+	//归属链B
+	ChainBId uint `json:"chain_b_id"`
 }
 
 type AnchorNodeResult struct {
@@ -412,12 +407,15 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 			status = "无效"
 		}
 		result = append(result, AnchorNodeView{
+			ID:             obj.ID,
 			AnchorNodeName: obj.Name,
 			ChainA:         chainA.Name,
 			ChainB:         chainB.Name,
 			CreatedAt:      obj.CreatedAt.Format("2006-01-02 15:04:05"),
 			Pledge:         obj.Pledge,
 			Status:         status,
+			ChainAId:       obj.SourceChainId,
+			ChainBId:       obj.TargetChainId,
 		})
 	}
 	anchorNodeResult := &AnchorNodeResult{
@@ -430,6 +428,7 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 }
 
 type AnchorNodeInfo struct {
+	ID uint `json:"ID"`
 	//创建时间
 	CreatedAt string `json:"created_at"`
 	//锚定节点名称
@@ -626,6 +625,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 		Reward:         rewardB.String(),
 	}
 	anchorNodeInfo := &AnchorNodeInfo{
+		ID:             anchorNode.ID,
 		CreatedAt:      anchorNode.CreatedAt.Format(dateFormat),
 		AnchorNodeName: anchorNode.Name,
 		ChainA:         chainA.Name,

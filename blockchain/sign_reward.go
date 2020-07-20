@@ -139,7 +139,7 @@ func (this *Api) GetChainReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 	if err != nil {
 		return nil, err
 	}
-	out, err := abi.Pack("getChainReward", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress)
+	out, err := abi.Pack("getChainReward", big.NewInt(0).SetUint64(config.TargetNetworkId))
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 definitions:
   controllers.AnchorNodeInfo:
     properties:
+      ID:
+        type: integer
       anchor_node_name:
         description: 锚定节点名称
         type: string
@@ -45,15 +47,23 @@ definitions:
     type: object
   controllers.AnchorNodeView:
     properties:
+      ID:
+        type: integer
       anchor_node_name:
         description: 锚定节点名称
         type: string
       chain_a:
         description: 归属链A
         type: string
+      chain_a_id:
+        description: 归属链A
+        type: integer
       chain_b:
         description: 归属链B
         type: string
+      chain_b_id:
+        description: 归属链B
+        type: integer
       created_at:
         description: 创建时间
         type: string
@@ -116,6 +126,8 @@ definitions:
       CreatedAt:
         description: 创建时间
         type: string
+      ID:
+        type: integer
       anchor_addresses:
         type: string
       anchor_nodes:
@@ -234,33 +246,6 @@ definitions:
         type: string
     required:
     - code
-    type: object
-  controllers.Node:
-    properties:
-      address:
-        description: 地址
-        type: string
-      chain_id:
-        description: 链id
-        type: integer
-      chain_name:
-        type: string
-      description:
-        type: string
-      is_https:
-        type: boolean
-      name:
-        type: string
-      port:
-        description: 端口
-        type: integer
-      user_id:
-        type: integer
-    required:
-    - address
-    - chain_id
-    - name
-    - port
     type: object
   controllers.PunishmentViewResult:
     properties:
@@ -443,6 +428,8 @@ definitions:
       CreatedAt:
         description: 创建时间
         type: string
+      ID:
+        type: integer
       anchor_addresses:
         type: string
       confirm:
@@ -517,6 +504,39 @@ definitions:
     - name
     - port
     type: object
+  dao.NodeView:
+    properties:
+      ID:
+        type: integer
+      address:
+        description: 地址
+        type: string
+      chain_id:
+        description: 链id
+        type: integer
+      chain_name:
+        type: string
+      coin_name:
+        description: 币名
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      network_id:
+        description: 链的网络编号
+        type: integer
+      port:
+        description: 端口
+        type: integer
+      symbol:
+        type: string
+    required:
+    - coin_name
+    - network_id
+    - port
+    - symbol
+    type: object
   dao.PunishmentView:
     properties:
       CreatedAt:
@@ -537,6 +557,21 @@ definitions:
         type: string
       value:
         description: 惩罚数量
+        type: string
+    type: object
+  dao.RetroActive:
+    properties:
+      ctx_id:
+        type: string
+      event:
+        description: 1 maker  2 taker
+        type: integer
+      network_id:
+        type: integer
+      status:
+        description: 1 待签  2 签名完成
+        type: integer
+      tx_hash:
         type: string
     type: object
   dao.ServiceChargeLogView:
@@ -573,6 +608,8 @@ definitions:
         type: integer
       count:
         type: integer
+      date:
+        type: string
       fee:
         type: integer
       timeType:
@@ -1761,56 +1798,6 @@ paths:
       summary: 编辑节点
       tags:
       - node
-  /node/change:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: useId
-        in: formData
-        name: user_id
-        required: true
-        type: integer
-      - description: nodeId
-        in: formData
-        name: node_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: 切换node
-      tags:
-      - node
-  /node/current:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JsonResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.Node'
-                  type: array
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 获取当前登录账户的节点
-      tags:
-      - node
   /node/list:
     get:
       consumes:
@@ -1826,7 +1813,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/controllers.Node'
+                    $ref: '#/definitions/dao.NodeView'
                   type: array
               type: object
       security:
@@ -1950,6 +1937,76 @@ paths:
       summary: 惩罚记录
       tags:
       - ListPunishment
+  /retro/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 交易hash
+        in: formData
+        name: tx_hash
+        required: true
+        type: string
+      - description: 交易所在链
+        in: formData
+        name: network_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 添加补签记录
+      tags:
+      - RetroActiveAdd
+  /retro/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: formData
+        name: current_page
+        required: true
+        type: integer
+      - description: 页的记录数，默认10
+        in: formData
+        name: page_size
+        required: true
+        type: integer
+      - description: 补签状态
+        in: formData
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dao.RetroActive'
+                  type: array
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 补签列表
+      tags:
+      - RetroActiveList
   /reward/add:
     post:
       consumes:
@@ -2249,11 +2306,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: 锚定节点id
-        in: query
-        name: anchor_node_id
-        required: true
-        type: string
       - description: 当前页
         in: query
         name: current_page
@@ -2274,13 +2326,13 @@ paths:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  $ref: '#/definitions/controllers.ServiceChargeResult'
+                  $ref: '#/definitions/controllers.AnchorNodeResult'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 手续费报销记录
+      summary: 锚定节点列表
       tags:
-      - ListServiceCharge
+      - ListAnchorNode
   /user/login:
     post:
       consumes:

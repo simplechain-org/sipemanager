@@ -6,31 +6,55 @@ import (
 
 func TestDataBaseAccessObject_CreateAnchorNode(t *testing.T) {
 	//添加锚定节点
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	obj := NewDataBaseAccessObject(db)
-	//Name          string `gorm:"name"`    //锚定节点名称
-	//Address       string `gorm:"address"` //锚定节点地址
-	//SourceChainId uint   `gorm:"source_chain_id"`
-	//TargetChainId uint   `gorm:"target_chain_id"`
-	//SourceHash    string `gorm:"source_hash"`   //链上的交易哈希
-	//TargetHash    string `gorm:"target_hash"`   //链上的交易哈希
-	//SourceStatus  uint   `gorm:"source_status"` //链上达成的状态  锚定节点添加成功
-	//TargetStatus  uint   `gorm:"target_status"` //链上达成的状态  锚定节点添加成功
 	anchorNode := &AnchorNode{
-		Name:          "锚定节点1",
+		Name:          "锚定节点4",
 		Address:       "0x2d9b3E6b4a446195c912e27c9F3EE592305314ef",
 		SourceChainId: 1,
 		TargetChainId: 666,
-		SourceHash:    "0xhhjjjd",
-		TargetHash:    "0xjjkkll",
-		SourceStatus:  0,
-		TargetStatus:  0,
+		SourceHash:    "0xcc8871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38987",
+		TargetHash:    "0xac2871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38985",
+		SourceStatus:  1,
+		TargetStatus:  1,
 	}
 	id, err := obj.CreateAnchorNode(anchorNode)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("anchor node id:", id)
+
+
+	//添加锚定节点
+	anchorNode = &AnchorNode{
+		Name:          "锚定节点5",
+		Address:       "0x3d9b3E6b4a446195c912e27c9F3EE592305314ef",
+		SourceChainId: 1,
+		TargetChainId: 666,
+		SourceHash:    "0xcc8871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38987",
+		TargetHash:    "0xac2871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38985",
+		SourceStatus:  1,
+		TargetStatus:  1,
+	}
+	id, err = obj.CreateAnchorNode(anchorNode)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("anchor node id:", id)
+
+
+	//添加锚定节点
+	anchorNode = &AnchorNode{
+		Name:          "锚定节点6",
+		Address:       "0x4d9b3E6b4a446195c912e27c9F3EE592305314ef",
+		SourceChainId: 1,
+		TargetChainId: 666,
+		SourceHash:    "0xcc8871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38987",
+		TargetHash:    "0xac2871f8f6b536e06b4465ab1635a28a307301d251e30475e68608150bb38985",
+		SourceStatus:  1,
+		TargetStatus:  1,
+	}
+	id, err = obj.CreateAnchorNode(anchorNode)
 	if err != nil {
 		t.Error(err)
 		return

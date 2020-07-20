@@ -34,8 +34,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/transaction/:hash", validateLogin, c.GetTransactionReceipt)
 	router.GET("/api/v1/node/list", validateLogin, c.GetNodes)
 	router.POST("/api/v1/node", validateLogin, c.AddNode)
-	router.POST("/api/v1/node/change", validateLogin, c.ChangeNode)
-	router.GET("/api/v1/node/current", validateLogin, c.GetUserCurrentNode)
 
 	router.DELETE("/api/v1/chain/:chain_id", c.RemoveChain)
 
@@ -49,7 +47,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 
-	router.GET("/api/v1/chain/current", validateLogin, c.GetUserCurrentChain)
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
 
@@ -122,5 +119,5 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	go c.ListenCrossEvent()
 	go c.ListenBlock()
 	go c.ListenAnchors()
-
+	go c.UpdateRetroActive()
 }
