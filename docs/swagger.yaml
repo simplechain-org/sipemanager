@@ -1,6 +1,8 @@
 definitions:
   controllers.AnchorNodeInfo:
     properties:
+      ID:
+        type: integer
       anchor_node_name:
         description: 锚定节点名称
         type: string
@@ -45,15 +47,23 @@ definitions:
     type: object
   controllers.AnchorNodeView:
     properties:
+      ID:
+        type: integer
       anchor_node_name:
         description: 锚定节点名称
         type: string
       chain_a:
         description: 归属链A
         type: string
+      chain_a_id:
+        description: 归属链A
+        type: integer
       chain_b:
         description: 归属链B
         type: string
+      chain_b_id:
+        description: 归属链B
+        type: integer
       created_at:
         description: 创建时间
         type: string
@@ -116,6 +126,8 @@ definitions:
       CreatedAt:
         description: 创建时间
         type: string
+      ID:
+        type: integer
       anchor_addresses:
         type: string
       anchor_nodes:
@@ -234,33 +246,6 @@ definitions:
         type: string
     required:
     - code
-    type: object
-  controllers.Node:
-    properties:
-      address:
-        description: 地址
-        type: string
-      chain_id:
-        description: 链id
-        type: integer
-      chain_name:
-        type: string
-      description:
-        type: string
-      is_https:
-        type: boolean
-      name:
-        type: string
-      port:
-        description: 端口
-        type: integer
-      user_id:
-        type: integer
-    required:
-    - address
-    - chain_id
-    - name
-    - port
     type: object
   controllers.PunishmentViewResult:
     properties:
@@ -443,6 +428,8 @@ definitions:
       CreatedAt:
         description: 创建时间
         type: string
+      ID:
+        type: integer
       anchor_addresses:
         type: string
       confirm:
@@ -516,6 +503,39 @@ definitions:
     - chain_id
     - name
     - port
+    type: object
+  dao.NodeView:
+    properties:
+      ID:
+        type: integer
+      address:
+        description: 地址
+        type: string
+      chain_id:
+        description: 链id
+        type: integer
+      chain_name:
+        type: string
+      coin_name:
+        description: 币名
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      network_id:
+        description: 链的网络编号
+        type: integer
+      port:
+        description: 端口
+        type: integer
+      symbol:
+        type: string
+    required:
+    - coin_name
+    - network_id
+    - port
+    - symbol
     type: object
   dao.PunishmentView:
     properties:
@@ -1778,56 +1798,6 @@ paths:
       summary: 编辑节点
       tags:
       - node
-  /node/change:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: useId
-        in: formData
-        name: user_id
-        required: true
-        type: integer
-      - description: nodeId
-        in: formData
-        name: node_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: success
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: 切换node
-      tags:
-      - node
-  /node/current:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JsonResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.Node'
-                  type: array
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 获取当前登录账户的节点
-      tags:
-      - node
   /node/list:
     get:
       consumes:
@@ -1843,7 +1813,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/controllers.Node'
+                    $ref: '#/definitions/dao.NodeView'
                   type: array
               type: object
       security:

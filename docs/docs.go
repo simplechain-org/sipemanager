@@ -1880,91 +1880,6 @@ var doc = `{
                 }
             }
         },
-        "/node/change": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "切换node",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "useId",
-                        "name": "user_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nodeId",
-                        "name": "node_id",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/node/current": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "获取当前登录账户的节点",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/controllers.JsonResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/controllers.Node"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/node/list": {
             "get": {
                 "security": [
@@ -1996,7 +1911,7 @@ var doc = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/controllers.Node"
+                                                "$ref": "#/definitions/dao.NodeView"
                                             }
                                         }
                                     }
@@ -3181,6 +3096,9 @@ var doc = `{
         "controllers.AnchorNodeInfo": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3242,6 +3160,9 @@ var doc = `{
         "controllers.AnchorNodeView": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3250,9 +3171,17 @@ var doc = `{
                     "description": "归属链A",
                     "type": "string"
                 },
+                "chain_a_id": {
+                    "description": "归属链A",
+                    "type": "integer"
+                },
                 "chain_b": {
                     "description": "归属链B",
                     "type": "string"
+                },
+                "chain_b_id": {
+                    "description": "归属链B",
+                    "type": "integer"
                 },
                 "created_at": {
                     "description": "创建时间",
@@ -3344,6 +3273,9 @@ var doc = `{
                 "CreatedAt": {
                     "description": "创建时间",
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "anchor_addresses": {
                     "type": "string"
@@ -3515,44 +3447,6 @@ var doc = `{
                 },
                 "err_msg": {
                     "type": "string"
-                }
-            }
-        },
-        "controllers.Node": {
-            "type": "object",
-            "required": [
-                "address",
-                "chain_id",
-                "name",
-                "port"
-            ],
-            "properties": {
-                "address": {
-                    "description": "地址",
-                    "type": "string"
-                },
-                "chain_id": {
-                    "description": "链id",
-                    "type": "integer"
-                },
-                "chain_name": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "is_https": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "port": {
-                    "description": "端口",
-                    "type": "integer"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },
@@ -3815,6 +3709,9 @@ var doc = `{
                     "description": "创建时间",
                     "type": "string"
                 },
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_addresses": {
                     "type": "string"
                 },
@@ -3920,6 +3817,52 @@ var doc = `{
                 },
                 "user_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "dao.NodeView": {
+            "type": "object",
+            "required": [
+                "coin_name",
+                "network_id",
+                "port",
+                "symbol"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id",
+                    "type": "integer"
+                },
+                "chain_name": {
+                    "type": "string"
+                },
+                "coin_name": {
+                    "description": "币名",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "链的网络编号",
+                    "type": "integer"
+                },
+                "port": {
+                    "description": "端口",
+                    "type": "integer"
+                },
+                "symbol": {
+                    "type": "string"
                 }
             }
         },

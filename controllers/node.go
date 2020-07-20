@@ -151,12 +151,13 @@ func (this *Controller) DeleteNode(c *gin.Context) {
 	}
 	this.echoSuccess(c, "Success")
 }
+
 // @Summary 节点列表
 // @Tags node
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Success 200 {object} JsonResult{data=[]Node}
+// @Success 200 {object} JsonResult{data=[]dao.NodeView}
 // @Router /node/list [get]
 func (this *Controller) GetNodes(c *gin.Context) {
 	user, err := this.GetUser(c)
@@ -171,4 +172,3 @@ func (this *Controller) GetNodes(c *gin.Context) {
 	}
 	this.echoResult(c, nodes)
 }
-
