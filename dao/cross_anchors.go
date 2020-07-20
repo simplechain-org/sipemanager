@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,6 +19,7 @@ type CrossAnchors struct {
 	RemoteNetworkId uint64 `gorm:"column:remoteNetworkId"`
 	AnchorAddress   string `gorm:"primary_key; column:anchorAddress"`
 	TxId            string `gorm:"primary_key; column:txId" `
+	Hash            string `grom:"column:hash"`
 }
 
 func (this *CrossAnchors) TableName() string {
@@ -25,13 +27,13 @@ func (this *CrossAnchors) TableName() string {
 }
 
 func (this *DataBaseAccessObject) CrossAnchorsReplace(data CrossAnchors) error {
-	var sql = "REPLACE INTO cross_anchors(blockNumber, gasUsed, gasPrice, contractAddress, timestamp, status, chain_id, remote_chain_id, eventType, networkId, remoteNetworkId, anchorAddress, txId) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	var sql = "REPLACE INTO cross_anchors(blockNumber, gasUsed, gasPrice, contractAddress, timestamp, status, chain_id, remote_chain_id, eventType, networkId, remoteNetworkId, anchorAddress, txId, hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,
 		data.BlockNumber, data.GasUsed, data.GasPrice,
 		data.ContractAddress, data.Timestamp, data.Status,
 		data.ChainId, data.RemoteChainId, data.EventType,
 		data.NetworkId, data.RemoteNetworkId, data.AnchorAddress,
-		data.TxId).Error
+		data.TxId, data.Hash).Error
 }
 
 func (this *DataBaseAccessObject) QueryTxByHours(txAnchors TxAnchors, EventType string) error {
@@ -138,4 +140,17 @@ ON t1.cross_date= t2.date_list
 		}
 	}
 	return err
+}
+
+func (this *DataBaseAccessObject) QueryFinishList(offset, limit uint32) ([]CrossAnchors, error) {
+	var count uint32
+	if err := this.db.Model(&CrossAnchors{}).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	if offset < count {
+		result := make([]CrossAnchors, 0)
+		err := this.db.Table((&CrossAnchors{}).TableName()).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, err
+	}
+	return nil, errors.New("offset >= count")
 }

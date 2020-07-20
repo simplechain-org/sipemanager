@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"sipemanager/utils"
 	"strconv"
 	"strings"
 
 	"sipemanager/dao"
+	"sipemanager/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type AnchorsNodes struct {
@@ -168,4 +169,39 @@ func (this *Controller) CrossTxCount(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, tokenList)
+}
+
+// @Summary MakeFinish手续费记录
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
+// @Router /chart/crossTxCount/list [get]
+func (this *Controller) getFinishList(c *gin.Context) {
+	type Param struct {
+		Page  uint32 `json:"page"`
+		Limit uint32 `json:"limit"`
+	}
+	var param Param
+	if err := c.ShouldBindJSON(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	offset := (param.Page - 1) * param.Limit
+	var result []dao.CrossAnchors
+	var err error
+	result, err = this.dao.QueryFinishList(offset, param.Limit)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	tokenList, err := this.dao.GetTxTokenList()
+	fmt.Println(tokenList)
+	fmt.Println(result)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, result)
 }
