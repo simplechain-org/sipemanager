@@ -236,6 +236,54 @@ definitions:
         description: 总记录数
         type: integer
     type: object
+  controllers.FinishEvent:
+    properties:
+      anchorAddress:
+        type: string
+      anchorId:
+        type: integer
+      anchorName:
+        type: string
+      blockNumber:
+        type: integer
+      chainId:
+        type: integer
+      contractAddress:
+        type: string
+      eventType:
+        type: string
+      gasPrice:
+        type: string
+      gasUsed:
+        type: string
+      hash:
+        type: string
+      networkId:
+        type: integer
+      remoteChainId:
+        type: integer
+      remoteNetworkId:
+        type: integer
+      status:
+        type: integer
+      timestamp:
+        type: integer
+      tokenListKey:
+        type: string
+      tokenName:
+        type: string
+      txId:
+        type: string
+    type: object
+  controllers.FinishEventView:
+    properties:
+      count:
+        type: integer
+      finishEventList:
+        items:
+          $ref: '#/definitions/controllers.FinishEvent'
+        type: array
+    type: object
   controllers.JsonResult:
     properties:
       code:
@@ -604,8 +652,6 @@ definitions:
     type: object
   dao.TokenListCount:
     properties:
-      anchorId:
-        type: integer
       count:
         type: integer
       date:
@@ -1315,6 +1361,48 @@ paths:
                   type: array
               type: object
       summary: 统计锚定节点验证数和手续费
+      tags:
+      - Chart
+  /chart/finishList/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 时间戳
+        in: query
+        name: startTime
+        type: string
+      - description: 时间戳
+        in: query
+        name: endTime
+        type: string
+      - description: 锚定节点ID
+        in: query
+        name: anchorId
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: string
+      - description: 页数
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.FinishEventView'
+              type: object
+      summary: MakeFinish手续费记录
       tags:
       - Chart
   /chart/maxUncle/list:
@@ -2306,6 +2394,11 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: 锚定节点id
+        in: query
+        name: anchor_node_id
+        required: true
+        type: string
       - description: 当前页
         in: query
         name: current_page
@@ -2326,13 +2419,13 @@ paths:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  $ref: '#/definitions/controllers.AnchorNodeResult'
+                  $ref: '#/definitions/controllers.ServiceChargeResult'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 锚定节点列表
+      summary: 手续费报销记录
       tags:
-      - ListAnchorNode
+      - ListServiceCharge
   /user/login:
     post:
       consumes:

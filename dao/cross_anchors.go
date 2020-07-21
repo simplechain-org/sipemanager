@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"errors"
 	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
 type CrossAnchors struct {
@@ -142,15 +142,48 @@ ON t1.cross_date= t2.date_list
 	return err
 }
 
-func (this *DataBaseAccessObject) QueryFinishList(offset, limit uint32) ([]CrossAnchors, error) {
+func (this *DataBaseAccessObject) QueryFinishList(offset, limit uint32, startTimeParam, endTimeParam, anchorIdParam string) ([]CrossAnchors, uint32, error) {
 	var count uint32
-	if err := this.db.Model(&CrossAnchors{}).Count(&count).Error; err != nil {
-		return nil, err
-	}
-	if offset < count {
-		result := make([]CrossAnchors, 0)
+	result := make([]CrossAnchors, 0)
+	switch true {
+	case startTimeParam != "" && endTimeParam != "" && anchorIdParam != "":
+		startTime, stringErr := strconv.Atoi(startTimeParam)
+		endTime, stringErr := strconv.Atoi(endTimeParam)
+		anchorId, stringErr := strconv.Atoi(anchorIdParam)
+		if stringErr != nil {
+			return nil, 0, stringErr
+		}
+		anchor, anchorErr := this.GetAnchorNode(uint(anchorId))
+		if anchorErr != nil {
+			return nil, 0, anchorErr
+		}
+		if err := this.db.Model(&CrossAnchors{}).Where("timestamp between ? and ? ", startTime, endTime).Where("anchorAddress = ?", anchor.Address).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
+		err := this.db.Table((&CrossAnchors{}).TableName()).Where("timestamp between ? and ? ", startTime, endTime).Where("anchorAddress = ?", anchor.Address).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
+
+	case startTimeParam != "" && endTimeParam != "":
+		startTime, stringErr := strconv.Atoi(startTimeParam)
+		endTime, stringErr := strconv.Atoi(endTimeParam)
+		if stringErr != nil {
+			return nil, 0, stringErr
+		}
+		if err := this.db.Model(&CrossAnchors{}).Where("timestamp between ? and ? ", startTime, endTime).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
+		err := this.db.Table((&CrossAnchors{}).TableName()).Where("timestamp between ? and ? ", startTime, endTime).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
+
+	default:
+		if err := this.db.Model(&CrossAnchors{}).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
 		err := this.db.Table((&CrossAnchors{}).TableName()).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
-		return result, err
+		return result, count, err
+
 	}
-	return nil, errors.New("offset >= count")
 }

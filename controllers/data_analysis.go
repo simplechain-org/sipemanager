@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -171,37 +172,97 @@ func (this *Controller) CrossTxCount(c *gin.Context) {
 	this.echoResult(c, tokenList)
 }
 
+type FinishEventView struct {
+	FinishEventList []FinishEvent
+	Count           uint32
+}
+
+type FinishEvent struct {
+	dao.CrossAnchors
+	TokenName    string
+	TokenListKey string
+	AnchorId     uint
+	AnchorName   string
+}
+
 // @Summary MakeFinish手续费记录
 // @Tags Chart
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} JsonResult{data=dao.TokenListInterface}
-// @Router /chart/crossTxCount/list [get]
+// @Param startTime query string false "时间戳"
+// @Param endTime query string false "时间戳"
+// @Param anchorId query string false "锚定节点ID"
+// @Param page query string true "页码"
+// @Param limit query string true "页数"
+// @Success 200 {object} JsonResult{data=FinishEventView}
+// @Router /chart/finishList/list [get]
 func (this *Controller) getFinishList(c *gin.Context) {
-	type Param struct {
-		Page  uint32 `json:"page"`
-		Limit uint32 `json:"limit"`
-	}
-	var param Param
-	if err := c.ShouldBindJSON(&param); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	offset := (param.Page - 1) * param.Limit
-	var result []dao.CrossAnchors
-	var err error
-	result, err = this.dao.QueryFinishList(offset, param.Limit)
+	pageParam := c.Query("page")
+	limitParam := c.Query("limit")
+	startTime := c.Query("startTime")
+	endTime := c.Query("endTime")
+	anchorId := c.Query("anchorId")
+	page, err := strconv.Atoi(pageParam)
+	limit, err := strconv.Atoi(limitParam)
+	offset := (page - 1) * limit
+	var finishList []dao.CrossAnchors
+	var count uint32
+	finishList, count, err = this.dao.QueryFinishList(uint32(offset), uint32(limit), startTime, endTime, anchorId)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
 
 	tokenList, err := this.dao.GetTxTokenList()
-	fmt.Println(tokenList)
-	fmt.Println(result)
+	finishEventArr := make([]FinishEvent, 0)
+	var tokenKey string
+
+	for _, item := range finishList {
+		sourceId := strconv.Itoa(int(item.ChainId))
+		targetId := strconv.Itoa(int(item.RemoteChainId))
+		if _, exists := tokenList[sourceId+","+targetId]; exists {
+			tokenKey = sourceId + "," + targetId
+		} else {
+			tokenKey = targetId + "," + sourceId
+		}
+		anchorId, anchorName, err := this.GetAnchorId(tokenList[tokenKey], item.AnchorAddress)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		finishEvent := FinishEvent{
+			CrossAnchors: item,
+			TokenName:    tokenList[tokenKey].Name,
+			TokenListKey: tokenKey,
+			AnchorId:     anchorId,
+			AnchorName:   anchorName,
+		}
+		finishEventArr = append(finishEventArr, finishEvent)
+
+	}
+	result := FinishEventView{
+		FinishEventList: finishEventArr,
+		Count:           count,
+	}
+
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
 	this.echoResult(c, result)
+}
+
+func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress string) (uint, string, error) {
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	for _, id := range anchorIds {
+		n, _ := strconv.Atoi(id)
+		anchor, anchorErr := this.dao.GetAnchorNode(uint(n))
+		if anchorErr != nil {
+			return 0, "", anchorErr
+		}
+		if anchor.Address == anchorAddress {
+			return anchor.ID, anchor.Name, nil
+		}
+	}
+	return 0, "", errors.New("can not found anchor")
 }
