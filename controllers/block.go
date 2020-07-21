@@ -280,6 +280,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 					RemoteNetworkId: args.RemoteChainId.Uint64(),
 					AnchorAddress:   txRecord.From,
 					TxId:            args.Rtx.TxId.Hex(),
+					Hash:            txRecord.Hash,
 				}
 				crossErr := this.dao.CrossAnchorsReplace(crossRecord)
 				if crossErr != nil {

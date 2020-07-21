@@ -1100,6 +1100,74 @@ var doc = `{
                 }
             }
         },
+        "/chart/finishList/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "MakeFinish手续费记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "锚定节点ID",
+                        "name": "anchorId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页数",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/chart/maxUncle/list": {
             "get": {
                 "consumes": [
@@ -2731,10 +2799,17 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListAnchorNode"
+                    "ListServiceCharge"
                 ],
-                "summary": "锚定节点列表",
+                "summary": "手续费报销记录",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "锚定节点id",
+                        "name": "anchor_node_id",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -2762,7 +2837,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
+                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
                                         }
                                     }
                                 }
@@ -3433,6 +3508,79 @@ var doc = `{
                 }
             }
         },
+        "controllers.FinishEvent": {
+            "type": "object",
+            "properties": {
+                "anchorAddress": {
+                    "type": "string"
+                },
+                "anchorId": {
+                    "type": "integer"
+                },
+                "anchorName": {
+                    "type": "string"
+                },
+                "blockNumber": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "networkId": {
+                    "type": "integer"
+                },
+                "remoteChainId": {
+                    "type": "integer"
+                },
+                "remoteNetworkId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "tokenListKey": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "txId": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.FinishEventView": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "finishEventList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.FinishEvent"
+                    }
+                }
+            }
+        },
         "controllers.JsonResult": {
             "type": "object",
             "required": [
@@ -3961,9 +4109,6 @@ var doc = `{
         "dao.TokenListCount": {
             "type": "object",
             "properties": {
-                "anchorId": {
-                    "type": "integer"
-                },
                 "count": {
                     "type": "integer"
                 },

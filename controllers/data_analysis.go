@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
 
 	"sipemanager/dao"
+	"sipemanager/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type AnchorsNodes struct {
@@ -45,7 +49,7 @@ func (this *Controller) AnalysisAnchors() {
 			TxDayErr := this.dao.QueryTxByDays(txAnchor, "makerFinish")
 			TxWeekErr := this.dao.QueryTxByWeeks(txAnchor, "makerFinish")
 			if TxHourErr != nil || TxDayErr != nil || TxWeekErr != nil {
-				fmt.Printf("-------23-----%+v\n", TxHourErr.Error())
+				logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40001, Message: "Analysis Anchors Failed", Err: nil})
 			}
 		}
 	}
@@ -166,4 +170,99 @@ func (this *Controller) CrossTxCount(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, tokenList)
+}
+
+type FinishEventView struct {
+	FinishEventList []FinishEvent
+	Count           uint32
+}
+
+type FinishEvent struct {
+	dao.CrossAnchors
+	TokenName    string
+	TokenListKey string
+	AnchorId     uint
+	AnchorName   string
+}
+
+// @Summary MakeFinish手续费记录
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Param startTime query string false "时间戳"
+// @Param endTime query string false "时间戳"
+// @Param anchorId query string false "锚定节点ID"
+// @Param page query string true "页码"
+// @Param limit query string true "页数"
+// @Success 200 {object} JsonResult{data=FinishEventView}
+// @Router /chart/finishList/list [get]
+func (this *Controller) getFinishList(c *gin.Context) {
+	pageParam := c.Query("page")
+	limitParam := c.Query("limit")
+	startTime := c.Query("startTime")
+	endTime := c.Query("endTime")
+	anchorId := c.Query("anchorId")
+	page, err := strconv.Atoi(pageParam)
+	limit, err := strconv.Atoi(limitParam)
+	offset := (page - 1) * limit
+	var finishList []dao.CrossAnchors
+	var count uint32
+	finishList, count, err = this.dao.QueryFinishList(uint32(offset), uint32(limit), startTime, endTime, anchorId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+
+	tokenList, err := this.dao.GetTxTokenList()
+	finishEventArr := make([]FinishEvent, 0)
+	var tokenKey string
+
+	for _, item := range finishList {
+		sourceId := strconv.Itoa(int(item.ChainId))
+		targetId := strconv.Itoa(int(item.RemoteChainId))
+		if _, exists := tokenList[sourceId+","+targetId]; exists {
+			tokenKey = sourceId + "," + targetId
+		} else {
+			tokenKey = targetId + "," + sourceId
+		}
+		anchorId, anchorName, err := this.GetAnchorId(tokenList[tokenKey], item.AnchorAddress)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		finishEvent := FinishEvent{
+			CrossAnchors: item,
+			TokenName:    tokenList[tokenKey].Name,
+			TokenListKey: tokenKey,
+			AnchorId:     anchorId,
+			AnchorName:   anchorName,
+		}
+		finishEventArr = append(finishEventArr, finishEvent)
+
+	}
+	result := FinishEventView{
+		FinishEventList: finishEventArr,
+		Count:           count,
+	}
+
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, result)
+}
+
+func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress string) (uint, string, error) {
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	for _, id := range anchorIds {
+		n, _ := strconv.Atoi(id)
+		anchor, anchorErr := this.dao.GetAnchorNode(uint(n))
+		if anchorErr != nil {
+			return 0, "", anchorErr
+		}
+		if anchor.Address == anchorAddress {
+			return anchor.ID, anchor.Name, nil
+		}
+	}
+	return 0, "", errors.New("can not found anchor")
 }

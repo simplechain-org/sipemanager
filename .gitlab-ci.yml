@@ -27,6 +27,8 @@ swagger:
     - prebuild
     - build
   script:
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
     - mkdir -p docs
     - ls -al
     - go get -u github.com/swaggo/swag/cmd/swag

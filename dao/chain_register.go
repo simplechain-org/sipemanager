@@ -120,7 +120,8 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 	err := this.db.Table((&ChainRegister{}).TableName()).Order("id asc").Find(&result).Error
 	for _, item := range result {
 		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, item.SourceChainId).Find(&opposite).Error
-		if err == nil {
+		if err != nil {
+			return nil, err
 		}
 		if len(opposite) == 1 {
 			sourceId := strconv.Itoa(int(item.SourceChainId))
@@ -128,7 +129,7 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 			source, err := this.GetChain(item.SourceChainId)
 			target, err := this.GetChain(item.TargetChainId)
 			if err != nil {
-
+				return nil, err
 			}
 			tokenList := TokenListInterface{
 				ChainID:            item.SourceChainId,

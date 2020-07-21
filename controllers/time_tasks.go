@@ -44,8 +44,7 @@ func (this *Controller) ListenCrossEvent() {
 		if err != nil {
 			logrus.Error(utils.ErrLogCode{LogType: "controller => time_task => ListenCrossEvent:", Code: 20006, Message: "cant not found nodes", Err: nil})
 		}
-		fmt.Printf("-------nodes-----%+v\n", filterNodes)
-		go this.createCrossEvent(nodes)
+		go this.createCrossEvent(filterNodes)
 	})
 	cron.Start()
 }
