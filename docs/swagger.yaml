@@ -413,6 +413,9 @@ definitions:
       sourceHash:
         description: 链上的交易哈希
         type: string
+      sourceRpcUrl:
+        description: 锚定节点绑定的rpc地址
+        type: string
       sourceStatus:
         description: 链上达成的状态  锚定节点添加成功
         type: integer
@@ -422,6 +425,9 @@ definitions:
         type: integer
       targetHash:
         description: 链上的交易哈希
+        type: string
+      targetRpcUrl:
+        description: 锚定节点绑定的rpc地址
         type: string
       targetStatus:
         description: 链上达成的状态  锚定节点添加成功
@@ -773,6 +779,16 @@ paths:
         name: password
         required: true
         type: string
+      - description: 源链RpcUrl
+        in: formData
+        name: source_rpc_url
+        required: true
+        type: string
+      - description: 目标链RpcUrl
+        in: formData
+        name: target_rpc_url
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -864,6 +880,43 @@ paths:
       summary: 删除锚定节点
       tags:
       - RemoveAnchorNode
+  /anchor/node/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: anchorNodeId
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: 源链RpcUrl
+        in: formData
+        name: source_rpc_url
+        required: true
+        type: string
+      - description: 目标链RpcUrl
+        in: formData
+        name: target_rpc_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 锚定节点编辑(RpcUrl)
+      tags:
+      - AddAnchorNode
   /anchor/work/count:
     get:
       consumes:
@@ -1300,6 +1353,31 @@ paths:
                   $ref: '#/definitions/dao.TokenListCount'
               type: object
       summary: 签名监控
+      tags:
+      - Chart
+  /chart/crossMonitor/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 1,2
+        in: query
+        name: tokenKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.FinishEventView'
+              type: object
+      summary: 锚定节点监控
       tags:
       - Chart
   /chart/crossTxCount/list:
@@ -2394,11 +2472,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: 锚定节点id
-        in: query
-        name: anchor_node_id
-        required: true
-        type: string
       - description: 当前页
         in: query
         name: current_page
@@ -2419,13 +2492,13 @@ paths:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  $ref: '#/definitions/controllers.ServiceChargeResult'
+                  $ref: '#/definitions/controllers.AnchorNodeResult'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 手续费报销记录
+      summary: 锚定节点列表
       tags:
-      - ListServiceCharge
+      - ListAnchorNode
   /user/login:
     post:
       consumes:

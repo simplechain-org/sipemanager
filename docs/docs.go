@@ -98,6 +98,20 @@ var doc = `{
                         "name": "password",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -220,6 +234,68 @@ var doc = `{
                         "type": "string",
                         "description": "钱包密码",
                         "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/anchor/node/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddAnchorNode"
+                ],
+                "summary": "锚定节点编辑(RpcUrl)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "anchorNodeId",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
                         "in": "formData",
                         "required": true
                     }
@@ -990,6 +1066,49 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/dao.TokenListCount"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/crossMonitor/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "锚定节点监控",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "1,2",
+                        "name": "tokenKey",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
                                         }
                                     }
                                 }
@@ -2799,17 +2918,10 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListServiceCharge"
+                    "ListAnchorNode"
                 ],
-                "summary": "手续费报销记录",
+                "summary": "锚定节点列表",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "锚定节点id",
-                        "name": "anchor_node_id",
-                        "in": "query",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -2837,7 +2949,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
+                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
                                         }
                                     }
                                 }
@@ -3770,6 +3882,10 @@ var doc = `{
                     "description": "链上的交易哈希",
                     "type": "string"
                 },
+                "sourceRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
+                    "type": "string"
+                },
                 "sourceStatus": {
                     "description": "链上达成的状态  锚定节点添加成功",
                     "type": "integer"
@@ -3782,6 +3898,10 @@ var doc = `{
                 },
                 "targetHash": {
                     "description": "链上的交易哈希",
+                    "type": "string"
+                },
+                "targetRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
                     "type": "string"
                 },
                 "targetStatus": {
