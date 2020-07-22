@@ -655,7 +655,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 // @Param source_rpc_url formData string true "源链RpcUrl"
 // @Param target_rpc_url formData string true "目标链RpcUrl"
 // @Success 200 {object} JsonResult{data=object}
-// @Router /anchor/node/add [post]
+// @Router /anchor/node/update [post]
 func (this *Controller) UpdateAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
 	err := this.dao.UpdateAnchorNode(param.ID, param.SourceRpcUrl, param.TargetRpcUrl)

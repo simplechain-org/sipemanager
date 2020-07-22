@@ -75,6 +75,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
 	router.POST("/api/v1/anchor/node/add", validateLogin, c.AddAnchorNode)
 	router.POST("/api/v1/anchor/node/remove", validateLogin, c.RemoveAnchorNode)
+	router.POST("/api/v1/anchor/node/update", validateLogin, c.UpdateAnchorNode)
 	router.DELETE("/api/v1/wallet/remove", validateLogin, c.RemoveWallet)
 	router.POST("/api/v1/punishment/add", validateLogin, c.AddPunishment)
 	router.GET("/api/v1/punishment/list", validateLogin, c.ListPunishment)
