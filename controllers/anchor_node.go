@@ -16,6 +16,7 @@ import (
 )
 
 type AddAnchorNodeParam struct {
+	ID            uint   `json:"id" form:"id"`
 	SourceChainId uint   `json:"source_chain_id" form:"source_chain_id"`
 	TargetChainId uint   `json:"target_chain_id" form:"target_chain_id"`
 	SourceNodeId  uint   `json:"source_node_id" form:"source_node_id"`
@@ -24,6 +25,8 @@ type AddAnchorNodeParam struct {
 	AnchorName    string `json:"anchor_name" form:"anchor_name"`
 	WalletId      uint   `json:"wallet_id" form:"wallet_id"`
 	Password      string `json:"password" form:"password"`
+	SourceRpcUrl  string `json:"source_rpc_url" form:"source_rpc_url"`
+	TargetRpcUrl  string `json:"target_rpc_url" form:"target_rpc_url"`
 }
 
 //锚定节点管理
@@ -40,6 +43,8 @@ type AddAnchorNodeParam struct {
 // @Param anchor_name formData string true "锚定节点名称"
 // @Param wallet_id formData uint true "钱包id"
 // @Param password formData string true "钱包密码"
+// @Param source_rpc_url formData string true "源链RpcUrl"
+// @Param target_rpc_url formData string true "目标链RpcUrl"
 // @Success 200 {object} JsonResult{data=object}
 // @Router /anchor/node/add [post]
 func (this *Controller) AddAnchorNode(c *gin.Context) {
@@ -123,6 +128,8 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		TargetChainId: param.TargetChainId,
 		SourceHash:    sourceHash,
 		TargetHash:    targetHash,
+		SourceRpcUrl:  param.SourceRpcUrl,
+		TargetRpcUrl:  param.TargetRpcUrl,
 	}
 	id, err := this.dao.CreateAnchorNode(anchorNode)
 	if err != nil {
@@ -636,4 +643,25 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 		ChainBInfo:     chainFeeInfoB,
 	}
 	this.echoResult(c, anchorNodeInfo)
+}
+
+//锚定节点编辑
+// @Summary 锚定节点编辑(RpcUrl)
+// @Tags AddAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id formData uint true "anchorNodeId"
+// @Param source_rpc_url formData string true "源链RpcUrl"
+// @Param target_rpc_url formData string true "目标链RpcUrl"
+// @Success 200 {object} JsonResult{data=object}
+// @Router /anchor/node/add [post]
+func (this *Controller) UpdateAnchorNode(c *gin.Context) {
+	var param AddAnchorNodeParam
+	err := this.dao.UpdateAnchorNode(param.ID, param.SourceRpcUrl, param.TargetRpcUrl)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
 }

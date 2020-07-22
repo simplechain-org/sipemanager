@@ -112,3 +112,8 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 		Where("id=?", anchorNodeId).
 		Update("pledge", sub.String()).Error
 }
+
+func (this *DataBaseAccessObject) UpdateAnchorNode(anchorNodeId uint, sourceRpcUrl string, targetRpcUrl string) error {
+	return this.db.Table((&AnchorNode{}).TableName()).Where("id=?", anchorNodeId).Update(AnchorNode{SourceRpcUrl: sourceRpcUrl, TargetRpcUrl: targetRpcUrl}).Error
+
+}
