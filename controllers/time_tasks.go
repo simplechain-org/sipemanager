@@ -52,14 +52,7 @@ func (this *Controller) ListenCrossEvent() {
 func (this *Controller) ListenAnchors() {
 	cron := cron.New()
 	cron.AddFunc("@every 10s", func() {
-		//nodes, err := this.dao.GetInstancesJoinNode()
-		//if err != nil {
-		//	logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})
-		//}
-		//filterNodes := utils.RemoveRepByLoop(nodes)
-		//for _, node := range filterNodes {
 		this.AnalysisAnchors()
-		//}
 	})
 	cron.Start()
 }
@@ -129,7 +122,7 @@ type CrossMakerTx struct {
 	Value         *big.Int
 	DestValue     *big.Int
 	Data          []byte
-	Raw           types.Log // Blockchain specific contextual infos
+	Raw           types.Log
 }
 
 type CrossTakerTx struct {
@@ -139,13 +132,13 @@ type CrossTakerTx struct {
 	From          common.Address
 	Value         *big.Int
 	DestValue     *big.Int
-	Raw           types.Log // Blockchain specific contextual infos
+	Raw           types.Log
 }
 
 type CrossMakerFinish struct {
 	TxId [32]byte
 	To   common.Address
-	Raw  types.Log // Blockchain specific contextual infos
+	Raw  types.Log
 }
 
 func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.InstanceNodes) {
@@ -270,6 +263,7 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGro
 	chainId := node.ChainId
 	header, err := api.GetHeaderByNumber()
 	dbMaxNum := this.dao.GetMaxBlockNumber(chainId)
+	//toDO: 删除15个区块前的列表
 	if err != nil {
 		defer utils.DeferRecoverLog("controller => time_task => createBlock:", err.Error(), 20001, nil)
 		panic(err.Error())

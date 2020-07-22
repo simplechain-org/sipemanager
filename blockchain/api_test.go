@@ -3,7 +3,7 @@ package blockchain
 import (
 	"context"
 	"fmt"
-
+	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/core/types"
 	"github.com/simplechain-org/go-simplechain/ethclient"
 	"github.com/simplechain-org/go-simplechain/rpc"
@@ -32,4 +32,36 @@ func TestNewApi(t *testing.T) {
 		fmt.Println("header number", header.Number.String())
 	}
 	fmt.Println("sub=", sub)
+}
+
+func TestApi_GetMonitor(t *testing.T) {
+	n := &Node{
+		Address:   "192.168.4.107",
+		Port:      8548,
+		ChainId:   1,
+		IsHttps:   false,
+		NetworkId: 7,
+	}
+	api, err := NewApi(n)
+	if err != nil {
+		fmt.Println("err=", err)
+	}
+	result, err := api.GetMonitor()
+	fmt.Println("result=", result)
+}
+
+func TestApi_LatestBalanceAt(t *testing.T) {
+	n := &Node{
+		Address:   "192.168.4.107",
+		Port:      8548,
+		ChainId:   1,
+		IsHttps:   false,
+		NetworkId: 7,
+	}
+	api, err := NewApi(n)
+	if err != nil {
+		fmt.Println("err=", err)
+	}
+	result, err := api.LatestBalanceAt(common.HexToAddress("0x17529b05513e5595ceff7f4fb1e06512c271a540"))
+	fmt.Println("result=", result)
 }
