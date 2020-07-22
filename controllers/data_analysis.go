@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
+	"github.com/simplechain-org/go-simplechain/common"
+	"math/big"
+	"sipemanager/blockchain"
 	"strconv"
 	"strings"
 
@@ -55,7 +57,7 @@ func (this *Controller) AnalysisAnchors() {
 	}
 
 	if err != nil {
-
+		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
 	}
 }
 
@@ -264,5 +266,115 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 			return anchor.ID, anchor.Name, nil
 		}
 	}
-	return 0, "", errors.New("can not found anchor")
+	return 0, "未知锚定节点", nil
+}
+
+type AnchorNodeMonitor struct {
+	SourceBalance *big.Int
+	TargetBalance *big.Int
+	SignTxCount   uint32
+	AnchorId      uint
+	AnchorName    string
+	UnSignTxCount uint32
+	OnLine        bool
+}
+
+// @Summary 锚定节点监控
+// @Tags Chart
+// @Accept  json
+// @Produce  json
+// @Param tokenKey query string true "1,2"
+// @Success 200 {object} JsonResult{data=FinishEventView}
+// @Router /chart/crossMonitor/list [get]
+func (this *Controller) GetCrossMonitor(c *gin.Context) {
+	tokenKey := c.Query("tokenKey")
+	tokenList, err := this.dao.GetTxTokenList()
+	token := tokenList[tokenKey]
+	sourceNode, err := this.dao.GetNodeById(token.ChainID)
+	targetNode, err := this.dao.GetNodeById(token.RemoteChainID)
+	source := &blockchain.Node{
+		Address: sourceNode.Address,
+		Port:    sourceNode.Port,
+		ChainId: sourceNode.ChainId,
+		IsHttps: sourceNode.IsHttps,
+	}
+	target := &blockchain.Node{
+		Address: targetNode.Address,
+		Port:    targetNode.Port,
+		ChainId: targetNode.ChainId,
+		IsHttps: targetNode.IsHttps,
+	}
+	sourceApi, err := blockchain.NewApi(source)
+	targetApi, err := blockchain.NewApi(target)
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	AnchorMon := make([]AnchorNodeMonitor, 0)
+
+	MonCountMap, err := this.QueryMonitorBy(token)
+	for _, anchorId := range anchorIds {
+		anId, _ := strconv.Atoi(anchorId)
+		anchor, err := this.dao.GetAnchorNode(uint(anId))
+		souBal, err := sourceApi.LatestBalanceAt(common.HexToAddress(anchor.Address))
+		tarBal, err := targetApi.LatestBalanceAt(common.HexToAddress(anchor.Address))
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		var online bool
+		if 200-MonCountMap[anchor.Address] == 200 {
+			online = false
+		} else {
+			online = true
+		}
+		AM := AnchorNodeMonitor{
+			SourceBalance: souBal,
+			TargetBalance: tarBal,
+			SignTxCount:   MonCountMap[anchor.Address],
+			UnSignTxCount: 200 - MonCountMap[anchor.Address],
+			AnchorId:      uint(anId),
+			AnchorName:    anchor.Name,
+			OnLine:        online,
+		}
+		AnchorMon = append(AnchorMon, AM)
+	}
+
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, AnchorMon)
+
+}
+
+type MonitorCount struct {
+	Address string
+	Count   uint32
+}
+
+func (this *Controller) QueryMonitorBy(token dao.TokenListInterface) (map[string]uint32, error) {
+	anchorIds := strings.Split(token.AnchorAddresses, ",")
+	MonCountMap := make(map[string]uint32, 0)
+	for _, anchorId := range anchorIds {
+		anId, _ := strconv.Atoi(anchorId)
+		anchor, err := this.dao.GetAnchorNode(uint(anId))
+		SApi, err := blockchain.NewDirectApi(anchor.SourceRpcUrl)
+		TApi, err := blockchain.NewDirectApi(anchor.TargetRpcUrl)
+		sourceMon, err := SApi.GetMonitor()
+		targetMon, err := TApi.GetMonitor()
+
+		for key, value := range sourceMon.Recently {
+			if sourceMon.Tally[key] > 100 {
+				for tKey, tValue := range targetMon.Recently {
+					if sourceMon.Tally[tKey] > 100 {
+						if key.Hex() == tKey.Hex() {
+							MonCountMap[strings.ToLower(key.Hex())] = value + tValue
+						}
+					}
+				}
+			}
+		}
+		if err != nil {
+			return MonCountMap, err
+		}
+	}
+	return MonCountMap, nil
 }
