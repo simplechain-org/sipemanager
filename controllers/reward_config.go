@@ -145,3 +145,32 @@ func (this *Controller) ListRewardConfig(c *gin.Context) {
 	}
 	this.echoResult(c, rewardConfigResult)
 }
+
+type GetRewardConfigParam struct {
+	SourceChainId uint `gorm:"source_chain_id" json:"source_chain_id"`
+	TargetChainId uint `gorm:"target_chain_id" json:"target_chain_id"`
+}
+
+// @Summary 获取配置签名奖励详情
+// @Tags GetRewardConfig
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param source_chain_id formData uint true "发起链id"
+// @Param target_chain_id formData uint true "目标链id"
+// @Success 200 {object} JsonResult{data=dao.RewardConfigView}
+// @Router /reward/config/detail [post]
+func (this *Controller) GetRewardConfig(c *gin.Context) {
+	var param GetRewardConfigParam
+	if err := c.ShouldBind(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	result, err := this.dao.GetLatestRewardConfig(param.SourceChainId, param.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, result)
+}
+
