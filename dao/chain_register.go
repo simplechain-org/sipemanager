@@ -157,7 +157,7 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 
 type ChainRegisterView struct {
 	//创建时间
-	CreatedAt       string `json:"CreatedAt" gorm:"CreatedAt"`
+	CreatedAt       string `json:"created_at" gorm:"created_at"`
 	SourceChainId   uint   `json:"source_chain_id" gorm:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id" gorm:"target_chain_id"`
 	SourceChainName string `json:"source_chain_name" gorm:"source_chain_name"`

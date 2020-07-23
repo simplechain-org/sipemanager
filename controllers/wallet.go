@@ -216,3 +216,5 @@ func (this *Controller) RemoveWallet(c *gin.Context) {
 	}
 	this.echoSuccess(c, "Success")
 }
+
+

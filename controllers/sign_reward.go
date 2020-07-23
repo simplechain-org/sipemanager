@@ -604,3 +604,5 @@ func (this *Controller) ConfigureSignReward(c *gin.Context) {
 	}
 	this.echoSuccess(c, hash)
 }
+
+
