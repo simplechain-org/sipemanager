@@ -2,8 +2,8 @@ image: golang:1.14.1
 stages:
   - prebuild
   - build
-  - apiDoc
-  - apiPush
+  - swagger
+  - apipush
 
 prebuild:
   stage: prebuild
@@ -21,7 +21,7 @@ build:
     - go build
 
 swagger:
-  stage: apiDoc
+  stage: swagger
   dependencies:
     - prebuild
     - build
@@ -40,13 +40,13 @@ swagger:
       - /go
 
 apipush:
-  stage: apiPush
+  stage: apipush
   variables:
     YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
   dependencies:
     - prebuild
     - build
-    - apiDoc
+    - swagger
   script:
     - mkdir -p docs
     - ls -al
