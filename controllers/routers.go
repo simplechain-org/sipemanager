@@ -107,6 +107,10 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
 	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
 
+	router.POST("/api/v1/reward/config/add",validateLogin,c.AddRewardConfig)
+	router.GET("/api/v1/reward/config/info/:id",validateLogin,c.GetRewardConfigInfo)
+	router.DELETE("/api/v1/reward/config/remove/:id",validateLogin,c.RemoveRewardConfig)
+	router.GET("/api/v1/reward/config/list",validateLogin,c.ListRewardConfig)
 }
 
 type BlockChannel struct {
