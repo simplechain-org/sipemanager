@@ -312,6 +312,23 @@ definitions:
         description: 总记录数
         type: integer
     type: object
+  controllers.RewardConfigResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/dao.RewardConfigView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
+    type: object
   controllers.ServiceChargeFee:
     properties:
       accumulated_fee:
@@ -627,6 +644,33 @@ definitions:
         type: integer
       tx_hash:
         type: string
+    type: object
+  dao.RewardConfigView:
+    properties:
+      ID:
+        type: integer
+      created_at:
+        type: string
+      in_progress:
+        description: 已进行多少天，计算字段
+        type: integer
+      regulation_cycle:
+        description: 调控周期
+        type: integer
+      sign_reward:
+        description: 单笔签名奖励
+        type: string
+      source_chain_id:
+        type: integer
+      source_chain_name:
+        type: string
+      target_chain_id:
+        type: integer
+      target_chain_name:
+        type: string
+      transaction_count:
+        description: 本周期交易笔数，计算字段
+        type: integer
     type: object
   dao.ServiceChargeLogView:
     properties:
@@ -2257,6 +2301,129 @@ paths:
       summary: 单笔签名奖励
       tags:
       - GetChainReward
+  /reward/config/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 发起链id
+        in: formData
+        name: source_chain_id
+        required: true
+        type: integer
+      - description: 目标链id
+        in: formData
+        name: target_chain_id
+        required: true
+        type: integer
+      - description: 调控周期
+        in: formData
+        name: regulation_cycle
+        required: true
+        type: integer
+      - description: 单笔签名奖励
+        in: formData
+        name: sign_reward
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 配置签名奖励
+      tags:
+      - AddRewardConfig
+  /reward/config/info/:id:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 签名奖励id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.RewardConfigView'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取配置签名奖励详情
+      tags:
+      - GetRewardConfigInfo
+  /reward/config/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.RewardConfigResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 配置签名奖励 列表
+      tags:
+      - ListRewardConfig
+  /reward/config/remove/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 签名奖励id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      security:
+      - ApiKeyAuth: []
+      summary: 删除签名奖励
+      tags:
+      - AddRewardConfig
   /reward/configure:
     post:
       consumes:

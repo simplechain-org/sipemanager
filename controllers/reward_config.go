@@ -67,7 +67,7 @@ func (this *Controller) GetRewardConfigInfo(c *gin.Context) {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Param id path string true "签名奖励id"
-// @Success 200 {object}
+// @Success 200 {object}  JsonResult{}
 // @Router /reward/config/remove/{id} [delete]
 func (this *Controller) RemoveRewardConfig(c *gin.Context) {
 	idStr := c.Param("id")

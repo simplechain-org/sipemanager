@@ -2539,6 +2539,214 @@
                 }
             }
         },
+        "/reward/config/add": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddRewardConfig"
+                ],
+                "summary": "配置签名奖励",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "发起链id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "调控周期",
+                        "name": "regulation_cycle",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "单笔签名奖励",
+                        "name": "sign_reward",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/info/:id": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetRewardConfigInfo"
+                ],
+                "summary": "获取配置签名奖励详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "签名奖励id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfigView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListRewardConfig"
+                ],
+                "summary": "配置签名奖励 列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.RewardConfigResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/remove/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddRewardConfig"
+                ],
+                "summary": "删除签名奖励",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "签名奖励id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
         "/reward/configure": {
             "post": {
                 "security": [
@@ -3714,6 +3922,30 @@
                 }
             }
         },
+        "controllers.RewardConfigResult": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "当前页数",
+                    "type": "integer"
+                },
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.RewardConfigView"
+                    }
+                },
+                "page_size": {
+                    "description": "页的大小",
+                    "type": "integer"
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
+                }
+            }
+        },
         "controllers.ServiceChargeFee": {
             "type": "object",
             "properties": {
@@ -4164,6 +4396,45 @@
                 },
                 "tx_hash": {
                     "type": "string"
+                }
+            }
+        },
+        "dao.RewardConfigView": {
+            "type": "object",
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "in_progress": {
+                    "description": "已进行多少天，计算字段",
+                    "type": "integer"
+                },
+                "regulation_cycle": {
+                    "description": "调控周期",
+                    "type": "integer"
+                },
+                "sign_reward": {
+                    "description": "单笔签名奖励",
+                    "type": "string"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_chain_name": {
+                    "type": "string"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_name": {
+                    "type": "string"
+                },
+                "transaction_count": {
+                    "description": "本周期交易笔数，计算字段",
+                    "type": "integer"
                 }
             }
         },
