@@ -359,7 +359,7 @@ type AnchorNodeResult struct {
 // @Param current_page query string true "当前页"
 // @Param page_size query string true "页的记录数"
 // @Success 200 {object} JsonResult{data=AnchorNodeResult}
-// @Router /service/charge/list [get]
+// @Router /anchor/node/list [get]
 func (this *Controller) ListAnchorNode(c *gin.Context) {
 	var pageSize int = 10
 	pageSizeStr := c.Query("page_size")
