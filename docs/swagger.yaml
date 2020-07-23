@@ -850,6 +850,38 @@ paths:
       summary: 新增锚定节点
       tags:
       - AddAnchorNode
+  /anchor/node/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.AnchorNodeResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 锚定节点列表
+      tags:
+      - ListAnchorNode
   /anchor/node/obtain:
     get:
       consumes:
@@ -2639,6 +2671,11 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: 锚定节点id
+        in: query
+        name: anchor_node_id
+        required: true
+        type: string
       - description: 当前页
         in: query
         name: current_page
@@ -2659,13 +2696,13 @@ paths:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  $ref: '#/definitions/controllers.AnchorNodeResult'
+                  $ref: '#/definitions/controllers.ServiceChargeResult'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 锚定节点列表
+      summary: 手续费报销记录
       tags:
-      - ListAnchorNode
+      - ListServiceCharge
   /user/login:
     post:
       consumes:

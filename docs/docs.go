@@ -136,6 +136,61 @@ var doc = `{
                 }
             }
         },
+        "/anchor/node/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListAnchorNode"
+                ],
+                "summary": "锚定节点列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/anchor/node/obtain": {
             "get": {
                 "security": [
@@ -3126,10 +3181,17 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListAnchorNode"
+                    "ListServiceCharge"
                 ],
-                "summary": "锚定节点列表",
+                "summary": "手续费报销记录",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "锚定节点id",
+                        "name": "anchor_node_id",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -3157,7 +3219,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
+                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
                                         }
                                     }
                                 }
