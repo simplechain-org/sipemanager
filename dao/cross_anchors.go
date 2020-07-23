@@ -2,6 +2,7 @@ package dao
 
 import (
 	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
 type CrossAnchors struct {
@@ -18,6 +19,7 @@ type CrossAnchors struct {
 	RemoteNetworkId uint64 `gorm:"column:remoteNetworkId"`
 	AnchorAddress   string `gorm:"primary_key; column:anchorAddress"`
 	TxId            string `gorm:"primary_key; column:txId" `
+	Hash            string `grom:"column:hash"`
 }
 
 func (this *CrossAnchors) TableName() string {
@@ -25,16 +27,15 @@ func (this *CrossAnchors) TableName() string {
 }
 
 func (this *DataBaseAccessObject) CrossAnchorsReplace(data CrossAnchors) error {
-	var sql = "REPLACE INTO cross_anchors(blockNumber, gasUsed, gasPrice, contractAddress, timestamp, status, chain_id, remote_chain_id, eventType, networkId, remoteNetworkId, anchorAddress, txId) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	var sql = "REPLACE INTO cross_anchors(blockNumber, gasUsed, gasPrice, contractAddress, timestamp, status, chain_id, remote_chain_id, eventType, networkId, remoteNetworkId, anchorAddress, txId, hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,
 		data.BlockNumber, data.GasUsed, data.GasPrice,
 		data.ContractAddress, data.Timestamp, data.Status,
 		data.ChainId, data.RemoteChainId, data.EventType,
 		data.NetworkId, data.RemoteNetworkId, data.AnchorAddress,
-		data.TxId).Error
+		data.TxId, data.Hash).Error
 }
 
-//toDo 增加跨链合约地址进行查询
 func (this *DataBaseAccessObject) QueryTxByHours(txAnchors TxAnchors, EventType string) error {
 	var sql = `
 SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
@@ -139,4 +140,50 @@ ON t1.cross_date= t2.date_list
 		}
 	}
 	return err
+}
+
+func (this *DataBaseAccessObject) QueryFinishList(offset, limit uint32, startTimeParam, endTimeParam, anchorIdParam string) ([]CrossAnchors, uint32, error) {
+	var count uint32
+	result := make([]CrossAnchors, 0)
+	switch true {
+	case startTimeParam != "" && endTimeParam != "" && anchorIdParam != "":
+		startTime, stringErr := strconv.Atoi(startTimeParam)
+		endTime, stringErr := strconv.Atoi(endTimeParam)
+		anchorId, stringErr := strconv.Atoi(anchorIdParam)
+		if stringErr != nil {
+			return nil, 0, stringErr
+		}
+		anchor, anchorErr := this.GetAnchorNode(uint(anchorId))
+		if anchorErr != nil {
+			return nil, 0, anchorErr
+		}
+		if err := this.db.Model(&CrossAnchors{}).Where("timestamp between ? and ? ", startTime, endTime).Where("anchorAddress = ?", anchor.Address).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
+		err := this.db.Table((&CrossAnchors{}).TableName()).Where("timestamp between ? and ? ", startTime, endTime).Where("anchorAddress = ?", anchor.Address).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
+
+	case startTimeParam != "" && endTimeParam != "":
+		startTime, stringErr := strconv.Atoi(startTimeParam)
+		endTime, stringErr := strconv.Atoi(endTimeParam)
+		if stringErr != nil {
+			return nil, 0, stringErr
+		}
+		if err := this.db.Model(&CrossAnchors{}).Where("timestamp between ? and ? ", startTime, endTime).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
+		err := this.db.Table((&CrossAnchors{}).TableName()).Where("timestamp between ? and ? ", startTime, endTime).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
+
+	default:
+		if err := this.db.Model(&CrossAnchors{}).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+
+		err := this.db.Table((&CrossAnchors{}).TableName()).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
+
+	}
 }

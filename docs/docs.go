@@ -98,6 +98,20 @@ var doc = `{
                         "name": "password",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -220,6 +234,68 @@ var doc = `{
                         "type": "string",
                         "description": "钱包密码",
                         "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/anchor/node/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddAnchorNode"
+                ],
+                "summary": "锚定节点编辑(RpcUrl)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "anchorNodeId",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
                         "in": "formData",
                         "required": true
                     }
@@ -999,6 +1075,49 @@ var doc = `{
                 }
             }
         },
+        "/chart/crossMonitor/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "锚定节点监控",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "1,2",
+                        "name": "tokenKey",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/chart/crossTxCount/list": {
             "get": {
                 "consumes": [
@@ -1091,6 +1210,74 @@ var doc = `{
                                             "items": {
                                                 "$ref": "#/definitions/dao.TxAnchorsNode"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/finishList/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "MakeFinish手续费记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "锚定节点ID",
+                        "name": "anchorId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页数",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
                                         }
                                     }
                                 }
@@ -1880,91 +2067,6 @@ var doc = `{
                 }
             }
         },
-        "/node/change": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "切换node",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "useId",
-                        "name": "user_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nodeId",
-                        "name": "node_id",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/node/current": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "获取当前登录账户的节点",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/controllers.JsonResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/controllers.Node"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/node/list": {
             "get": {
                 "security": [
@@ -1996,7 +2098,7 @@ var doc = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/controllers.Node"
+                                                "$ref": "#/definitions/dao.NodeView"
                                             }
                                         }
                                     }
@@ -2191,6 +2293,125 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/controllers.PunishmentViewResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retro/add": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RetroActiveAdd"
+                ],
+                "summary": "添加补签记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "交易hash",
+                        "name": "tx_hash",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "交易所在链",
+                        "name": "network_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/retro/list": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RetroActiveList"
+                ],
+                "summary": "补签列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "补签状态",
+                        "name": "status",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dao.RetroActive"
+                                            }
                                         }
                                     }
                                 }
@@ -2697,17 +2918,10 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListServiceCharge"
+                    "ListAnchorNode"
                 ],
-                "summary": "手续费报销记录",
+                "summary": "锚定节点列表",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "锚定节点id",
-                        "name": "anchor_node_id",
-                        "in": "query",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -2735,7 +2949,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
+                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
                                         }
                                     }
                                 }
@@ -3069,6 +3283,9 @@ var doc = `{
         "controllers.AnchorNodeInfo": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3130,6 +3347,9 @@ var doc = `{
         "controllers.AnchorNodeView": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3138,9 +3358,17 @@ var doc = `{
                     "description": "归属链A",
                     "type": "string"
                 },
+                "chain_a_id": {
+                    "description": "归属链A",
+                    "type": "integer"
+                },
                 "chain_b": {
                     "description": "归属链B",
                     "type": "string"
+                },
+                "chain_b_id": {
+                    "description": "归属链B",
+                    "type": "integer"
                 },
                 "created_at": {
                     "description": "创建时间",
@@ -3232,6 +3460,9 @@ var doc = `{
                 "CreatedAt": {
                     "description": "创建时间",
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "anchor_addresses": {
                     "type": "string"
@@ -3389,6 +3620,79 @@ var doc = `{
                 }
             }
         },
+        "controllers.FinishEvent": {
+            "type": "object",
+            "properties": {
+                "anchorAddress": {
+                    "type": "string"
+                },
+                "anchorId": {
+                    "type": "integer"
+                },
+                "anchorName": {
+                    "type": "string"
+                },
+                "blockNumber": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "networkId": {
+                    "type": "integer"
+                },
+                "remoteChainId": {
+                    "type": "integer"
+                },
+                "remoteNetworkId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "tokenListKey": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "txId": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.FinishEventView": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "finishEventList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.FinishEvent"
+                    }
+                }
+            }
+        },
         "controllers.JsonResult": {
             "type": "object",
             "required": [
@@ -3403,44 +3707,6 @@ var doc = `{
                 },
                 "err_msg": {
                     "type": "string"
-                }
-            }
-        },
-        "controllers.Node": {
-            "type": "object",
-            "required": [
-                "address",
-                "chain_id",
-                "name",
-                "port"
-            ],
-            "properties": {
-                "address": {
-                    "description": "地址",
-                    "type": "string"
-                },
-                "chain_id": {
-                    "description": "链id",
-                    "type": "integer"
-                },
-                "chain_name": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "is_https": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "port": {
-                    "description": "端口",
-                    "type": "integer"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },
@@ -3616,6 +3882,10 @@ var doc = `{
                     "description": "链上的交易哈希",
                     "type": "string"
                 },
+                "sourceRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
+                    "type": "string"
+                },
                 "sourceStatus": {
                     "description": "链上达成的状态  锚定节点添加成功",
                     "type": "integer"
@@ -3628,6 +3898,10 @@ var doc = `{
                 },
                 "targetHash": {
                     "description": "链上的交易哈希",
+                    "type": "string"
+                },
+                "targetRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
                     "type": "string"
                 },
                 "targetStatus": {
@@ -3702,6 +3976,9 @@ var doc = `{
                 "CreatedAt": {
                     "description": "创建时间",
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "anchor_addresses": {
                     "type": "string"
@@ -3811,6 +4088,52 @@ var doc = `{
                 }
             }
         },
+        "dao.NodeView": {
+            "type": "object",
+            "required": [
+                "coin_name",
+                "network_id",
+                "port",
+                "symbol"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id",
+                    "type": "integer"
+                },
+                "chain_name": {
+                    "type": "string"
+                },
+                "coin_name": {
+                    "description": "币名",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "链的网络编号",
+                    "type": "integer"
+                },
+                "port": {
+                    "description": "端口",
+                    "type": "integer"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
         "dao.PunishmentView": {
             "type": "object",
             "properties": {
@@ -3838,6 +4161,28 @@ var doc = `{
                 },
                 "value": {
                     "description": "惩罚数量",
+                    "type": "string"
+                }
+            }
+        },
+        "dao.RetroActive": {
+            "type": "object",
+            "properties": {
+                "ctx_id": {
+                    "type": "string"
+                },
+                "event": {
+                    "description": "1 maker  2 taker",
+                    "type": "integer"
+                },
+                "network_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "1 待签  2 签名完成",
+                    "type": "integer"
+                },
+                "tx_hash": {
                     "type": "string"
                 }
             }
@@ -3884,11 +4229,11 @@ var doc = `{
         "dao.TokenListCount": {
             "type": "object",
             "properties": {
-                "anchorId": {
-                    "type": "integer"
-                },
                 "count": {
                     "type": "integer"
+                },
+                "date": {
+                    "type": "string"
                 },
                 "fee": {
                     "type": "integer"

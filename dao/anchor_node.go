@@ -19,6 +19,8 @@ type AnchorNode struct {
 	TargetStatus  uint   `gorm:"target_status"` //链上达成的状态  锚定节点添加成功
 	Pledge        string `gorm:"pledge"`        //质押sipc的金额
 	Status        bool   `gorm:"status"`
+	SourceRpcUrl  string `gorm:"source_rpc_url"` //锚定节点绑定的rpc地址
+	TargetRpcUrl  string `gorm:"target_rpc_url"` //锚定节点绑定的rpc地址
 }
 
 func (this *AnchorNode) TableName() string {
@@ -109,4 +111,9 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 	return this.db.Table((&AnchorNode{}).TableName()).
 		Where("id=?", anchorNodeId).
 		Update("pledge", sub.String()).Error
+}
+
+func (this *DataBaseAccessObject) UpdateAnchorNode(anchorNodeId uint, sourceRpcUrl string, targetRpcUrl string) error {
+	return this.db.Table((&AnchorNode{}).TableName()).Where("id=?", anchorNodeId).Update(AnchorNode{SourceRpcUrl: sourceRpcUrl, TargetRpcUrl: targetRpcUrl}).Error
+
 }

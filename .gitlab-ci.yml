@@ -7,20 +7,16 @@ stages:
 prebuild:
   stage: prebuild
   script:
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
-    - go env
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
 
 build:
   stage: build
   dependencies:
     - prebuild
   script:
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
-    - go mod tidy
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
     - go build
 
 swagger:
@@ -31,11 +27,10 @@ swagger:
     - prebuild
     - build
   script:
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
     - mkdir -p docs
     - ls -al
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
     - go get -u github.com/swaggo/swag/cmd/swag
     - swag init
     - test -e "docs/swagger.json" || exit 1

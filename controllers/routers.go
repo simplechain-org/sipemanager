@@ -34,8 +34,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/transaction/:hash", validateLogin, c.GetTransactionReceipt)
 	router.GET("/api/v1/node/list", validateLogin, c.GetNodes)
 	router.POST("/api/v1/node", validateLogin, c.AddNode)
-	router.POST("/api/v1/node/change", validateLogin, c.ChangeNode)
-	router.GET("/api/v1/node/current", validateLogin, c.GetUserCurrentNode)
 
 	router.DELETE("/api/v1/chain/:chain_id", c.RemoveChain)
 
@@ -49,7 +47,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 
-	router.GET("/api/v1/chain/current", validateLogin, c.GetUserCurrentChain)
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
 
@@ -64,6 +61,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
 	router.GET("/api/v1/chart/anchorCount/list", c.AnchorCount)
 	router.GET("/api/v1/chart/crossTxCount/list", c.CrossTxCount)
+	router.GET("/api/v1/chart/finishList/list", c.getFinishList)
+	router.GET("/api/v1/chart/crossMonitor/list", c.GetCrossMonitor)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
@@ -76,6 +75,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
 	router.POST("/api/v1/anchor/node/add", validateLogin, c.AddAnchorNode)
 	router.POST("/api/v1/anchor/node/remove", validateLogin, c.RemoveAnchorNode)
+	router.POST("/api/v1/anchor/node/update", validateLogin, c.UpdateAnchorNode)
 	router.DELETE("/api/v1/wallet/remove", validateLogin, c.RemoveWallet)
 	router.POST("/api/v1/punishment/add", validateLogin, c.AddPunishment)
 	router.GET("/api/v1/punishment/list", validateLogin, c.ListPunishment)
@@ -126,5 +126,5 @@ func ListenEvent(object *dao.DataBaseAccessObject) {
 	go c.ListenCrossEvent()
 	go c.ListenBlock()
 	go c.ListenAnchors()
-
+	go c.UpdateRetroActive()
 }
