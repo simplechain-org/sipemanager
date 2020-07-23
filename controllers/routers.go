@@ -1,13 +1,12 @@
 package controllers
 
 import (
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"sipemanager/docs"
-
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+	"sipemanager/docs"
 )
 
 func SwaggerDoc(router *gin.Engine) {
@@ -22,8 +21,10 @@ func SwaggerDoc(router *gin.Engine) {
 
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
-		dao: object,
+		dao:         object,
+		NodeChannel: make(chan BlockChannel),
 	}
+	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
@@ -115,12 +116,9 @@ type BlockChannel struct {
 	currentNode dao.InstanceNodes
 }
 
-func ListenEvent(object *dao.DataBaseAccessObject) {
-	c := &Controller{userClient: make(map[uint]*blockchain.Api),
-		dao: object,
-	}
-	go c.ListenCrossEvent()
-	go c.ListenBlock()
-	go c.ListenAnchors()
-	go c.UpdateRetroActive()
+func (this *Controller) ListenEvent() {
+	go this.ListenCrossEvent()
+	go this.ListenBlock()
+	go this.ListenAnchors()
+	go this.UpdateRetroActive()
 }

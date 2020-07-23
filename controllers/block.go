@@ -6,6 +6,7 @@ import (
 	"sipemanager/utils"
 	"strconv"
 	"strings"
+	"sync"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
@@ -18,8 +19,10 @@ import (
 )
 
 type Controller struct {
-	userClient map[uint]*blockchain.Api
-	dao        *dao.DataBaseAccessObject
+	userClient  map[uint]*blockchain.Api
+	dao         *dao.DataBaseAccessObject
+	NodeChannel chan BlockChannel
+	group       sync.WaitGroup
 }
 
 //获取一个连接到节点的连接
@@ -181,7 +184,8 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 	//fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
 	block, err := api.BlockByNumber(big.NewInt(0).SetInt64(number))
 	if err != nil {
-		logrus.Warn(utils.ErrLogCode{LogType: "controller => block => SyncBlock:", Code: 30004, Message: err.Error(), Err: nil})
+		defer utils.DeferRecoverLog("controller => block => SyncBlock:", err.Error(), 30004, nil)
+		panic(err.Error())
 	}
 	blockRecord := dao.Block{
 		ParentHash:   block.ParentHash().Hex(),

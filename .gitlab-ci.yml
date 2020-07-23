@@ -3,6 +3,7 @@ stages:
   - prebuild
   - build
   - apiDoc
+  - apiPush
 
 prebuild:
   stage: prebuild
@@ -21,8 +22,6 @@ build:
 
 swagger:
   stage: apiDoc
-  variables:
-    YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
   dependencies:
     - prebuild
     - build
@@ -33,6 +32,24 @@ swagger:
     - ls -al
     - go get -u github.com/swaggo/swag/cmd/swag
     - swag init
+    - test -e "docs/swagger.json" || exit 1
+  allow_failure: true
+  cache:
+    key: "CI_COMMIT_REF_SLUG"
+    paths:
+      - /go
+
+apipush:
+  stage: apiPush
+  variables:
+    YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
+  dependencies:
+    - prebuild
+    - build
+    - apiDoc
+  script:
+    - mkdir -p docs
+    - ls -al
     - test -e "docs/swagger.json" || exit 1
     - echo "type=swagger&merge=merge&token=$YAPI_TOKEN&json=`cat docs/swagger.json`" > postData.txt
     - >
