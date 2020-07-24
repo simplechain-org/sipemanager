@@ -22,7 +22,7 @@ func SwaggerDoc(router *gin.Engine) {
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao:         object,
-		NodeChannel: make(chan BlockChannel),
+		NodeChannel: make(chan BlockChannel, 4096),
 	}
 	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
@@ -108,23 +108,26 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
 	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
 
-	router.POST("/api/v1/reward/config/add",validateLogin,c.AddRewardConfig)
-	router.GET("/api/v1/reward/config/info/:id",validateLogin,c.GetRewardConfigInfo)
-	router.DELETE("/api/v1/reward/config/remove/:id",validateLogin,c.RemoveRewardConfig)
-	router.GET("/api/v1/reward/config/list",validateLogin,c.ListRewardConfig)
-	router.POST("/api/v1/reward/config/detail",validateLogin,c.GetRewardConfig)
+	router.POST("/api/v1/reward/config/add", validateLogin, c.AddRewardConfig)
+	router.GET("/api/v1/reward/config/info/:id", validateLogin, c.GetRewardConfigInfo)
+	router.DELETE("/api/v1/reward/config/remove/:id", validateLogin, c.RemoveRewardConfig)
+	router.GET("/api/v1/reward/config/list", validateLogin, c.ListRewardConfig)
+	router.POST("/api/v1/reward/config/detail", validateLogin, c.GetRewardConfig)
 
 }
 
 type BlockChannel struct {
-	ChainId     uint
-	BlockNumber int64
-	currentNode dao.InstanceNodes
+	ChainId            uint
+	NodeId             uint
+	BlockNumber        int64
+	CurrentNode        dao.InstanceNodes
+	ContractInstanceId uint
 }
 
 func (this *Controller) ListenEvent() {
+	go this.ListenHeartChannel()
 	go this.ListenCrossEvent()
-	go this.ListenBlock()
+	go this.ListenDirectBlock()
 	go this.ListenAnchors()
 	go this.UpdateRetroActive()
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"sipemanager/dao"
@@ -40,7 +41,7 @@ type UpdateChainParam struct {
 	NetworkId          uint64 `json:"network_id" binding:"required"` //链的网络编号
 	CoinName           string `json:"coin_name" binding:"required"`  //币名
 	Symbol             string `json:"symbol" binding:"required"`     //符号
-	ContractInstanceId uint   `gorm:"contract_instance_id"`          //合约实例
+	ContractInstanceId uint   `json:"contract_instance_id"`          //合约实例
 }
 
 // @Summary 编辑链信息
@@ -67,6 +68,11 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 	if err != nil {
 		this.echoError(c, err)
 		return
+	}
+	fmt.Println(46645, param.ContractInstanceId)
+	if param.ContractInstanceId != 0 {
+		fmt.Println("=------------==----", param.ContractInstanceId)
+		go this.ListenDirectBlock()
 	}
 	this.echoSuccess(c, "Success")
 }
