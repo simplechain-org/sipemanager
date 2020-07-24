@@ -174,3 +174,32 @@ func (this *Controller) GetRewardConfig(c *gin.Context) {
 	this.echoResult(c, result)
 }
 
+type UpdateRewardConfigParam struct {
+	Id              uint   `json:"id"`
+	RegulationCycle uint   `json:"regulation_cycle"`
+	SignReward      string `json:"sign_reward"`
+}
+
+// @Summary 更新签名奖励
+// @Tags UpdateRewardConfig
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id formData uint true "签名奖励id"
+// @Param regulation_cycle formData uint true "调控周期"
+// @Param sign_reward formData string true "单笔签名奖励"
+// @Success 200 {object} JsonResult{data=dao.RewardConfigView}
+// @Router /reward/config/update [post]
+func (this *Controller) UpdateRewardConfigParam(c *gin.Context) {
+	var param GetRewardConfigParam
+	if err := c.ShouldBind(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
+	result, err := this.dao.GetLatestRewardConfig(param.SourceChainId, param.TargetChainId)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, result)
+}
