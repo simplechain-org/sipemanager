@@ -1,10 +1,12 @@
 package controllers
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
-	"time"
+
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+	"sipemanager/utils"
 
 	"github.com/robfig/cron/v3"
 	"github.com/simplechain-org/go-simplechain"
@@ -12,10 +14,6 @@ import (
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/core/types"
 	"github.com/sirupsen/logrus"
-
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"sipemanager/utils"
 )
 
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
@@ -37,7 +35,6 @@ func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 func (this *Controller) ListenCrossEvent() {
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current event time is ", time.Now())
 		nodes, err := this.dao.GetInstancesJoinNode()
 		filterNodes := utils.RemoveRepByLoop(nodes)
 		if err != nil {
@@ -56,30 +53,40 @@ func (this *Controller) ListenAnchors() {
 	cron.Start()
 }
 
-func (this *Controller) ListenBlock() {
-	nodes, err := this.dao.GetInstancesJoinNode()
-	filterNodes := utils.RemoveRepByLoop(nodes)
-	//count := len(filterNodes)
-	if err != nil {
-		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
-	}
-	go this.createBlock(filterNodes)
-
-	for i := 0; i <= len(filterNodes); i++ {
+func (this *Controller) ListenHeartChannel() {
+	for {
 		ch, ok := <-this.NodeChannel
 		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
 		if ok {
 			go this.HeartChannel(ch)
 		}
 	}
-	//for range NodeChannel {
-	//	count--
-	//	if count == 0 {
-	//		close(NodeChannel)
-	//	}
-	//}
-
 }
+
+//func (this *Controller) ListenBlock() {
+//	nodes, err := this.dao.GetInstancesJoinNode()
+//	filterNodes := utils.RemoveRepByLoop(nodes)
+//	//count := len(filterNodes)
+//	if err != nil {
+//		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
+//	}
+//	go this.createBlock(filterNodes)
+//
+//	for i := 0; i <= len(filterNodes); i++ {
+//		ch, ok := <-this.NodeChannel
+//		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+//		if ok {
+//			go this.HeartChannel(ch)
+//		}
+//	}
+//	//for range NodeChannel {
+//	//	count--
+//	//	if count == 0 {
+//	//		close(NodeChannel)
+//	//	}
+//	//}
+//
+//}
 
 func (this *Controller) ListenDirectBlock() {
 	nodes, err := this.dao.GetInstancesJoinNode()
@@ -238,8 +245,8 @@ func (this *Controller) HeartChannel(ch BlockChannel) {
 			},
 		}
 		go this.createBlock(currents)
-		ch, ok := <-this.NodeChannel
-		logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
+		//ch, ok := <-this.NodeChannel
+		//logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
 		//select {
 		//case <-NodeChannel:
 		//	fmt.Println("消费完成……………………")

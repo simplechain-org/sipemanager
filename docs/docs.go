@@ -2683,6 +2683,61 @@ var doc = `{
                 }
             }
         },
+        "/reward/config/detail": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetRewardConfig"
+                ],
+                "summary": "获取配置签名奖励详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "发起链id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfigView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/reward/config/info/:id": {
             "get": {
                 "security": [

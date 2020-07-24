@@ -71,7 +71,6 @@ func (this *Controller) AddNode(c *gin.Context) {
 			return
 		}
 	}
-	go this.ListenDirectBlock()
 	this.echoResult(c, id)
 }
 

@@ -2375,6 +2375,38 @@ paths:
       summary: 配置签名奖励
       tags:
       - AddRewardConfig
+  /reward/config/detail:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 发起链id
+        in: formData
+        name: source_chain_id
+        required: true
+        type: integer
+      - description: 目标链id
+        in: formData
+        name: target_chain_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.RewardConfigView'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取配置签名奖励详情
+      tags:
+      - GetRewardConfig
   /reward/config/info/:id:
     get:
       consumes:
