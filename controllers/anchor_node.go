@@ -342,6 +342,9 @@ type AnchorNodeView struct {
 	ChainAId uint `json:"chain_a_id"`
 	//归属链B
 	ChainBId uint `json:"chain_b_id"`
+
+	SourceRpcUrl string `json:"source_rpc_url"`
+	TargetRpcUrl string `json:"target_rpc_url"`
 }
 
 type AnchorNodeResult struct {
@@ -423,6 +426,8 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 			Status:         status,
 			ChainAId:       obj.SourceChainId,
 			ChainBId:       obj.TargetChainId,
+			SourceRpcUrl:   obj.SourceRpcUrl,
+			TargetRpcUrl:   obj.TargetRpcUrl,
 		})
 	}
 	anchorNodeResult := &AnchorNodeResult{
