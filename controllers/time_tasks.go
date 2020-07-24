@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -70,7 +69,6 @@ func (this *Controller) ListenAnchors() {
 
 func (this *Controller) ListenHeartChannel() {
 	for {
-		fmt.Println(334, this.NodeChannel)
 		ch, ok := <-this.NodeChannel
 		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
 		if ok {

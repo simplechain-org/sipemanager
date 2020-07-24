@@ -2492,6 +2492,43 @@ paths:
       summary: 删除签名奖励
       tags:
       - AddRewardConfig
+  /reward/config/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 签名奖励id
+        in: formData
+        name: id
+        required: true
+        type: integer
+      - description: 调控周期
+        in: formData
+        name: regulation_cycle
+        required: true
+        type: integer
+      - description: 单笔签名奖励
+        in: formData
+        name: sign_reward
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.RewardConfigView'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 更新签名奖励
+      tags:
+      - UpdateRewardConfig
   /reward/configure:
     post:
       consumes:
