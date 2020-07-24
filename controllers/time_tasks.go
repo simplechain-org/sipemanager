@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
@@ -49,44 +51,41 @@ func (this *Controller) ListenAnchors() {
 	cron := cron.New()
 	cron.AddFunc("@every 10s", func() {
 		this.AnalysisAnchors()
+		dbMaxNums, err := this.dao.GetAllMaxBlockNumber()
+		if err != nil {
+			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenAnchors:", Code: 20011, Message: err.Error(), Err: nil})
+		}
+		for _, dbMax := range dbMaxNums {
+			if dbMax.Number > 15 {
+				delErr := this.dao.Delete(dbMax.Number-15, dbMax.ChainId)
+				if delErr != nil {
+					defer utils.DeferRecoverLog("controller => time_task => ListenAnchors:", err.Error(), 20012, nil)
+					panic(err.Error())
+				}
+			}
+		}
 	})
 	cron.Start()
 }
 
 func (this *Controller) ListenHeartChannel() {
 	for {
+		fmt.Println(334, this.NodeChannel)
 		ch, ok := <-this.NodeChannel
 		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
 		if ok {
-			go this.HeartChannel(ch)
+			time.Sleep(time.Duration(5) * time.Second)
+			chain, err := this.dao.GetChain(ch.ChainId)
+			if err != nil {
+				logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenHeartChannel:", Code: 20009, Message: err.Error(), Err: nil})
+			}
+			if chain.ContractInstanceId == ch.ContractInstanceId {
+				go this.HeartChannel(ch)
+			}
 		}
 	}
-}
 
-//func (this *Controller) ListenBlock() {
-//	nodes, err := this.dao.GetInstancesJoinNode()
-//	filterNodes := utils.RemoveRepByLoop(nodes)
-//	//count := len(filterNodes)
-//	if err != nil {
-//		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
-//	}
-//	go this.createBlock(filterNodes)
-//
-//	for i := 0; i <= len(filterNodes); i++ {
-//		ch, ok := <-this.NodeChannel
-//		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
-//		if ok {
-//			go this.HeartChannel(ch)
-//		}
-//	}
-//	//for range NodeChannel {
-//	//	count--
-//	//	if count == 0 {
-//	//		close(NodeChannel)
-//	//	}
-//	//}
-//
-//}
+}
 
 func (this *Controller) ListenDirectBlock() {
 	nodes, err := this.dao.GetInstancesJoinNode()
@@ -220,48 +219,43 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 
 func (this *Controller) HeartChannel(ch BlockChannel) {
 
-	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
-		current, err := this.dao.GetNodeById(ch.ChainId)
-		if err != nil {
-			defer utils.DeferRecoverLog("controller => time_task => HeartChannel:", err.Error(), 20005, nil)
-			panic(err.Error())
-		}
-		chain, err := this.dao.GetChain(current.ChainId)
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-		currents := []dao.InstanceNodes{
-			dao.InstanceNodes{
-				Address:      current.Address,
-				Port:         current.Port,
-				IsHttps:      current.IsHttps,
-				NetworkId:    chain.NetworkId,
-				Name:         current.Name,
-				ChainId:      current.ChainId,
-				ContractId:   ch.currentNode.ContractId,
-				CrossAddress: ch.currentNode.CrossAddress,
-			},
-		}
-		go this.createBlock(currents)
-		//ch, ok := <-this.NodeChannel
-		//logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
-		//select {
-		//case <-NodeChannel:
-		//	fmt.Println("消费完成……………………")
-		//	return
-		//case <-time.After(time.Second * 5):
-		//	fmt.Println("超时………………………")
-		//	return
-		//}
-	})
-	cron.Start()
-	// Heart Recursive execution
-	//if ok {
-	//	time.Sleep(10 * time.Second)
-	//	go this.HeartChannel(ch, group, NodeChannel)
+	//ch, ok := <-this.NodeChannel
+	//logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
+	//select {
+	//case <-NodeChannel:
+	//	fmt.Println("消费完成……………………")
+	//	return
+	//case <-time.After(time.Second * 5):
+	//	fmt.Println("超时………………………")
+	//	return
 	//}
+
+	current, err := this.dao.GetNodeById(ch.NodeId)
+	if err != nil {
+		defer utils.DeferRecoverLog("controller => time_task => HeartChannel:", err.Error(), 20005, nil)
+		panic(err.Error())
+	}
+	chain, err := this.dao.GetChain(current.ChainId)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	currents := []dao.InstanceNodes{
+		dao.InstanceNodes{
+			Address:            current.Address,
+			Port:               current.Port,
+			IsHttps:            current.IsHttps,
+			NetworkId:          chain.NetworkId,
+			Name:               current.Name,
+			ChainId:            current.ChainId,
+			ContractId:         ch.CurrentNode.ContractId,
+			CrossAddress:       ch.CurrentNode.CrossAddress,
+			NodeId:             current.ID,
+			ContractInstanceId: ch.ContractInstanceId,
+		},
+	}
+	go this.createBlock(currents)
 }
 
 func (this *Controller) createBlock(nodes []dao.InstanceNodes) {
@@ -276,11 +270,7 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes) {
 	chainId := node.ChainId
 	header, err := api.GetHeaderByNumber()
 	dbMaxNum := this.dao.GetMaxBlockNumber(chainId)
-	var delErr error
-	if dbMaxNum > 15 {
-		delErr = this.dao.Delete(dbMaxNum-15, chainId)
-	}
-	if err != nil || delErr != nil {
+	if err != nil {
 		defer utils.DeferRecoverLog("controller => time_task => createBlock:", err.Error(), 20001, nil)
 		panic(err.Error())
 	}
@@ -298,11 +288,15 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes) {
 		}
 		this.BlocksListen(from, to, api, node)
 	}
+
 	this.NodeChannel <- BlockChannel{
-		ChainId:     chainId,
-		BlockNumber: dbMaxNum,
-		currentNode: node,
+		ChainId:            chainId,
+		NodeId:             node.NodeId,
+		BlockNumber:        dbMaxNum,
+		CurrentNode:        node,
+		ContractInstanceId: node.ContractInstanceId,
 	}
+
 	this.group.Done()
 }
 

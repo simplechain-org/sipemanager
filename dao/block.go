@@ -47,6 +47,17 @@ func (this *DataBaseAccessObject) GetMaxBlockNumber(chainId uint) int64 {
 	return Number
 }
 
+type MaxBlockMumber struct {
+	Number  int64
+	ChainId uint
+}
+
+func (this *DataBaseAccessObject) GetAllMaxBlockNumber() ([]MaxBlockMumber, error) {
+	result := make([]MaxBlockMumber, 0)
+	err := this.db.Raw("select IFNULL(max(number),0) number, chain_id from blocks GROUP BY chain_id").Scan(&result).Error
+	return result, err
+}
+
 func (this *DataBaseAccessObject) BlockReplace(data Block) error {
 	var sql = "REPLACE INTO blocks(parentHash, sha3Uncles, miner, difficulty, number, gasLimit, gasUsed, timestamp, nonce, transactions, blockHash, chain_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 	return this.db.Exec(sql,

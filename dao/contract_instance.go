@@ -69,14 +69,16 @@ func (this *DataBaseAccessObject) GetContractInstances() ([]*ContractInstance, e
 }
 
 type InstanceNodes struct {
-	CrossAddress string `json:"cross_address"`
-	Address      string `json:"address"`
-	Port         int    `json:"port"`
-	IsHttps      bool   `json:"is_https"`
-	NetworkId    uint64 `json:"network_id"`
-	Name         string `json:"name"`
-	ChainId      uint   `json:"chain_id"`
-	ContractId   uint   `json:"contract_id"`
+	CrossAddress       string `json:"cross_address"`
+	Address            string `json:"address"`
+	Port               int    `json:"port"`
+	IsHttps            bool   `json:"is_https"`
+	NetworkId          uint64 `json:"network_id"`
+	Name               string `json:"name"`
+	ChainId            uint   `json:"chain_id"`
+	ContractId         uint   `json:"contract_id"`
+	NodeId             uint   `json:"node_id"`
+	ContractInstanceId uint   `json:"contract_instance_id"`
 }
 
 func (this *DataBaseAccessObject) GetInstancesJoinNode() ([]InstanceNodes, error) {
@@ -92,7 +94,7 @@ func (this *DataBaseAccessObject) GetInstancesJoinNode() ([]InstanceNodes, error
 	//			) t
 	//			LEFT JOIN nodes n on n.chain_id = t.chain_id`
 	var sql = `
-SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, t.network_id, n.name, n.chain_id  from (
+SELECT  t.cross_address,t.contract_id, n.address, n.port, n.is_https, t.network_id, n.name, n.chain_id, n.id nodeId, t.contract_instance_id contractInstanceId  from (
 	SELECT chain_id id, contract_instance_id, contract_instances.address cross_address, contract_instances.contract_id contract_id, network_id
 	from 
 	chains
@@ -115,7 +117,9 @@ LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
 			&result.IsHttps,
 			&result.NetworkId,
 			&result.Name,
-			&result.ChainId)
+			&result.ChainId,
+			&result.NodeId,
+			&result.ContractInstanceId)
 		insNodes = append(insNodes, result)
 	}
 	return insNodes, err

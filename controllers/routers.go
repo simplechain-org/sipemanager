@@ -22,7 +22,7 @@ func SwaggerDoc(router *gin.Engine) {
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
 		dao:         object,
-		NodeChannel: make(chan BlockChannel),
+		NodeChannel: make(chan BlockChannel, 4096),
 	}
 	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
@@ -117,9 +117,11 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 }
 
 type BlockChannel struct {
-	ChainId     uint
-	BlockNumber int64
-	currentNode dao.InstanceNodes
+	ChainId            uint
+	NodeId             uint
+	BlockNumber        int64
+	CurrentNode        dao.InstanceNodes
+	ContractInstanceId uint
 }
 
 func (this *Controller) ListenEvent() {

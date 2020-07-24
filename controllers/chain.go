@@ -69,6 +69,7 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
+	fmt.Println(46645, param.ContractInstanceId)
 	if param.ContractInstanceId != 0 {
 		fmt.Println("=------------==----", param.ContractInstanceId)
 		go this.ListenDirectBlock()
