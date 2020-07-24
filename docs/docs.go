@@ -3703,8 +3703,14 @@ var doc = `{
                     "description": "质押金额",
                     "type": "string"
                 },
+                "source_rpc_url": {
+                    "type": "string"
+                },
                 "status": {
                     "description": "身份状态",
+                    "type": "string"
+                },
+                "target_rpc_url": {
                     "type": "string"
                 }
             }
