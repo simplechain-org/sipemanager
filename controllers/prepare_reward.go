@@ -150,6 +150,15 @@ func (this *Controller) AddPrepareReward(c *gin.Context) {
 	this.echoResult(c, id)
 }
 
+
+type UpdatePrepareRewardParam struct {
+	SourceChainId uint   `json:"source_chain_id" binding:"required"`
+	TargetChainId uint   `json:"target_chain_id" binding:"required"`
+	SourceReward  string `json:"source_reward" binding:"required"`
+	TargetReward  string `json:"target_reward" binding:"required"`
+	WalletId      uint   `json:"wallet_id" form:"wallet_id"`
+	Password      string `json:"password" form:"password"`
+}
 //@Summary 更新跨链手续费
 //@Accept application/x-www-form-urlencoded
 //@Accept application/json
@@ -161,16 +170,7 @@ func (this *Controller) AddPrepareReward(c *gin.Context) {
 //@Param wallet_id formData uint true "钱包id"
 //@Param password formData string true "钱包密码"
 //@Success 200 {object} JsonResult
-//@Router /chain/cross/prepare/reward [put]
-type UpdatePrepareRewardParam struct {
-	SourceChainId uint   `json:"source_chain_id" binding:"required"`
-	TargetChainId uint   `json:"target_chain_id" binding:"required"`
-	SourceReward  string `json:"source_reward" binding:"required"`
-	TargetReward  string `json:"target_reward" binding:"required"`
-	WalletId      uint   `json:"wallet_id" form:"wallet_id"`
-	Password      string `json:"password" form:"password"`
-}
-
+//@Router /chain/cross/prepare/reward/update [post]
 func (this *Controller) UpdatePrepareReward(c *gin.Context) {
 	var param UpdatePrepareRewardParam
 	if err := c.ShouldBind(&param); err != nil {
