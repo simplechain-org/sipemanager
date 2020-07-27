@@ -136,4 +136,5 @@ func (this *Controller) ListenEvent() {
 	go this.ListenDirectBlock()
 	go this.ListenAnchors()
 	go this.UpdateRetroActive()
+	go this.ListenWorkCount()
 }
