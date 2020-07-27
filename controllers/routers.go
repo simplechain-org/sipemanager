@@ -130,6 +130,12 @@ type BlockChannel struct {
 	ContractInstanceId uint
 }
 
+//type CloseChannel struct {
+//	ChainId            uint
+//	ContractInstanceId uint
+//	Status             bool
+//}
+
 func (this *Controller) ListenEvent() {
 	go this.ListenHeartChannel()
 	go this.ListenCrossEvent()
