@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -83,6 +84,26 @@ func (this *Controller) ListenHeartChannel() {
 		}
 	}
 
+}
+
+func (this *Controller) ListenStopChannel() {
+	for {
+		ch, _ := <-this.CloseChannel
+		NodeCh, _ := <-this.NodeChannel
+		logrus.Infof("stop ---- is %+v", ch)
+		if ch.Status && NodeCh.ContractInstanceId == ch.ContractInstanceId && NodeCh.ChainId == ch.ChainId {
+			defer func() {
+				this.onceClose.Do(func() {
+					close(this.NodeChannel)
+				})
+				this.onceClose.Do(func() {
+					close(this.NodeChannel)
+					fmt.Println("send goroutine closed !")
+					this.group.Done()
+				})
+			}()
+		}
+	}
 }
 
 func (this *Controller) ListenDirectBlock() {

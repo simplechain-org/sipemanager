@@ -21,8 +21,9 @@ func SwaggerDoc(router *gin.Engine) {
 
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
-		dao:         object,
-		NodeChannel: make(chan BlockChannel, 4096),
+		dao:          object,
+		NodeChannel:  make(chan BlockChannel, 4096),
+		CloseChannel: make(chan CloseChannel, 4096),
 	}
 	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
@@ -124,7 +125,14 @@ type BlockChannel struct {
 	ContractInstanceId uint
 }
 
+type CloseChannel struct {
+	ChainId            uint
+	ContractInstanceId uint
+	Status             bool
+}
+
 func (this *Controller) ListenEvent() {
+	go this.ListenStopChannel()
 	go this.ListenHeartChannel()
 	go this.ListenCrossEvent()
 	go this.ListenDirectBlock()
