@@ -1273,6 +1273,50 @@ paths:
                   type: integer
               type: object
       summary: 添加跨链手续费
+  /chain/cross/prepare/reward/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      parameters:
+      - description: 源链Id
+        in: formData
+        name: source_chain_id
+        required: true
+        type: integer
+      - description: 目标链Id
+        in: formData
+        name: target_chain_id
+        required: true
+        type: integer
+      - description: 源链跨链手续费
+        in: formData
+        name: source_reward
+        required: true
+        type: string
+      - description: 目标链跨链手续费
+        in: formData
+        name: target_reward
+        required: true
+        type: string
+      - description: 钱包id
+        in: formData
+        name: wallet_id
+        required: true
+        type: integer
+      - description: 钱包密码
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JsonResult'
+      summary: 更新跨链手续费
   /chain/info/{chain_id}:
     get:
       consumes:
