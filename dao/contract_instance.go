@@ -34,14 +34,14 @@ func (this *DataBaseAccessObject) UpdateContractAddress(id uint, address string)
 }
 
 type CurrentContract struct {
-	ChainId     uint   `json:"chain_id"` //链id ,合约部署在那条链上
-	TxHash      string `json:"tx_hash"`
-	Address     string `json:"address"`
-	ContractId  uint   `json:"contract_id"` //合约id
-	Description string `json:"description"`
-	Sol         string `gorm:"type:text" json:"sol"`
-	Abi         string `gorm:"type:text" json:"abi"`
-	Bin         string `gorm:"type:text" json:"bin"`
+	ChainId    uint   `json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash     string `json:"tx_hash"`
+	Address    string `json:"address"`
+	ContractId uint   `json:"contract_id"` //合约id
+	Name       string `json:"name"`
+	Sol        string `gorm:"type:text" json:"sol"`
+	Abi        string `gorm:"type:text" json:"abi"`
+	Bin        string `gorm:"type:text" json:"bin"`
 }
 
 //链使用的当前合约
@@ -49,7 +49,7 @@ func (this *DataBaseAccessObject) GetContractByChainId(chainId uint) (*CurrentCo
 	var contractInstance CurrentContract
 	err := this.db.Table((&ContractInstance{}).TableName()).Where("contract_instances.chain_id=?", chainId).
 		Joins("inner join contracts  on contracts.id = contract_instances.contract_id").
-		Select("contract_instances.chain_id,contract_instances.tx_hash,contract_instances.address,contract_instances.contract_id,contracts.description,contracts.sol,contracts.abi,contracts.bin").
+		Select("contract_instances.chain_id,contract_instances.tx_hash,contract_instances.address,contract_instances.contract_id,contracts.name,contracts.sol,contracts.abi,contracts.bin").
 		Scan(&contractInstance).Error
 	return &contractInstance, err
 

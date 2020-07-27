@@ -70,7 +70,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/reward/chain", validateLogin, c.GetChainReward)
 	router.GET("/api/v1/anchor/work/count", validateLogin, c.GetAnchorWorkCount)
 	router.POST("/api/v1/reward/add", validateLogin, c.AddSignReward)
-	router.POST("/api/v1/reward/configure", validateLogin, c.ConfigureSignReward)
 	router.GET("/api/v1/service/charge/list", validateLogin, c.ListServiceCharge)
 	router.POST("/api/v1/service/charge/add", validateLogin, c.AddServiceCharge)
 	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
@@ -114,6 +113,13 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/reward/config/list", validateLogin, c.ListRewardConfig)
 	router.POST("/api/v1/reward/config/detail", validateLogin, c.GetRewardConfig)
 
+	router.GET("/api/v1/reward/anchor/single", validateLogin, c.GetSignRewardByAnchorNode)
+	router.GET("/api/v1/reward/chain/single", validateLogin, c.GetSignRewardBySourceAndTarget)
+	router.POST("/api/v1/reward/config/update", validateLogin, c.UpdateRewardConfig)
+
+	router.GET("/api/v1/reward/prepare/reward/list", validateLogin, c.ListPrepareReward)
+	router.POST("/api/v1/chain/cross/prepare/reward/update", validateLogin, c.UpdatePrepareReward)
+	router.POST("/api/v1/chain/cross/prepare/reward", validateLogin, c.AddPrepareReward)
 }
 
 type BlockChannel struct {
@@ -136,4 +142,5 @@ func (this *Controller) ListenEvent() {
 	go this.ListenDirectBlock()
 	go this.ListenAnchors()
 	go this.UpdateRetroActive()
+	go this.ListenWorkCount()
 }

@@ -155,8 +155,13 @@ func (this *Api) GetChainReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 	return big.NewInt(0).SetBytes(result), nil
 
 }
-
-func (this *Api) SetReward(config *AnchorNodeRewardConfig, callerConfig *CallerConfig, reward *big.Int) (string, error) {
+type SetRewardConfig struct {
+	AbiData         []byte
+	ContractAddress common.Address
+	TargetNetworkId uint64
+	AnchorAddress   common.Address
+}
+func (this *Api) SetReward(config *SetRewardConfig, callerConfig *CallerConfig, reward *big.Int) (string, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
 		return "", err

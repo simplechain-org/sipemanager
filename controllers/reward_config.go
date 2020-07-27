@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"math/big"
 	"strconv"
 
 	"sipemanager/dao"
@@ -188,18 +189,41 @@ type UpdateRewardConfigParam struct {
 // @Param id formData uint true "签名奖励id"
 // @Param regulation_cycle formData uint true "调控周期"
 // @Param sign_reward formData string true "单笔签名奖励"
-// @Success 200 {object} JsonResult{data=dao.RewardConfigView}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /reward/config/update [post]
-func (this *Controller) UpdateRewardConfigParam(c *gin.Context) {
-	var param GetRewardConfigParam
+func (this *Controller) UpdateRewardConfig(c *gin.Context) {
+	var param UpdateRewardConfigParam
 	if err := c.ShouldBind(&param); err != nil {
 		this.echoError(c, err)
 		return
 	}
-	result, err := this.dao.GetLatestRewardConfig(param.SourceChainId, param.TargetChainId)
+	last, err := this.dao.GetRewardConfigById(param.Id)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-	this.echoResult(c, result)
+	//调整周期必须大于0
+	if param.RegulationCycle == 0 {
+		this.echoError(c, errors.New("调控周期必须大于0"))
+		return
+	}
+	//校验sign_reward为整数
+	_, ok := big.NewInt(0).SetString(param.SignReward, 10)
+	if !ok {
+		this.echoError(c, errors.New("sign_reward数据非法"))
+		return
+	}
+	rewardConfig := &dao.RewardConfig{
+		SourceChainId:   last.SourceChainId,
+		TargetChainId:   last.TargetChainId,
+		RegulationCycle: param.RegulationCycle,
+		SignReward:      param.SignReward,
+	}
+	//记录历史，所以每次更新都是新增一条记录
+	id, err := this.dao.CreateRewardConfig(rewardConfig)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, id)
 }
