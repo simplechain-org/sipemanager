@@ -189,7 +189,7 @@ type UpdateRewardConfigParam struct {
 // @Param id formData uint true "签名奖励id"
 // @Param regulation_cycle formData uint true "调控周期"
 // @Param sign_reward formData string true "单笔签名奖励"
-// @Success 200 {object}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /reward/config/update [post]
 func (this *Controller) UpdateRewardConfig(c *gin.Context) {
 	var param UpdateRewardConfigParam
