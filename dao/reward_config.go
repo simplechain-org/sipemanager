@@ -81,9 +81,11 @@ func (this *DataBaseAccessObject) GetRewardConfigPage(start, pageSize int) ([]*R
 	}
 	return result, err
 }
-type Total struct{
+
+type Total struct {
 	Total int `gorm:"total"`
 }
+
 func (this *DataBaseAccessObject) GetRewardConfigCount() (int, error) {
 	var total Total
 	sql := `select count(*) as total from (SELECT DISTINCT source_chain_id,target_chain_id FROM reward_configs where deleted_at is null) as reward_configs_temp`
@@ -129,4 +131,9 @@ func (this *DataBaseAccessObject) GetRewardConfigBySourceAndTarget(sourceChainId
 	var rewardConfigView RewardConfigView
 	err := this.db.Raw(sql, sourceChainId, targetChainId).Scan(&rewardConfigView).Error
 	return &rewardConfigView, err
+}
+func (this *DataBaseAccessObject) GetRewardConfigById(id uint) (*RewardConfig, error) {
+	var result RewardConfig
+	err := this.db.Table((&RewardConfig{}).TableName()).Where("id=?", id).First(&result).Error
+	return &result, err
 }
