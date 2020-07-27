@@ -118,7 +118,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/reward/config/update", validateLogin, c.UpdateRewardConfig)
 
 	router.GET("/api/v1/reward/prepare/reward/list", validateLogin, c.ListPrepareReward)
-	router.PUT("/api/v1/chain/cross/prepare/reward", validateLogin, c.UpdatePrepareReward)
+	router.POST("/api/v1/chain/cross/prepare/reward/update", validateLogin, c.UpdatePrepareReward)
 	router.POST("/api/v1/chain/cross/prepare/reward", validateLogin, c.AddPrepareReward)
 }
 
@@ -136,4 +136,5 @@ func (this *Controller) ListenEvent() {
 	go this.ListenDirectBlock()
 	go this.ListenAnchors()
 	go this.UpdateRetroActive()
+	go this.ListenWorkCount()
 }
