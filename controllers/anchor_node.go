@@ -663,6 +663,10 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 // @Router /anchor/node/update [post]
 func (this *Controller) UpdateAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
+	if err := c.ShouldBind(&param); err != nil {
+		this.echoError(c, err)
+		return
+	}
 	err := this.dao.UpdateAnchorNode(param.ID, param.SourceRpcUrl, param.TargetRpcUrl)
 	if err != nil {
 		this.echoError(c, err)
