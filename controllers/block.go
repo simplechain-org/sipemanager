@@ -19,12 +19,10 @@ import (
 )
 
 type Controller struct {
-	userClient   map[uint]*blockchain.Api
-	dao          *dao.DataBaseAccessObject
-	NodeChannel  chan BlockChannel
-	group        sync.WaitGroup
-	CloseChannel chan CloseChannel
-	onceClose    sync.Once
+	userClient  map[uint]*blockchain.Api
+	dao         *dao.DataBaseAccessObject
+	NodeChannel chan BlockChannel
+	group       sync.WaitGroup
 }
 
 //获取一个连接到节点的连接

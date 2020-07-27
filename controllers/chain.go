@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	"sipemanager/dao"
@@ -63,30 +62,15 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	chain, ChainErr := this.dao.GetChain(param.Id)
-	if ChainErr != nil {
-		this.echoError(c, ChainErr)
-		return
-	}
 	err := this.dao.UpdateChain(param.Id,
 		param.Name, param.NetworkId, param.CoinName, param.Symbol, param.ContractInstanceId)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println(46645, param.ContractInstanceId)
-	if chain.ContractInstanceId != param.ContractInstanceId {
-		this.CloseChannel <- CloseChannel{
-			ChainId:            chain.ID,
-			ContractInstanceId: chain.ContractInstanceId,
-			Status:             true,
-		}
+	if param.ContractInstanceId != 0 {
+		go this.UpdateDirectBlock(param.Id)
 	}
-
-	//if param.ContractInstanceId != 0 {
-	//	fmt.Println("=------------==----", param.ContractInstanceId)
-	//	go this.ListenDirectBlock()
-	//}
 	this.echoSuccess(c, "Success")
 }
 

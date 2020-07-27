@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -86,25 +85,25 @@ func (this *Controller) ListenHeartChannel() {
 
 }
 
-func (this *Controller) ListenStopChannel() {
-	for {
-		ch, _ := <-this.CloseChannel
-		NodeCh, _ := <-this.NodeChannel
-		logrus.Infof("stop ---- is %+v", ch)
-		if ch.Status && NodeCh.ContractInstanceId == ch.ContractInstanceId && NodeCh.ChainId == ch.ChainId {
-			defer func() {
-				this.onceClose.Do(func() {
-					close(this.NodeChannel)
-				})
-				this.onceClose.Do(func() {
-					close(this.NodeChannel)
-					fmt.Println("send goroutine closed !")
-					this.group.Done()
-				})
-			}()
-		}
-	}
-}
+//func (this *Controller) ListenStopChannel() {
+//	for {
+//		ch, _ := <-this.CloseChannel
+//		NodeCh, _ := <-this.NodeChannel
+//		logrus.Infof("stop ---- is %+v", ch)
+//		if ch.Status && NodeCh.ContractInstanceId == ch.ContractInstanceId && NodeCh.ChainId == ch.ChainId {
+//			defer func() {
+//				this.onceClose.Do(func() {
+//					close(this.NodeChannel)
+//				})
+//				this.onceClose.Do(func() {
+//					close(this.NodeChannel)
+//					fmt.Println("send goroutine closed !")
+//					this.group.Done()
+//				})
+//			}()
+//		}
+//	}
+//}
 
 func (this *Controller) ListenDirectBlock() {
 	nodes, err := this.dao.GetInstancesJoinNode()
@@ -113,7 +112,21 @@ func (this *Controller) ListenDirectBlock() {
 		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
 	}
 	go this.createBlock(filterNodes)
+}
 
+func (this *Controller) UpdateDirectBlock(chainId uint) {
+	nodes, err := this.dao.GetInstancesJoinNode()
+	filterNodes := utils.RemoveRepByLoop(nodes)
+	updateChains := make([]dao.InstanceNodes, 0)
+	for _, item := range filterNodes {
+		if item.ChainId == chainId {
+			updateChains = append(updateChains, item)
+		}
+	}
+	if err != nil {
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
+	}
+	go this.createBlock(updateChains)
 }
 
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
