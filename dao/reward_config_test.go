@@ -168,3 +168,12 @@ func TestDataBaseAccessObject_GetRewardConfigPage(t *testing.T) {
 	}
 	t.Log("count:",count)
 }
+func TestDataBaseAccessObject_GetRewardConfigById(t *testing.T) {
+	result,err:=obj.GetRewardConfigById(1)
+	if err!=nil{
+		t.Fatal(err)
+		return
+	}
+	t.Log(result)
+
+}
