@@ -70,4 +70,5 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&Punishment{})
 	db.AutoMigrate(&WorkCount{})
 	db.AutoMigrate(&RewardConfig{})
+	db.AutoMigrate(&PrepareReward{})
 }

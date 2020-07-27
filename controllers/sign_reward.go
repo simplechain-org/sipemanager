@@ -531,78 +531,171 @@ type ConfigureSignRewardParam struct {
 // @Param coin formData string true "奖励币种"
 // @Success 200 {object} JsonResult{data=object}
 // @Router /reward/configure [post]
-func (this *Controller) ConfigureSignReward(c *gin.Context) {
-	var param ConfigureSignRewardParam
-	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
-		return
-	}
-	anchorNode, err := this.dao.GetAnchorNode(param.AnchorNodeId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	node, err := this.dao.GetNodeById(param.NodeId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	source, err := this.getApiByNodeId(param.NodeId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	//链的合约
-	contract, err := this.dao.GetContractByChainId(node.ChainId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	var targetChainId uint
-	if anchorNode.SourceChainId == node.ChainId {
-		targetChainId = anchorNode.TargetChainId
-	} else if anchorNode.TargetChainId == node.ChainId {
-		targetChainId = anchorNode.SourceChainId
-	}
-	chain, err := this.dao.GetChain(targetChainId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	wallet, err := this.dao.GetWallet(param.WalletId)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
-	if err != nil {
-		this.echoError(c, err)
-		return
-	}
-	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+//func (this *Controller) ConfigureSignReward(c *gin.Context) {
+//	var param ConfigureSignRewardParam
+//	if err := c.ShouldBind(&param); err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	anchorNode, err := this.dao.GetAnchorNode(param.AnchorNodeId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	node, err := this.dao.GetNodeById(param.NodeId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	source, err := this.getApiByNodeId(param.NodeId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	//链的合约
+//	contract, err := this.dao.GetContractByChainId(node.ChainId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	var targetChainId uint
+//	if anchorNode.SourceChainId == node.ChainId {
+//		targetChainId = anchorNode.TargetChainId
+//	} else if anchorNode.TargetChainId == node.ChainId {
+//		targetChainId = anchorNode.SourceChainId
+//	}
+//	chain, err := this.dao.GetChain(targetChainId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	wallet, err := this.dao.GetWallet(param.WalletId)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	address := crypto.PubkeyToAddress(privateKey.PublicKey)
+//
+//	config := &blockchain.AnchorNodeRewardConfig{
+//		AbiData:         []byte(contract.Abi),
+//		ContractAddress: common.HexToAddress(contract.Address),
+//		TargetNetworkId: chain.NetworkId,
+//		AnchorAddress:   common.HexToAddress(anchorNode.Address),
+//	}
+//	callerConfig := &blockchain.CallerConfig{
+//		From:       address,
+//		PrivateKey: privateKey,
+//		NetworkId:  source.GetNetworkId(),
+//	}
+//	reward, success := big.NewInt(0).SetString(param.Reward, 10)
+//	if !success {
+//		this.echoError(c, errors.New("reward数据非法"))
+//		return
+//	}
+//	hash, err := source.SetReward(config, callerConfig, reward)
+//	if err != nil {
+//		this.echoError(c, err)
+//		return
+//	}
+//	this.echoSuccess(c, hash)
+//}
 
-	config := &blockchain.AnchorNodeRewardConfig{
-		AbiData:         []byte(contract.Abi),
-		ContractAddress: common.HexToAddress(contract.Address),
-		TargetNetworkId: chain.NetworkId,
-		AnchorAddress:   common.HexToAddress(anchorNode.Address),
-	}
-	callerConfig := &blockchain.CallerConfig{
-		From:       address,
-		PrivateKey: privateKey,
-		NetworkId:  source.GetNetworkId(),
-	}
-	reward, success := big.NewInt(0).SetString(param.Reward, 10)
-	if !success {
-		this.echoError(c, errors.New("reward数据非法"))
+// @Summary 获取单笔签名奖励(根据节点和锚定节点)
+// @Tags GetSignRewardByAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param anchor_node_id query uint true "锚定节点id"
+// @Param node_id query uint true "节点id"
+// @Success 200 {object} JsonResult{data=dao.RewardConfig}
+// @Router /reward/anchor/single/ [get]
+func (this *Controller) GetSignRewardByAnchorNode(c *gin.Context) {
+	anchorNodeIdStr := c.Query("anchor_node_id")
+	if anchorNodeIdStr == "" {
+		this.echoError(c, errors.New("anchor_node_id不能为空"))
 		return
 	}
-	hash, err := source.SetReward(config, callerConfig, reward)
+	nodeIdStr := c.Query("node_id")
+	if nodeIdStr == "" {
+		this.echoError(c, errors.New("node_id不能为空"))
+		return
+	}
+	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.echoError(c, errors.New("node_id数据非法"))
 		return
 	}
-	this.echoSuccess(c, hash)
+	node,err:=this.dao.GetNodeById(uint(nodeId))
+	if err!=nil{
+		this.echoError(c, fmt.Errorf("不存在node_id为%d的节点",nodeId))
+		return
+	}
+
+	id, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, errors.New("anchor_node_id数据非法"))
+		return
+	}
+	anchorNode, err := this.dao.GetAnchorNode(uint(id))
+	if err != nil {
+		this.echoError(c, fmt.Errorf("不存在anchor_node_id为%d的锚定节点",id))
+		return
+	}
+	if node.ChainId==anchorNode.TargetChainId{
+		rewardConfig,err:=this.dao.GetLatestRewardConfig(anchorNode.TargetChainId,anchorNode.SourceChainId)
+		if err!=nil{
+			this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+			return
+		}
+		this.echoResult(c,rewardConfig)
+	}else{
+		rewardConfig,err:=this.dao.GetLatestRewardConfig(anchorNode.SourceChainId,anchorNode.TargetChainId)
+		if err!=nil{
+			this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+			return
+		}
+		this.echoResult(c,rewardConfig)
+	}
 }
-
-
+// @Summary 获取单笔签名奖励（根据发起链和目标链）
+// @Tags GetSignRewardBySourceAndTarget
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param source_chain_id query uint true "发起链id"
+// @Param target_chain_id query uint true "目标链id"
+// @Success 200 {object} JsonResult{data=dao.RewardConfig}
+// @Router /reward/chain/single/ [get]
+func (this *Controller) GetSignRewardBySourceAndTarget(c *gin.Context) {
+	sourceChainIdStr := c.Query("source_chain_id")
+	if sourceChainIdStr == "" {
+		this.echoError(c, errors.New("source_chain_id不能为空"))
+		return
+	}
+	targetChainIdStr := c.Query("target_chain_id")
+	if targetChainIdStr == "" {
+		this.echoError(c, errors.New("target_chain_id不能为空"))
+		return
+	}
+	sourceChainId, err := strconv.ParseUint(sourceChainIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, errors.New("source_chain_id数据非法"))
+		return
+	}
+	targetChainId, err := strconv.ParseUint(targetChainIdStr, 10, 64)
+	if err != nil {
+		this.echoError(c, errors.New("target_chain_id数据非法"))
+		return
+	}
+	rewardConfig,err:=this.dao.GetLatestRewardConfig(uint(sourceChainId),uint(targetChainId))
+	if err!=nil{
+		this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+		return
+	}
+	this.echoResult(c,rewardConfig)
+}
