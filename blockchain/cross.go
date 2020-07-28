@@ -75,6 +75,7 @@ type RegisterChainConfig struct {
 	TargetNetworkId  uint64
 	AnchorAddresses  []common.Address
 	SignConfirmCount uint8
+	MaxValue         *big.Int
 }
 
 type CallerConfig struct {
@@ -88,7 +89,7 @@ func (this *Api) RegisterChain(config *RegisterChainConfig, callerConfig *Caller
 	if err != nil {
 		return "", err
 	}
-	out, err := abi.Pack("chainRegister", big.NewInt(0).SetUint64(config.TargetNetworkId), config.SignConfirmCount, config.AnchorAddresses)
+	out, err := abi.Pack("chainRegister", big.NewInt(0).SetUint64(config.TargetNetworkId),config.MaxValue, config.SignConfirmCount, config.AnchorAddresses)
 
 	if err != nil {
 		return "", err
@@ -142,7 +143,7 @@ func (this *Api) CtxGet(hash common.Hash) (*backend.RPCCrossTransaction, error) 
 	}
 	return r, nil
 }
-func (this *Api) GetMakerTx(ctxId common.Hash,contract common.Address,from common.Address,abiData []byte,targetNetworkId *big.Int) (bool,error) {
+func (this *Api) GetMakerTx(ctxId common.Hash, contract common.Address, from common.Address, abiData []byte, targetNetworkId *big.Int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	abi, err := abi.JSON(bytes.NewReader(abiData))
@@ -150,8 +151,8 @@ func (this *Api) GetMakerTx(ctxId common.Hash,contract common.Address,from commo
 		return false, err
 	}
 	input, err := abi.Pack("getMakerTx", ctxId, targetNetworkId)
-	msg   := simplechain.CallMsg{From: from, To: &contract, Data: input}
-	result,err := this.simpleClient.CallContract(ctx,msg,nil);
+	msg := simplechain.CallMsg{From: from, To: &contract, Data: input}
+	result, err := this.simpleClient.CallContract(ctx, msg, nil)
 	if err != nil {
 		return false, err
 	}

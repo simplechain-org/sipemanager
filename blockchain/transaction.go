@@ -21,7 +21,7 @@ func GetPrivateKey(keyjson []byte, passphrase string) (*ecdsa.PrivateKey, error)
 	return key.PrivateKey, nil
 }
 
-func (this *Api) DeployContract(from common.Address, amount *big.Int, data []byte, chainId uint64, privateKey *ecdsa.PrivateKey) (string, error) {
+func (this *Api) DeployContract(from common.Address, amount *big.Int, data []byte, networkId uint64, privateKey *ecdsa.PrivateKey) (string, error) {
 	nonce, err := this.simpleClient.PendingNonceAt(context.Background(), from)
 	if err != nil {
 		return "", err
@@ -45,7 +45,7 @@ func (this *Api) DeployContract(from common.Address, amount *big.Int, data []byt
 	}
 	transaction := types.NewContractCreation(nonce, amount, gasLimit+90000, gasPrice, data)
 
-	transaction, err = types.SignTx(transaction, types.NewEIP155Signer(big.NewInt(0).SetInt64(int64(chainId))), privateKey)
+	transaction, err = types.SignTx(transaction, types.NewEIP155Signer(big.NewInt(0).SetUint64(networkId)), privateKey)
 
 	content, err := rlp.EncodeToBytes(transaction)
 
