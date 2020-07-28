@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ type RegisterChainTwoWayParam struct {
 	AnchorNames []string `json:"anchor_names" form:"anchor_names"`
 	WalletId    uint     `json:"wallet_id" form:"wallet_id"`
 	Password    string   `json:"password" form:"password"`
+	Pledge      string   `json:"pledge"` //质押sipc的金额
 }
 
 //@Summary 注册新的跨链对
@@ -42,6 +44,7 @@ type RegisterChainTwoWayParam struct {
 //@Param sign_confirm_count formData uint true "最小确认数"
 //@Param anchor_addresses formData array true "锚定节点地址 字符串数组"
 //@Param anchor_names formData array true "锚定节点名称 字符串数组"
+//@Param pledge formData string true "锚定节点质押金额"
 //@Param wallet_id formData uint true "钱包id"
 //@Param password formData string true "钱包密码"
 //@Success 200 {object} JsonResult
@@ -84,6 +87,7 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 			Address:       address,
 			SourceChainId: param.SourceChainId,
 			TargetChainId: param.TargetChainId,
+			Pledge: param.Pledge,
 		}
 		id, err := this.dao.CreateAnchorNodeByTx(db, anchorNode)
 		if err != nil {
@@ -94,10 +98,16 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		ids = append(ids, fmt.Sprintf("%d", id))
 	}
 	idString := strings.Join(ids, ",")
+
+	pledge,ok:=new(big.Int).SetString(param.Pledge,10)
+	if !ok{
+		this.echoError(c, errors.New("pledge 值非法"))
+		return
+	}
 	//注册一条链 source->target
-	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString)
+	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge)
 	//注册另一条链 target->source
-	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString)
+	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge)
 
 	errMsg := ""
 	for i := 0; i < 2; i++ {
@@ -114,7 +124,7 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	db.Commit()
 	this.echoSuccess(c, "链注册成功")
 }
-func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint, anchorIds string) {
+func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint, anchorIds string, pledge *big.Int) {
 	callerConfig := &blockchain.CallerConfig{
 		From:       from,
 		PrivateKey: privateKey,
@@ -141,6 +151,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 		TargetNetworkId:  uint64(chain.NetworkId),
 		AnchorAddresses:  anchorAddresses,
 		SignConfirmCount: uint8(signConfirmCount),
+		MaxValue:         pledge,
 	}
 	hash, err := api.RegisterChain(registerConfig, callerConfig)
 	if err != nil {
