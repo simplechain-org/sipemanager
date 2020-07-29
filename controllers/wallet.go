@@ -121,7 +121,6 @@ func (this *Controller) AddWallet(c *gin.Context) {
 	this.echoResult(c, id)
 }
 
-//不加载content
 // @Summary 钱包列表
 // @Tags wallet
 // @Accept  json
@@ -215,6 +214,66 @@ func (this *Controller) RemoveWallet(c *gin.Context) {
 		return
 	}
 	this.echoSuccess(c, "Success")
+}
+type WalletResult struct {
+	TotalCount  int              `json:"total_count"`  //总记录数
+	CurrentPage int              `json:"current_page"` //当前页数
+	PageSize    int              `json:"page_size"`    //页的大小
+	PageData    []*dao.WalletView `json:"page_data"`    //页的数据
+}
+// @Summary 钱包列表(分页显示)
+// @Tags wallet
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param current_page query string true "当前页"
+// @Param page_size query string true "页的记录数"
+// @Success 200 {object} JsonResult{data=WalletResult}
+// @Router /wallet/list/page [get]
+func (this *Controller) ListPageWallet(c *gin.Context) {
+	var pageSize int = 10
+	pageSizeStr := c.Query("page_size")
+	if pageSizeStr != "" {
+		size, err := strconv.ParseUint(pageSizeStr, 10, 64)
+		if err == nil {
+			pageSize = int(size)
+			if pageSize > 100 {
+				pageSize = 100
+			}
+		}
+	}
+	//当前页（默认为第一页）
+	var currentPage int = 1
+	currentPageStr := c.Query("current_page")
+	if currentPageStr != "" {
+		page, err := strconv.ParseUint(currentPageStr, 10, 64)
+		if err == nil {
+			currentPage = int(page)
+		}
+	}
+	start := (currentPage - 1) * pageSize
+	user, err := this.GetUser(c)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	wallets, err := this.dao.GetWalletViewPage(user.ID, start, pageSize)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	count, err := this.dao.GetWalletViewCount(user.ID)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	walletResult := &WalletResult{
+		TotalCount:  count,
+		CurrentPage: currentPage,
+		PageData:    wallets,
+		PageSize:    pageSize,
+	}
+	this.echoResult(c, walletResult)
 }
 
 
