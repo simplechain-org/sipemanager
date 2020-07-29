@@ -290,8 +290,12 @@ func (this *Controller) GetCrossMonitor(c *gin.Context) {
 	tokenKey := c.Query("tokenKey")
 	tokenList, err := this.dao.GetTxTokenList()
 	token := tokenList[tokenKey]
-	sourceNode, err := this.dao.GetNodeById(token.ChainID)
-	targetNode, err := this.dao.GetNodeById(token.RemoteChainID)
+	sourceNode, err := this.dao.GetNodeByChainId(token.ChainID)
+	targetNode, err := this.dao.GetNodeByChainId(token.RemoteChainID)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
 	source := &blockchain.Node{
 		Address: sourceNode.Address,
 		Port:    sourceNode.Port,
