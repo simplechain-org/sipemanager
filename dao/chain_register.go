@@ -166,6 +166,8 @@ type ChainRegisterView struct {
 	Confirm         uint   `json:"confirm" gorm:"confirm"`
 	AnchorAddresses string `json:"anchor_addresses" gorm:"anchor_addresses"`
 	TxHash          string `json:"tx_hash" gorm:"tx_hash"`
+	Status          int    `json:"status"`
+	StatusText      string `json:"status_text"`
 }
 
 func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*ChainRegisterView, error) {
@@ -201,9 +203,11 @@ func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView,
     target_chain_id,
     anchor_addresses,
     confirm,
-    tx_Hash from chain_registers where chain_registers.id=?`
+	status,
+	status_text,
+    tx_hash from chain_registers where chain_registers.id=?`
 	var result ChainRegisterView
-	db := this.db.Raw(sql, id)
-	err := db.First(&result).Error
+	db := this.db.Raw(sql, id).Limit(1)
+	err := db.Scan(&result).Error
 	return &result, err
 }

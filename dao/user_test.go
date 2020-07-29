@@ -12,7 +12,6 @@ func TestDataBaseAccessObject_CreateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(id)
-
 }
 
 func TestDataBaseAccessObject_UserIsValid(t *testing.T) {

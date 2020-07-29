@@ -39,12 +39,13 @@ func (this *DataBaseAccessObject) CreateNode(node *Node) (uint, error) {
 	var count int
 	err := this.db.Table(nodeTableName).Where("address=?", node.Address).
 		Where("port=?", node.Port).
+		Where("created_at is null").
 		Where("user_id=?", node.UserId).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
 	if count > 0 {
-		return 0, errors.New("Record already exists")
+		return 0, errors.New("记录已经存在")
 	}
 	err = this.db.Create(node).Error
 	if err != nil {
@@ -133,4 +134,14 @@ func (this *DataBaseAccessObject) ListNodeByChainId(chainId uint) ([]Node, error
 		return nil, err
 	}
 	return nodes, nil
+}
+func (this *DataBaseAccessObject) ChainIdExists(chainId uint) bool {
+	var total Total
+	sql := `select count(*) as total from nodes where chain_id=? and deleted_at is null`
+	db := this.db.Raw(sql,chainId)
+	err := db.Scan(&total).Error
+	if err != nil {
+		fmt.Println("ChainIdExists error", err)
+	}
+	return total.Total > 0
 }

@@ -54,3 +54,6 @@ func TestDataBaseAccessObject_ListNodeByUserId(t *testing.T) {
 	}
 
 }
+func TestDataBaseAccessObject_ChainIdExists(t *testing.T) {
+	fmt.Println("chain",obj.ChainIdExists(5))
+}

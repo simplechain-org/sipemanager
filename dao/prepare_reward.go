@@ -58,8 +58,8 @@ func (this *DataBaseAccessObject) GetPrepareRewardPage(start, pageSize int) ([]*
 			target_reward,
 			(select name from chains where id=source_chain_id) as source_chain_name,
 			(select name  from chains where id=target_chain_id) as target_chain_name,
-			(select coin_name from chains where id=source_chain_id) as source_chain_name,
-			(select coin_name from chains where id=target_chain_id) as target_chain_name
+			(select coin_name from chains where id=source_chain_id) as source_chain_coin,
+			(select coin_name from chains where id=target_chain_id) as target_chain_coin
 			 FROM prepare_rewards where deleted_at is null`
 	db := this.db.Raw(sql)
 	//必须使用Scan，不能使用find
