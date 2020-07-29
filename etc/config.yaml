@@ -4,7 +4,7 @@ db:
   port: 3306
   username: root
   password: root
-  db_name: sipe_manager
+  db_name: sipe_manager_test
   max_idle: 10
   max_open: 100
   charset: utf8mb4
