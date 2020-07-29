@@ -358,6 +358,9 @@ func (this *Controller) QueryMonitorBy(token dao.TokenListInterface) (map[string
 		anchor, err := this.dao.GetAnchorNode(uint(anId))
 		SApi, err := blockchain.NewDirectApi(anchor.SourceRpcUrl)
 		TApi, err := blockchain.NewDirectApi(anchor.TargetRpcUrl)
+		if SApi == nil || TApi == nil {
+			return MonCountMap, nil
+		}
 		sourceMon, err := SApi.GetMonitor()
 		targetMon, err := TApi.GetMonitor()
 
@@ -373,6 +376,7 @@ func (this *Controller) QueryMonitorBy(token dao.TokenListInterface) (map[string
 			}
 		}
 		if err != nil {
+			fmt.Println(454546, err)
 			return MonCountMap, err
 		}
 	}
