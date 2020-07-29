@@ -119,8 +119,6 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	//todo 万一其中一条链添加失败，这个时候该怎么处理
-
 	anchorNode := &dao.AnchorNode{
 		Name:          param.AnchorName,
 		Address:       param.AnchorAddress,
@@ -130,22 +128,20 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		TargetHash:    targetHash,
 		SourceRpcUrl:  param.SourceRpcUrl,
 		TargetRpcUrl:  param.TargetRpcUrl,
+		Status:        true,
 	}
 	id, err := this.dao.CreateAnchorNode(anchorNode)
 	if err != nil {
 		this.echoError(c, err)
 		return
 	}
-
 	go func(api *blockchain.Api, id uint, hash string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
-		maxCount := 300 //最多尝试300次
+		maxCount := 30
 		i := 0
 		for {
 			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
-			//时间到，做一下检测
 			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
 			if err == nil && receipt != nil {
 				err = this.dao.UpdateSourceStatus(id, uint(receipt.Status))
@@ -165,12 +161,10 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 	go func(api *blockchain.Api, id uint, hash string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
-		maxCount := 300 //最多尝试300次
+		maxCount := 30
 		i := 0
 		for {
 			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
-			//时间到，做一下检测
 			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
 			if err == nil && receipt != nil {
 				err = this.dao.UpdateTargetStatus(id, uint(receipt.Status))

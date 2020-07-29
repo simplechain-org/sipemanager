@@ -94,10 +94,8 @@ func (this *DataBaseAccessObject) GetTargetChainIdBySourceChainId(sourceChainId 
 func (this *DataBaseAccessObject) GetChainRegisterByChaiId(sourceChainId uint, targetChainId uint) (*ChainRegister, error) {
 	var result ChainRegister
 	err := this.db.Table((&ChainRegister{}).TableName()).
-		Where("source_chain_id=?", sourceChainId).
-		Or("source_chain_id=?", targetChainId).
-		Where("target_chain_id=?", targetChainId).
-		Or("target_chain_id=?", sourceChainId).First(&result).Error
+		Where("source_chain_id=? and target_chain_id=?", sourceChainId, targetChainId).
+		Or("source_chain_id=? and target_chain_id=?", targetChainId, sourceChainId).First(&result).Error
 	return &result, err
 }
 
@@ -180,7 +178,9 @@ func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*
     target_chain_id,
     anchor_addresses,
     confirm,
-    tx_Hash from chain_registers`
+    status,
+    status_text,
+    tx_hash from chain_registers`
 	result := make([]*ChainRegisterView, 0)
 	db := this.db.Raw(sql)
 	err := db.Offset(start).
@@ -210,4 +210,12 @@ func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView,
 	db := this.db.Raw(sql, id).Limit(1)
 	err := db.Scan(&result).Error
 	return &result, err
+}
+func (this *DataBaseAccessObject) GetChainRegisterById(id uint) (*ChainRegister, error) {
+	var result ChainRegister
+	err := this.db.Model(&ChainRegister{}).Where("id=?", id).First(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
