@@ -121,7 +121,7 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 		if err != nil {
 			return nil, err
 		}
-		if len(opposite) == 1 {
+		if len(opposite) > 1 {
 			sourceId := strconv.Itoa(int(item.SourceChainId))
 			targetId := strconv.Itoa(int(item.TargetChainId))
 			source, err := this.GetChain(item.SourceChainId)
