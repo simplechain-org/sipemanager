@@ -2,6 +2,7 @@ package dao
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 )
 
@@ -36,15 +37,17 @@ func (this *DataBaseAccessObject) UpdateRetroActiveStatus(id uint, status int) e
 
 func (this *DataBaseAccessObject) ListRetroActive(offset,limit uint32) ([]RetroActive, error) {
 	var count uint32
+
 	if err := this.db.Model(&RetroActive{}).Count(&count).Error; err != nil {
 		return nil, err
 	}
-	if offset < count {
+	fmt.Println(count,offset,limit,this.db)
+	if offset <= count {
 		result := make([]RetroActive, 0)
 		err := this.db.Table((&RetroActive{}).TableName()).Order("id desc").Offset(offset).Limit(limit).Find(&result).Error
 		return result, err
 	}
-	return nil, errors.New("offset >= count")
+	return nil, errors.New("offset > count")
 }
 
 func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int,offset,limit uint32) ([]RetroActive, error) {
@@ -52,7 +55,7 @@ func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int,offset,limi
 	if err := this.db.Model(&RetroActive{}).Where("status=?", status).Count(&count).Error; err != nil {
 		return nil, err
 	}
-	if offset < count {
+	if offset <= count {
 		result := make([]RetroActive, 0)
 		err := this.db.Table((&RetroActive{}).TableName()).
 			Where("status=?", status).
@@ -60,7 +63,7 @@ func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int,offset,limi
 			Find(&result).Error
 		return result, err
 	}
-	return nil, errors.New("offset >= count")
+	return nil, errors.New("offset > count")
 }
 func (this *DataBaseAccessObject) QueryRetroActive(txHash string) (*RetroActive, error) {
 	var retro RetroActive
