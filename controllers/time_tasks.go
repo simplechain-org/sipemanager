@@ -56,11 +56,7 @@ func (this *Controller) ListenAnchors() {
 		}
 		for _, dbMax := range dbMaxNums {
 			if dbMax.Number > 15 {
-				delErr := this.dao.Delete(dbMax.Number-15, dbMax.ChainId)
-				if delErr != nil {
-					defer utils.DeferRecoverLog("controller => time_task => ListenAnchors:", err.Error(), 20012, nil)
-					panic(err.Error())
-				}
+				this.dao.Delete(dbMax.Number-15, dbMax.ChainId)
 			}
 		}
 	})
