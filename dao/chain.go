@@ -1,14 +1,19 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type Chain struct {
-	gorm.Model
-	Name               string `json:"name" binding:"required"`       //链的名称
-	NetworkId          uint64 `json:"network_id" binding:"required"` //链的网络编号
-	CoinName           string `json:"coin_name" binding:"required"`  //币名
-	Symbol             string `json:"symbol" binding:"required"`     //符号
-	ContractInstanceId uint   `gorm:"contract_instance_id"`          //合约实例
+	ID                 uint `gorm:"primary_key" json"id"`
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	DeletedAt          *time.Time `sql:"index"`
+	Name               string     `json:"name" binding:"required"`                         //链的名称
+	NetworkId          uint64     `json:"network_id" binding:"required"`                   //链的网络编号
+	CoinName           string     `json:"coin_name" binding:"required"`                    //币名
+	Symbol             string     `json:"symbol" binding:"required"`                       //符号
+	ContractInstanceId uint       `gorm:"contract_instance_id" json"contract_instance_id"` //合约实例
 }
 
 func (this *Chain) TableName() string {
@@ -122,13 +127,16 @@ func (this *DataBaseAccessObject) UpdateChain(id uint, name string, networkId ui
 }
 
 type ChainInfo struct {
-	gorm.Model
-	Name               string `json:"name" gorm:"name"`                                 //链的名称
-	NetworkId          uint64 `json:"network_id" gorm:"network_id"`                     //链的网络编号
-	CoinName           string `json:"coin_name" gorm:"coin_name"`                       //币名
-	Symbol             string `json:"symbol" gorm:"coin_name"`                          //符号
-	ContractInstanceId uint   `json:"contract_instance_id" gorm:"contract_instance_id"` //合约实例
-	Address            string `json:"address" gorm:"address"`                           //合约地址
+	ID                 uint       `gorm:"primary_key" json:"id"`
+	CreatedAt          time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt          time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt          *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	Name               string     `json:"name" gorm:"name"`                                 //链的名称
+	NetworkId          uint64     `json:"network_id" gorm:"network_id"`                     //链的网络编号
+	CoinName           string     `json:"coin_name" gorm:"coin_name"`                       //币名
+	Symbol             string     `json:"symbol" gorm:"coin_name"`                          //符号
+	ContractInstanceId uint       `json:"contract_instance_id" gorm:"contract_instance_id"` //合约实例
+	Address            string     `json:"address" gorm:"address"`                           //合约地址
 }
 
 func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*ChainInfo, error) {

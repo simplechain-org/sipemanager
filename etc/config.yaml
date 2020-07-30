@@ -1,10 +1,10 @@
 port: 8093
 db:
-  address: 192.168.3.116
+  address: 192.168.8.104
   port: 3306
   username: root
   password: root
-  db_name: sipe_manager_test
+  db_name: sipe_manager
   max_idle: 10
   max_open: 100
   charset: utf8mb4

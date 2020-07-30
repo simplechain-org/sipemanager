@@ -4,10 +4,14 @@ import (
 	"github.com/jinzhu/gorm"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ChainRegister struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId   uint   `json:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id"`
 	Confirm         uint   `json:"confirm"`
@@ -155,8 +159,8 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 }
 
 type ChainRegisterView struct {
-	ID              uint   `json:"ID" gorm:"id"`
-	CreatedAt       string `json:"CreatedAt" gorm:"CreatedAt"` //创建时间
+	ID              uint   `json:"id" gorm:"id"`
+	CreatedAt       string `json:"created_at" gorm:"created_at"` //创建时间
 	SourceChainId   uint   `json:"source_chain_id" gorm:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id" gorm:"target_chain_id"`
 	SourceChainName string `json:"source_chain_name" gorm:"source_chain_name"`
@@ -164,8 +168,8 @@ type ChainRegisterView struct {
 	Confirm         uint   `json:"confirm" gorm:"confirm"`
 	AnchorAddresses string `json:"anchor_addresses" gorm:"anchor_addresses"`
 	TxHash          string `json:"tx_hash" gorm:"tx_hash"`
-	Status          int    `json:"status"`
-	StatusText      string `json:"status_text"`
+	Status          int    `json:"status" gorm:"status"`
+	StatusText      string `json:"status_text" gorm:"status_text"`
 }
 
 func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*ChainRegisterView, error) {

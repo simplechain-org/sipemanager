@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+	"github.com/simplechain-org/go-simplechain/common"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -30,4 +32,8 @@ func TestController_ListAnchorNode(t *testing.T) {
 		}
 		t.Log(string(body))
 	}
+}
+
+func TestController_AddAnchorNode(t *testing.T) {
+	fmt.Println(common.IsHexAddress("17529b05513e5595ceff7f4fb1e06512c271a5"))
 }
