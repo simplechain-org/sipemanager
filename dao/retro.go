@@ -3,11 +3,14 @@ package dao
 import (
 	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type RetroActive struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	NetworkId       uint64 `json:"network_id"`
 	Status          int    `json:"status"`  //1 待签  2 签名完成
 	TxHash          string `json:"tx_hash"`

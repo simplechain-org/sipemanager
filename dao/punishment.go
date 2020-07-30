@@ -2,22 +2,24 @@ package dao
 
 import (
 	"fmt"
-
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Punishment struct {
-	gorm.Model
-	Value string //惩罚数量
-	Coin  string //惩罚币种
+	ID        uint       `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	Value     string     `gorm:"value" json:"value"` //惩罚数量
+	Coin      string     `gorm:"coin" json:"coin"`   //惩罚币种
 	//suspend recovery token
-	ManageType   string //管理类型
-	AnchorNodeId uint   `gorm:"anchor_node_id"` //锚定节点编号
+	ManageType   string `gorm:"manage_type" json:"manage_type"`   //管理类型
+	AnchorNodeId uint   `gorm:"anchor_node_id" json:"created_at"` //锚定节点编号
 }
 
 type PunishmentView struct {
-	ID             uint   `gorm:"id" json:"ID"`
-	CreatedAt      string `gorm:"created_at" json:"CreatedAt"`
+	ID             uint   `gorm:"id" json:"id"`
+	CreatedAt      string `gorm:"created_at" json:"created_at"`
 	Value          string `gorm:"value" json:"value"`                       //惩罚数量
 	Coin           string `gorm:"coin" json:"coin"`                         //惩罚币种
 	ManageType     string `gorm:"manage_type" json:"manage_type"`           //管理类型

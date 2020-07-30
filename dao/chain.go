@@ -1,14 +1,20 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"time"
+)
 
 type Chain struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json"id"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 	Name               string `json:"name" binding:"required"`       //链的名称
 	NetworkId          uint64 `json:"network_id" binding:"required"` //链的网络编号
 	CoinName           string `json:"coin_name" binding:"required"`  //币名
 	Symbol             string `json:"symbol" binding:"required"`     //符号
-	ContractInstanceId uint   `gorm:"contract_instance_id"`          //合约实例
+	ContractInstanceId uint   `gorm:"contract_instance_id" json"contract_instance_id"`          //合约实例
 }
 
 func (this *Chain) TableName() string {

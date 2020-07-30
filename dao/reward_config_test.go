@@ -2,23 +2,15 @@ package dao
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"testing"
-	"time"
 )
 
 func TestDataBaseAccessObject_CreateRewardConfig(t *testing.T) {
-	d, _ := time.ParseDuration("-24h")
-	mo:=gorm.Model{
-		CreatedAt: time.Now().Add(d),
-		UpdatedAt: time.Now().Add(d),
-	}
 	//SourceChainId   uint   `json:"source_chain_id"`
 	//TargetChainId   uint   `json:"target_chain_id"`
 	//RegulationCycle uint   `json:"regulation_cycle"` //调控周期
 	//SignReward      string `json:"sign_reward"`      //单笔签名奖励
 	rewardConfig := &RewardConfig{
-		Model:           mo,
 		SourceChainId:   1,
 		TargetChainId:   2,
 		RegulationCycle: 90,
@@ -64,17 +56,11 @@ func TestDataBaseAccessObject_CreateRewardConfig2(t *testing.T) {
 	t.Log("reward config id:", id)
 }
 func TestDataBaseAccessObject_CreateRewardConfig3(t *testing.T) {
-	d, _ := time.ParseDuration("-5h")
-	mo:=gorm.Model{
-		CreatedAt: time.Now().Add(d),
-		UpdatedAt: time.Now().Add(d),
-	}
 	//SourceChainId   uint   `json:"source_chain_id"`
 	//TargetChainId   uint   `json:"target_chain_id"`
 	//RegulationCycle uint   `json:"regulation_cycle"` //调控周期
 	//SignReward      string `json:"sign_reward"`      //单笔签名奖励
 	rewardConfig := &RewardConfig{
-		Model:           mo,
 		SourceChainId:   1,
 		TargetChainId:   2,
 		RegulationCycle: 120,
@@ -98,17 +84,12 @@ func TestDataBaseAccessObject_GetLatestRewardConfig(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_CreateRewardConfig4(t *testing.T) {
-	d, _ := time.ParseDuration("-24h")
-	mo:=gorm.Model{
-		CreatedAt: time.Now().Add(d),
-		UpdatedAt: time.Now().Add(d),
-	}
+
 	//SourceChainId   uint   `json:"source_chain_id"`
 	//TargetChainId   uint   `json:"target_chain_id"`
 	//RegulationCycle uint   `json:"regulation_cycle"` //调控周期
 	//SignReward      string `json:"sign_reward"`      //单笔签名奖励
 	rewardConfig := &RewardConfig{
-		Model:           mo,
 		SourceChainId:   2,
 		TargetChainId:   1,
 		RegulationCycle: 100,
@@ -120,13 +101,8 @@ func TestDataBaseAccessObject_CreateRewardConfig4(t *testing.T) {
 		return
 	}
 	t.Log("reward config id:", id)
-	d, _ = time.ParseDuration("-5h")
-	mo=gorm.Model{
-		CreatedAt: time.Now().Add(d),
-		UpdatedAt: time.Now().Add(d),
-	}
+
 	rewardConfig = &RewardConfig{
-		Model:           mo,
 		SourceChainId:   2,
 		TargetChainId:   1,
 		RegulationCycle: 120,

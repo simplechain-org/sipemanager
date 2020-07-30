@@ -2,13 +2,16 @@ package dao
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"math/big"
+	"time"
 )
 
 //报销手续费日志
 type ServiceChargeLog struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	AnchorNodeId    uint   `gorm:"anchor_node_id"`   //锚定节点编号
 	TransactionHash string `gorm:"transaction_hash"` //交易哈希
 	Fee             string `gorm:"fee"`              //报销手续费
@@ -18,15 +21,15 @@ type ServiceChargeLog struct {
 }
 
 type ServiceChargeLogView struct {
-	ID              uint   `gorm:"id" json:"ID"`
-	CreatedAt       string `gorm:"created_at" json:"CreatedAt"`
-	AnchorNodeId    uint   `gorm:"anchor_node_id"`   //锚定节点编号
-	TransactionHash string `gorm:"transaction_hash"` //交易哈希
-	Fee             string `gorm:"fee"`              //报销手续费
-	Coin            string `gorm:"coin"`             //报销的币种
-	Sender          string `gorm:"sender"`           //出账账户地址
-	Status          uint   `gorm:"status"`           //状态
-	AnchorNodeName  string `gorm:"anchor_node_name"` //锚定节点名称
+	ID              uint   `gorm:"id" json:"id"`
+	CreatedAt       string `gorm:"created_at" json:"created_at"`
+	AnchorNodeId    uint   `gorm:"anchor_node_id" json:"anchor_node_id"`     //锚定节点编号
+	TransactionHash string `gorm:"transaction_hash" json:"transaction_hash"` //交易哈希
+	Fee             string `gorm:"fee" json:"fee"`                           //报销手续费
+	Coin            string `gorm:"coin" json:"coin"`                         //报销的币种
+	Sender          string `gorm:"sender" json:"sender"`                     //出账账户地址
+	Status          uint   `gorm:"status" json:"status"`                     //状态
+	AnchorNodeName  string `gorm:"anchor_node_name" json:"anchor_node_name"` //锚定节点名称
 }
 
 func (this *ServiceChargeLog) TableName() string {
@@ -73,11 +76,7 @@ func (this *DataBaseAccessObject) GetServiceChargeLogPage(start, pageSize int, a
 	if anchorNodeId != 0 {
 		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
-	db := this.db.Raw(sql)
-
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	err := this.db.Raw(sql).Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 
