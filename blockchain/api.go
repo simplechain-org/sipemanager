@@ -164,7 +164,6 @@ func (this *Api) GetMonitor() (Monitor, error) {
 	var result Monitor
 	err := this.client.CallContext(ctx, &result, "cross_monitor")
 	if err != nil {
-		fmt.Println("6345673456----------12345123412512423----------")
 		logrus.Error(err.Error())
 		return result, err
 	}
