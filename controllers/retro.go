@@ -34,7 +34,7 @@ func (this *Controller) RetroActiveList(c *gin.Context) {
 		Status int `json:"status"`
 	}
 	var param Param
-	if err := c.ShouldBindJSON(&param); err != nil {
+	if err := c.ShouldBind(&param); err != nil {
 		this.echoError(c, err)
 		return
 	}
@@ -42,18 +42,21 @@ func (this *Controller) RetroActiveList(c *gin.Context) {
 	var result []dao.RetroActive
 	var err error
 	if param.Status == 0 {
+		fmt.Println(1)
 		result, err = this.dao.ListRetroActive(offset,param.PageSize)
 		if err != nil {
 			this.echoError(c, err)
 			return
 		}
 	} else {
+		fmt.Println(2)
 		result, err = this.dao.ListRetroActiveByStatus(param.Status,offset,param.PageSize)
 		if err != nil {
 			this.echoError(c, err)
 			return
 		}
 	}
+	fmt.Println(3)
 	this.echoResult(c, result)
 }
 
