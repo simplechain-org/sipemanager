@@ -1,10 +1,15 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 //接单记录
 type TakerOrder struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId uint   `json:"source_chain_id"` //这是链记录的id不是networkId
 	TargetChainId uint   `json:"target_chain_id"`
 	Taker         string `json:"taker"`

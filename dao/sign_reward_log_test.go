@@ -43,7 +43,7 @@ func TestDataBaseAccessObject_UpdateSignRewardLogStatus(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetSignRewardLogPage(t *testing.T) {
-	result, err := obj.GetSignRewardLogPage(0, 10, uint(1))
+	result, err := obj.GetSignRewardLogPage(0, 10, uint(54))
 	if err != nil {
 		t.Fatal(err)
 	}

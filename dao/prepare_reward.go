@@ -1,10 +1,15 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 //预扣费用，针对合约中的reward
 type PrepareReward struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId uint   `json:"source_chain_id"`
 	TargetChainId uint   `json:"target_chain_id"`
 	SourceReward  string `json:"source_reward"`
@@ -13,7 +18,10 @@ type PrepareReward struct {
 	TargetHash    string `json:"target_hash"`
 }
 type PrepareRewardView struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId   uint   `json:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id"`
 	SourceReward    string `json:"source_reward"`
