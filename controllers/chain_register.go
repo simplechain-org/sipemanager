@@ -55,39 +55,32 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 1")
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		fmt.Println("GetWallet ",err)
+		fmt.Println("GetWallet ", err)
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 2")
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		fmt.Println("GetPrivateKey ",err)
+		fmt.Println("GetPrivateKey ", err)
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 3")
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	errChan := make(chan error, 2)
-	fmt.Println("RegisterChainTwoWay 4")
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		fmt.Println("getApiByNodeId ",err)
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 5")
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		fmt.Println("getApiByNodeId ",err)
+		fmt.Println("getApiByNodeId ", err)
 		this.echoError(c, err)
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 6")
 	db := this.dao.BeginTransaction()
 	ids := make([]string, 0)
 	for index, address := range param.AnchorAddresses {
@@ -96,11 +89,12 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 			Address:       address,
 			SourceChainId: param.SourceChainId,
 			TargetChainId: param.TargetChainId,
-			Pledge: param.Pledge,
+			Pledge:        param.Pledge,
+			Status:        true, //默认为有效
 		}
 		id, err := this.dao.CreateAnchorNodeByTx(db, anchorNode)
 		if err != nil {
-			fmt.Println("CreateAnchorNodeByTx ",err)
+			fmt.Println("CreateAnchorNodeByTx ", err)
 			db.Rollback()
 			this.echoError(c, err)
 			return
@@ -108,19 +102,15 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		ids = append(ids, fmt.Sprintf("%d", id))
 	}
 	idString := strings.Join(ids, ",")
-	fmt.Println("RegisterChainTwoWay 7")
-	pledge,ok:=new(big.Int).SetString(param.Pledge,10)
-	if !ok{
+	pledge, ok := new(big.Int).SetString(param.Pledge, 10)
+	if !ok {
 		this.echoError(c, errors.New("pledge 值非法"))
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 8")
-	//注册一条链 source->target
-	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge)
-	fmt.Println("RegisterChainTwoWay 9")
+	//注册一条链 source(1)->target(2)
+	go this.registerOneChain(db, address, privateKey, source, param.TargetChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge, 1)
 	//注册另一条链 target->source
-	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge)
-	fmt.Println("RegisterChainTwoWay 10")
+	go this.registerOneChain(db, address, privateKey, target, param.SourceChainId, errChan, param.AnchorAddresses, param.SignConfirmCount, idString, pledge, 2)
 	errMsg := ""
 	for i := 0; i < 2; i++ {
 		err := <-errChan
@@ -128,19 +118,16 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 			errMsg += err.Error()
 		}
 	}
-	fmt.Println("RegisterChainTwoWay 11")
 	if errMsg != "" {
-		fmt.Println("errMsg ",errMsg)
+		fmt.Println("errMsg ", errMsg)
 		db.Rollback()
 		this.echoError(c, errors.New(errMsg))
 		return
 	}
-	fmt.Println("RegisterChainTwoWay 12")
 	db.Commit()
-	fmt.Println("链注册成功")
 	this.echoSuccess(c, "链注册成功")
 }
-func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint, anchorIds string, pledge *big.Int) {
+func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, privateKey *ecdsa.PrivateKey, api *blockchain.Api, targetChainId uint, errChan chan error, strAnchorAddresses []string, signConfirmCount uint, anchorIds string, pledge *big.Int, role uint) {
 	callerConfig := &blockchain.CallerConfig{
 		From:       from,
 		PrivateKey: privateKey,
@@ -148,13 +135,11 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 	}
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		fmt.Println("GetChain ",err)
 		errChan <- err
 		return
 	}
 	contract, err := this.dao.GetContractByChainId(api.GetChainId())
 	if err != nil {
-		fmt.Println("GetContractByChainId ",err)
 		errChan <- err
 		return
 	}
@@ -171,10 +156,9 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 		SignConfirmCount: uint8(signConfirmCount),
 		MaxValue:         pledge,
 	}
-	fmt.Printf("registerConfig TargetNetworkId=%d,SignConfirmCount=%d,MaxValue=%d\n",registerConfig.TargetNetworkId,registerConfig.SignConfirmCount,registerConfig.MaxValue)
 	hash, err := api.RegisterChain(registerConfig, callerConfig)
 	if err != nil {
-		fmt.Println("RegisterChain ",err)
+		fmt.Println("RegisterChain ", err)
 		errChan <- err
 		return
 	}
@@ -188,18 +172,18 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 	}
 	registerId, err := this.dao.CreateChainRegisterByTx(db, register)
 	if err != nil {
-		fmt.Println("CreateChainRegisterByTx ",err)
+		fmt.Println("CreateChainRegisterByTx ", err)
 		errChan <- err
 		return
 	}
-	go func(id uint, hash string) {
+	go func(id uint, hash string, targetChainId uint) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
 		maxCount := 300 //最多尝试300次
 		i := 0
 		for {
 			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
+			fmt.Println("链注册检测时间:", time.Now().Unix())
 			//时间到，做一下检测
 			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
 			if err == nil && receipt != nil {
@@ -208,6 +192,28 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 					fmt.Println(err)
 					continue
 				}
+				if int(receipt.Status) == 1 {
+					chainRegister, err := this.dao.GetChainRegisterById(id)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					idStrings := strings.Split(chainRegister.AnchorAddresses, ",")
+					for _, idStr := range idStrings {
+						id, err := strconv.ParseUint(idStr, 10, 64)
+						if err != nil {
+							fmt.Println(err)
+							continue
+						}
+						if role == 1 {
+							//1 source
+							this.dao.UpdateSourceStatus(uint(id), uint(receipt.Status))
+						} else if role == 2 {
+							//2 target
+							this.dao.UpdateTargetStatus(uint(id), uint(receipt.Status))
+						}
+					}
+				}
 				break
 			}
 			if i >= maxCount {
@@ -215,7 +221,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 			}
 			i++
 		}
-	}(registerId, hash)
+	}(registerId, hash, targetChainId)
 	errChan <- nil
 }
 
