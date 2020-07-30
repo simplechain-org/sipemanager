@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/simplechain-org/go-simplechain"
@@ -21,16 +22,16 @@ type AnchorNodeRewardConfig struct {
 }
 
 //获取奖励池的剩余数量
+//ok
 func (this *Api) GetTotalReward(config *AnchorNodeRewardConfig, callerConfig *CallerConfig) (*big.Int, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("读取合约的abi文件json内容出错:%s",err.Error())
 	}
-	out, err := abi.Pack("getTotalReward", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress)
+	out, err := abi.Pack("getTotalReward", big.NewInt(0).SetUint64(config.TargetNetworkId))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getTotalReward合约方法打包错误：%s",err.Error())
 	}
-
 	msg := simplechain.CallMsg{
 		From: callerConfig.From,
 		To:   &config.ContractAddress,
@@ -38,7 +39,7 @@ func (this *Api) GetTotalReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 	}
 	result, err := this.simpleClient.CallContract(context.Background(), msg, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("调用合约方法出错:%s",err.Error())
 	}
 	return big.NewInt(0).SetBytes(result), nil
 }
