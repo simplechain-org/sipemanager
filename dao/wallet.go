@@ -62,3 +62,49 @@ func (this *DataBaseAccessObject) WalletExists(address string) bool {
 func (this *DataBaseAccessObject) RemoveWallet(id uint) error {
 	return this.db.Where("id = ?", id).Delete(&Wallet{}).Error
 }
+
+type WalletView struct {
+	ID        uint   `gorm:"id" json:"ID"`
+	CreatedAt string `gorm:"created_at" json:"CreatedAt"`
+	Name      string `gorm:"size:255" json:"name"`
+	Content   string `gorm:"type:text" json:"content"`
+	Address   string `gorm:"size:255" json:"address"`
+}
+
+func (this *DataBaseAccessObject) ListWalletViewByUserId(userId uint) ([]WalletView, error) {
+	sql := `select
+			id,
+			name,
+			content,
+			address,
+			date_format(wallets.created_at,'%Y-%m-%d %H:%i:%S') as created_at
+            from wallets where wallets.user_id=? and wallets.deleted_at is null`
+	wallets := make([]WalletView, 0)
+	err := this.db.Raw(sql, userId).Scan(&wallets).Error
+	if err != nil {
+		return nil, err
+	}
+	return wallets, nil
+}
+func (this *DataBaseAccessObject) GetWalletViewCount(userId uint) (int, error) {
+	var count int
+	err := this.db.Table((&Wallet{}).TableName()).Where("user_id=?", userId).
+		Count(&count).Error
+	return count, err
+}
+func (this *DataBaseAccessObject) GetWalletViewPage(userId uint, start, pageSize int) ([]*WalletView, error) {
+	sql := `select
+			id,
+			name,
+			content,
+			address,
+			date_format(wallets.created_at,'%Y-%m-%d %H:%i:%S') as created_at
+            from wallets where wallets.user_id=? and wallets.deleted_at is null`
+	wallets := make([]*WalletView, 0)
+	err := this.db.Raw(sql, userId).Offset(start).
+		Limit(pageSize).Scan(&wallets).Error
+	if err != nil {
+		return nil, err
+	}
+	return wallets, err
+}

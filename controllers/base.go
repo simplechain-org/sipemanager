@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"sipemanager/blockchain"
 
@@ -16,6 +17,7 @@ type JsonResult struct {
 }
 
 func (this *Controller) echoError(c *gin.Context, err error) {
+	logrus.Error(err)
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  err.Error(),
 		"code": -1,

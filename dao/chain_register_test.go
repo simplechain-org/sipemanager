@@ -1,6 +1,9 @@
 package dao
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -83,11 +86,37 @@ func TestDataBaseAccessObject_GetChainRegisterCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetChainRegister(t *testing.T) {
-	result, err := obj.GetChainRegister(1)
+	chain, err := obj.GetChainRegister(8)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log(result)
+
+	type ChainRegisterInfo struct {
+		ChainRegisterView
+		AnchorNodes []*AnchorNode `json:"anchor_nodes" gorm:"anchor_nodes"`
+	}
+	chainRegisterInfo := &ChainRegisterInfo{
+		ChainRegisterView: *chain,
+		AnchorNodes:       make([]*AnchorNode, 0),
+	}
+	if chain.AnchorAddresses != "" {
+		idStrings := strings.Split(chain.AnchorAddresses, ",")
+		for _, idStr := range idStrings {
+			id, err := strconv.ParseUint(idStr, 10, 64)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			anchorNode, err := obj.GetAnchorNode(uint(id))
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			chainRegisterInfo.AnchorNodes = append(chainRegisterInfo.AnchorNodes, anchorNode)
+		}
+
+		fmt.Printf("result=%+v\n", chainRegisterInfo)
+	}
 
 }

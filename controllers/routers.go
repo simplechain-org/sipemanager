@@ -1,13 +1,12 @@
 package controllers
 
 import (
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"sipemanager/docs"
-
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+	"sipemanager/docs"
 )
 
 func SwaggerDoc(router *gin.Engine) {
@@ -22,8 +21,10 @@ func SwaggerDoc(router *gin.Engine) {
 
 func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	c := &Controller{userClient: make(map[uint]*blockchain.Api),
-		dao: object,
+		dao:         object,
+		NodeChannel: make(chan BlockChannel, 4096),
 	}
+	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
@@ -34,8 +35,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/transaction/:hash", validateLogin, c.GetTransactionReceipt)
 	router.GET("/api/v1/node/list", validateLogin, c.GetNodes)
 	router.POST("/api/v1/node", validateLogin, c.AddNode)
-	router.POST("/api/v1/node/change", validateLogin, c.ChangeNode)
-	router.GET("/api/v1/node/current", validateLogin, c.GetUserCurrentNode)
 
 	router.DELETE("/api/v1/chain/:chain_id", c.RemoveChain)
 
@@ -49,7 +48,6 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 
-	router.GET("/api/v1/chain/current", validateLogin, c.GetUserCurrentChain)
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
 
@@ -64,18 +62,20 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
 	router.GET("/api/v1/chart/anchorCount/list", c.AnchorCount)
 	router.GET("/api/v1/chart/crossTxCount/list", c.CrossTxCount)
+	router.GET("/api/v1/chart/finishList/list", c.getFinishList)
+	router.GET("/api/v1/chart/crossMonitor/list", c.GetCrossMonitor)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
 	router.GET("/api/v1/reward/chain", validateLogin, c.GetChainReward)
 	router.GET("/api/v1/anchor/work/count", validateLogin, c.GetAnchorWorkCount)
 	router.POST("/api/v1/reward/add", validateLogin, c.AddSignReward)
-	router.POST("/api/v1/reward/configure", validateLogin, c.ConfigureSignReward)
 	router.GET("/api/v1/service/charge/list", validateLogin, c.ListServiceCharge)
 	router.POST("/api/v1/service/charge/add", validateLogin, c.AddServiceCharge)
 	router.GET("/api/v1//service/charge/fee", validateLogin, c.GetServiceChargeFee)
 	router.POST("/api/v1/anchor/node/add", validateLogin, c.AddAnchorNode)
 	router.POST("/api/v1/anchor/node/remove", validateLogin, c.RemoveAnchorNode)
+	router.POST("/api/v1/anchor/node/update", validateLogin, c.UpdateAnchorNode)
 	router.DELETE("/api/v1/wallet/remove", validateLogin, c.RemoveWallet)
 	router.POST("/api/v1/punishment/add", validateLogin, c.AddPunishment)
 	router.GET("/api/v1/punishment/list", validateLogin, c.ListPunishment)
@@ -107,20 +107,42 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1/chain/register/list", validateLogin, c.ListChainRegister)
 	router.GET("/api/v1/chain/register/info", validateLogin, c.GetChainRegisterInfo)
 
+	router.POST("/api/v1/reward/config/add", validateLogin, c.AddRewardConfig)
+	router.GET("/api/v1/reward/config/info/:id", validateLogin, c.GetRewardConfigInfo)
+	router.DELETE("/api/v1/reward/config/remove/:id", validateLogin, c.RemoveRewardConfig)
+	router.GET("/api/v1/reward/config/list", validateLogin, c.ListRewardConfig)
+	router.POST("/api/v1/reward/config/detail", validateLogin, c.GetRewardConfig)
+
+	router.GET("/api/v1/reward/anchor/single", validateLogin, c.GetSignRewardByAnchorNode)
+	router.GET("/api/v1/reward/chain/single", validateLogin, c.GetSignRewardBySourceAndTarget)
+	router.POST("/api/v1/reward/config/update", validateLogin, c.UpdateRewardConfig)
+
+	router.GET("/api/v1/reward/prepare/reward/list", validateLogin, c.ListPrepareReward)
+	router.POST("/api/v1/chain/cross/prepare/reward/update", validateLogin, c.UpdatePrepareReward)
+	router.POST("/api/v1/chain/cross/prepare/reward", validateLogin, c.AddPrepareReward)
+
+	router.GET("/api/v1//wallet/list/page", validateLogin, c.ListPageWallet)
 }
 
 type BlockChannel struct {
-	ChainId     uint
-	BlockNumber int64
-	currentNode dao.InstanceNodes
+	ChainId            uint
+	NodeId             uint
+	BlockNumber        int64
+	CurrentNode        dao.InstanceNodes
+	ContractInstanceId uint
 }
 
-func ListenEvent(object *dao.DataBaseAccessObject) {
-	c := &Controller{userClient: make(map[uint]*blockchain.Api),
-		dao: object,
-	}
-	go c.ListenCrossEvent()
-	go c.ListenBlock()
-	go c.ListenAnchors()
-	go c.UpdateRetroActive()
+//type CloseChannel struct {
+//	ChainId            uint
+//	ContractInstanceId uint
+//	Status             bool
+//}
+
+func (this *Controller) ListenEvent() {
+	go this.ListenHeartChannel()
+	go this.ListenCrossEvent()
+	go this.ListenDirectBlock()
+	go this.ListenAnchors()
+	go this.UpdateRetroActive()
+	go this.ListenWorkCount()
 }

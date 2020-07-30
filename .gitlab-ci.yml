@@ -2,42 +2,54 @@ image: golang:1.14.1
 stages:
   - prebuild
   - build
-  - apiDoc
+  - swagger
+  - apipush
 
 prebuild:
   stage: prebuild
   script:
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
-    - go env
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
 
 build:
   stage: build
   dependencies:
     - prebuild
   script:
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
-    - go mod tidy
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
     - go build
 
 swagger:
-  stage: apiDoc
+  stage: swagger
+  dependencies:
+    - prebuild
+    - build
+  script:
+    - go env -w GO111MODULE=on
+    - go env -w GOPROXY=https://goproxy.cn,direct
+    - mkdir -p docs
+    - ls -al
+    - go get -u github.com/swaggo/swag/cmd/swag
+    - swag init
+    - test -e "docs/swagger.json" || exit 1
+  allow_failure: true
+  cache:
+    key: "CI_COMMIT_REF_SLUG"
+    paths:
+      - /go
+
+apipush:
+  stage: apipush
   variables:
     YAPI_TOKEN: 'd8a0e46b96a9ea2d39397151fd787e8bb770e21ccc5fad297b0ebf73082b3399'#sipe-manager
   dependencies:
     - prebuild
     - build
+    - swagger
   script:
     - mkdir -p docs
     - ls -al
-    - export GOPROXY="https://goproxy.cn,direct"
-    - export GO111MODULE=on
-    - export CGO_ENABLED=0
-    - go get -u github.com/swaggo/swag/cmd/swag
-    - swag init
     - test -e "docs/swagger.json" || exit 1
     - echo "type=swagger&merge=merge&token=$YAPI_TOKEN&json=`cat docs/swagger.json`" > postData.txt
     - >

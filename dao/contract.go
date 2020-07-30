@@ -1,6 +1,9 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"fmt"
+	"github.com/jinzhu/gorm"
+)
 
 type Contract struct {
 	gorm.Model
@@ -39,10 +42,10 @@ func (this *DataBaseAccessObject) UpdateContractBin(id uint, bin string) error {
 		Update("bin", bin).Error
 }
 
-//列出所有的合约，因为Sol，bin,abi较大，不加载
+//列出所有的合约
 func (this *DataBaseAccessObject) GetContracts() ([]*Contract, error) {
 	contracts := make([]*Contract, 0)
-	err := this.db.Table((&Contract{}).TableName()).Select("id,name").Find(&contracts).Error
+	err := this.db.Table((&Contract{}).TableName()).Find(&contracts).Error
 	return contracts, err
 }
 
@@ -73,18 +76,53 @@ func (this *DataBaseAccessObject) ContractCanDelete(contractId uint) (bool, erro
 func (this *DataBaseAccessObject) RemoveContract(contractId uint) error {
 	return this.db.Where("id = ?", contractId).Delete(&Contract{}).Error
 }
+func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status string) ([]*Contract, error) {
+	if status == "not_deployed" || status == "deployed" {
+		sql := `select id,
+        name,
+        sol,
+        bin,
+        abi,
+        created_at,
+        updated_at,
+        deleted_at from contracts`
+		if status == "deployed" {
+			sql += " where id in (select distinct contract_id from contract_instances)"
+		} else {
+			sql += " where id not in (select distinct contract_id from contract_instances)"
+		}
+		sql+=" and `contracts`.`deleted_at` IS NULL "
+		sql += fmt.Sprintf(" order by id limit %d offset %d", pageSize, start)
+		result := make([]*Contract, 0)
+		err := this.db.Raw(sql).Scan(&result).Error
+		return result, err
 
-func (this *DataBaseAccessObject) GetContractPage(start, pageSize int) ([]*Contract, error) {
-	result := make([]*Contract, 0)
-	db := this.db.Table((&Contract{}).TableName()).
-		Select("id,name")
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
-	return result, err
+	} else {
+		result := make([]*Contract, 0)
+		err := this.db.Table((&Contract{}).TableName()).Offset(start).
+			Limit(pageSize).
+			Find(&result).Error
+		return result, err
+	}
 }
-func (this *DataBaseAccessObject) GetContractCount() (int, error) {
-	var count int
-	err := this.db.Table((&Contract{}).TableName()).Count(&count).Error
-	return count, err
+func (this *DataBaseAccessObject) GetContractCount(status string) (int, error) {
+	if status == "not_deployed" || status == "deployed" {
+		sql := `select count(*) as total from contracts`
+		if status == "deployed" {
+			sql += " where id in (select distinct contract_id from contract_instances)"
+		} else {
+			sql += " where id not in (select distinct contract_id from contract_instances)"
+		}
+		type Count struct {
+			//注意字段一定要大写
+			Total int
+		}
+		var count Count
+		err := this.db.Raw(sql).Scan(&count).Error
+		return count.Total, err
+	} else {
+		var count int
+		err := this.db.Table((&Contract{}).TableName()).Count(&count).Error
+		return count, err
+	}
 }

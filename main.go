@@ -55,7 +55,6 @@ func main() {
 	})
 	controllers.Register(router, dao)
 	controllers.SwaggerDoc(router)
-	go func() { controllers.ListenEvent(dao) }()
 
 	router.StaticFile("/", "./webroot/dist/index.html")
 

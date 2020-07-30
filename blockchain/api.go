@@ -2,9 +2,10 @@ package blockchain
 
 import (
 	"context"
+	"fmt"
+	"github.com/simplechain-org/go-simplechain/common/hexutil"
 	"math/big"
 	"time"
-	"fmt"
 
 	"github.com/simplechain-org/go-simplechain"
 	"github.com/simplechain-org/go-simplechain/common"
@@ -51,6 +52,19 @@ func NewApi(node *Node) (*Api, error) {
 		port:         node.Port,
 		chainId:      node.ChainId,
 		networkId:    node.NetworkId,
+		simpleClient: ethclient.NewClient(client),
+	}, nil
+}
+
+func NewDirectApi(url string) (*Api, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	client, err := rpc.DialContext(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	return &Api{
+		client:       client,
 		simpleClient: ethclient.NewClient(client),
 	}, nil
 }
@@ -137,4 +151,33 @@ func (this *Api) GetHeaderByNumber() (*types.Header, error) {
 		return nil, err
 	}
 	return header, nil
+}
+
+type Monitor struct {
+	Tally    map[common.Address]uint64
+	Recently map[common.Address]uint32
+}
+
+func (this *Api) GetMonitor() (Monitor, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	var result Monitor
+	err := this.client.CallContext(ctx, &result, "cross_monitor")
+	if err != nil {
+		fmt.Println("6345673456----------12345123412512423----------")
+		logrus.Error(err.Error())
+		return result, err
+	}
+	return result, err
+}
+
+func (this *Api) LatestBalanceAt(account common.Address) (*big.Int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	var result hexutil.Big
+	err := this.client.CallContext(ctx, &result, "eth_getBalance", account, "latest")
+	if err != nil {
+		logrus.Error(err.Error())
+	}
+	return (*big.Int)(&result), err
 }

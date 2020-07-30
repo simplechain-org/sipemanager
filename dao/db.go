@@ -68,4 +68,7 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&ServiceChargeLog{})
 	db.AutoMigrate(&SignRewardLog{})
 	db.AutoMigrate(&Punishment{})
+	db.AutoMigrate(&WorkCount{})
+	db.AutoMigrate(&RewardConfig{})
+	db.AutoMigrate(&PrepareReward{})
 }

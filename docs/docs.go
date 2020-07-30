@@ -98,6 +98,20 @@ var doc = `{
                         "name": "password",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -113,6 +127,61 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/anchor/node/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListAnchorNode"
+                ],
+                "summary": "锚定节点列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
                                         }
                                     }
                                 }
@@ -220,6 +289,68 @@ var doc = `{
                         "type": "string",
                         "description": "钱包密码",
                         "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/anchor/node/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddAnchorNode"
+                ],
+                "summary": "锚定节点编辑(RpcUrl)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "anchorNodeId",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链RpcUrl",
+                        "name": "source_rpc_url",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链RpcUrl",
+                        "name": "target_rpc_url",
                         "in": "formData",
                         "required": true
                     }
@@ -503,6 +634,146 @@ var doc = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/cross/prepare/reward": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "添加跨链手续费",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "源链Id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链Id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链跨链手续费",
+                        "name": "source_reward",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链跨链手续费",
+                        "name": "target_reward",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "钱包id",
+                        "name": "wallet_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包密码",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chain/cross/prepare/reward/update": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "更新跨链手续费",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "源链Id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链Id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "源链跨链手续费",
+                        "name": "source_reward",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标链跨链手续费",
+                        "name": "target_reward",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "钱包id",
+                        "name": "wallet_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "钱包密码",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
                         }
                     }
                 }
@@ -999,6 +1270,49 @@ var doc = `{
                 }
             }
         },
+        "/chart/crossMonitor/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "锚定节点监控",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "1,2",
+                        "name": "tokenKey",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/chart/crossTxCount/list": {
             "get": {
                 "consumes": [
@@ -1091,6 +1405,74 @@ var doc = `{
                                             "items": {
                                                 "$ref": "#/definitions/dao.TxAnchorsNode"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/chart/finishList/list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chart"
+                ],
+                "summary": "MakeFinish手续费记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "锚定节点ID",
+                        "name": "anchorId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页数",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.FinishEventView"
                                         }
                                     }
                                 }
@@ -1880,91 +2262,6 @@ var doc = `{
                 }
             }
         },
-        "/node/change": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "切换node",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "useId",
-                        "name": "user_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "nodeId",
-                        "name": "node_id",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/node/current": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "node"
-                ],
-                "summary": "获取当前登录账户的节点",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/controllers.JsonResult"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/controllers.Node"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/node/list": {
             "get": {
                 "security": [
@@ -1996,7 +2293,7 @@ var doc = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/controllers.Node"
+                                                "$ref": "#/definitions/dao.NodeView"
                                             }
                                         }
                                     }
@@ -2402,6 +2699,61 @@ var doc = `{
                 }
             }
         },
+        "/reward/anchor/single/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetSignRewardByAnchorNode"
+                ],
+                "summary": "获取单笔签名奖励(根据节点和锚定节点)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "锚定节点id",
+                        "name": "anchor_node_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "节点id",
+                        "name": "node_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/reward/chain": {
             "get": {
                 "security": [
@@ -2457,7 +2809,62 @@ var doc = `{
                 }
             }
         },
-        "/reward/configure": {
+        "/reward/chain/single/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetSignRewardBySourceAndTarget"
+                ],
+                "summary": "获取单笔签名奖励（根据发起链和目标链）",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "发起链id",
+                        "name": "source_chain_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链id",
+                        "name": "target_chain_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/add": {
             "post": {
                 "security": [
                     {
@@ -2471,49 +2878,291 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ConfigureSignReward"
+                    "AddRewardConfig"
                 ],
                 "summary": "配置签名奖励",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "锚定节点id",
-                        "name": "anchor_node_id",
+                        "description": "发起链id",
+                        "name": "source_chain_id",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "节点id",
-                        "name": "node_id",
+                        "description": "目标链id",
+                        "name": "target_chain_id",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "钱包id",
-                        "name": "wallet_id",
+                        "description": "调控周期",
+                        "name": "regulation_cycle",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "钱包密码",
-                        "name": "password",
+                        "description": "单笔签名奖励",
+                        "name": "sign_reward",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/detail": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetRewardConfig"
+                ],
+                "summary": "获取配置签名奖励详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "发起链id",
+                        "name": "source_chain_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "目标链id",
+                        "name": "target_chain_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfigView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/info/:id": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GetRewardConfigInfo"
+                ],
+                "summary": "获取配置签名奖励详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "签名奖励id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dao.RewardConfigView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListRewardConfig"
+                ],
+                "summary": "配置签名奖励 列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.RewardConfigResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/remove/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AddRewardConfig"
+                ],
+                "summary": "删除签名奖励",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "签名奖励id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JsonResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/config/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UpdateRewardConfig"
+                ],
+                "summary": "更新签名奖励",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "签名奖励id",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "调控周期",
+                        "name": "regulation_cycle",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "奖励金额",
-                        "name": "reward",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "奖励币种",
-                        "name": "coin",
+                        "description": "单笔签名奖励",
+                        "name": "sign_reward",
                         "in": "formData",
                         "required": true
                     }
@@ -2593,6 +3242,61 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/reward/prepare/reward/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ListPrepareReward"
+                ],
+                "summary": "跨链配置（预扣手续费） 列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前页，默认1",
+                        "name": "current_page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "页的记录数，默认10",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JsonResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.PrepareRewardResult"
                                         }
                                     }
                                 }
@@ -2816,10 +3520,17 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ListAnchorNode"
+                    "ListServiceCharge"
                 ],
-                "summary": "锚定节点列表",
+                "summary": "手续费报销记录",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "锚定节点id",
+                        "name": "anchor_node_id",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "当前页",
@@ -2847,7 +3558,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/controllers.AnchorNodeResult"
+                                            "$ref": "#/definitions/controllers.ServiceChargeResult"
                                         }
                                     }
                                 }
@@ -3181,6 +3892,9 @@ var doc = `{
         "controllers.AnchorNodeInfo": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3242,6 +3956,9 @@ var doc = `{
         "controllers.AnchorNodeView": {
             "type": "object",
             "properties": {
+                "ID": {
+                    "type": "integer"
+                },
                 "anchor_node_name": {
                     "description": "锚定节点名称",
                     "type": "string"
@@ -3250,9 +3967,17 @@ var doc = `{
                     "description": "归属链A",
                     "type": "string"
                 },
+                "chain_a_id": {
+                    "description": "归属链A",
+                    "type": "integer"
+                },
                 "chain_b": {
                     "description": "归属链B",
                     "type": "string"
+                },
+                "chain_b_id": {
+                    "description": "归属链B",
+                    "type": "integer"
                 },
                 "created_at": {
                     "description": "创建时间",
@@ -3262,8 +3987,14 @@ var doc = `{
                     "description": "质押金额",
                     "type": "string"
                 },
+                "source_rpc_url": {
+                    "type": "string"
+                },
                 "status": {
                     "description": "身份状态",
+                    "type": "string"
+                },
+                "target_rpc_url": {
                     "type": "string"
                 }
             }
@@ -3344,6 +4075,9 @@ var doc = `{
                 "CreatedAt": {
                     "description": "创建时间",
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "anchor_addresses": {
                     "type": "string"
@@ -3501,6 +4235,79 @@ var doc = `{
                 }
             }
         },
+        "controllers.FinishEvent": {
+            "type": "object",
+            "properties": {
+                "anchorAddress": {
+                    "type": "string"
+                },
+                "anchorId": {
+                    "type": "integer"
+                },
+                "anchorName": {
+                    "type": "string"
+                },
+                "blockNumber": {
+                    "type": "integer"
+                },
+                "chainId": {
+                    "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "networkId": {
+                    "type": "integer"
+                },
+                "remoteChainId": {
+                    "type": "integer"
+                },
+                "remoteNetworkId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "tokenListKey": {
+                    "type": "string"
+                },
+                "tokenName": {
+                    "type": "string"
+                },
+                "txId": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.FinishEventView": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "finishEventList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.FinishEvent"
+                    }
+                }
+            }
+        },
         "controllers.JsonResult": {
             "type": "object",
             "required": [
@@ -3518,40 +4325,26 @@ var doc = `{
                 }
             }
         },
-        "controllers.Node": {
+        "controllers.PrepareRewardResult": {
             "type": "object",
-            "required": [
-                "address",
-                "chain_id",
-                "name",
-                "port"
-            ],
             "properties": {
-                "address": {
-                    "description": "地址",
-                    "type": "string"
-                },
-                "chain_id": {
-                    "description": "链id",
+                "current_page": {
+                    "description": "当前页数",
                     "type": "integer"
                 },
-                "chain_name": {
-                    "type": "string"
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.PrepareRewardView"
+                    }
                 },
-                "description": {
-                    "type": "string"
-                },
-                "is_https": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "port": {
-                    "description": "端口",
+                "page_size": {
+                    "description": "页的大小",
                     "type": "integer"
                 },
-                "user_id": {
+                "total_count": {
+                    "description": "总记录数",
                     "type": "integer"
                 }
             }
@@ -3568,6 +4361,30 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dao.PunishmentView"
+                    }
+                },
+                "page_size": {
+                    "description": "页的大小",
+                    "type": "integer"
+                },
+                "total_count": {
+                    "description": "总记录数",
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.RewardConfigResult": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "description": "当前页数",
+                    "type": "integer"
+                },
+                "page_data": {
+                    "description": "页的数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dao.RewardConfigView"
                     }
                 },
                 "page_size": {
@@ -3728,6 +4545,10 @@ var doc = `{
                     "description": "链上的交易哈希",
                     "type": "string"
                 },
+                "sourceRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
+                    "type": "string"
+                },
                 "sourceStatus": {
                     "description": "链上达成的状态  锚定节点添加成功",
                     "type": "integer"
@@ -3740,6 +4561,10 @@ var doc = `{
                 },
                 "targetHash": {
                     "description": "链上的交易哈希",
+                    "type": "string"
+                },
+                "targetRpcUrl": {
+                    "description": "锚定节点绑定的rpc地址",
                     "type": "string"
                 },
                 "targetStatus": {
@@ -3814,6 +4639,9 @@ var doc = `{
                 "CreatedAt": {
                     "description": "创建时间",
                     "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
                 },
                 "anchor_addresses": {
                     "type": "string"
@@ -3923,6 +4751,81 @@ var doc = `{
                 }
             }
         },
+        "dao.NodeView": {
+            "type": "object",
+            "required": [
+                "coin_name",
+                "network_id",
+                "port",
+                "symbol"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "address": {
+                    "description": "地址",
+                    "type": "string"
+                },
+                "chain_id": {
+                    "description": "链id",
+                    "type": "integer"
+                },
+                "chain_name": {
+                    "type": "string"
+                },
+                "coin_name": {
+                    "description": "币名",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "链的网络编号",
+                    "type": "integer"
+                },
+                "port": {
+                    "description": "端口",
+                    "type": "integer"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "dao.PrepareRewardView": {
+            "type": "object",
+            "properties": {
+                "source_chain_coin": {
+                    "type": "string"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_chain_name": {
+                    "type": "string"
+                },
+                "source_reward": {
+                    "type": "string"
+                },
+                "target_chain_coin": {
+                    "type": "string"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_name": {
+                    "type": "string"
+                },
+                "target_reward": {
+                    "type": "string"
+                }
+            }
+        },
         "dao.PunishmentView": {
             "type": "object",
             "properties": {
@@ -3976,6 +4879,64 @@ var doc = `{
                 }
             }
         },
+        "dao.RewardConfig": {
+            "type": "object",
+            "properties": {
+                "regulation_cycle": {
+                    "description": "调控周期",
+                    "type": "integer"
+                },
+                "sign_reward": {
+                    "description": "单笔签名奖励",
+                    "type": "string"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dao.RewardConfigView": {
+            "type": "object",
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "in_progress": {
+                    "description": "已进行多少天，计算字段",
+                    "type": "integer"
+                },
+                "regulation_cycle": {
+                    "description": "调控周期",
+                    "type": "integer"
+                },
+                "sign_reward": {
+                    "description": "单笔签名奖励",
+                    "type": "string"
+                },
+                "source_chain_id": {
+                    "type": "integer"
+                },
+                "source_chain_name": {
+                    "type": "string"
+                },
+                "target_chain_id": {
+                    "type": "integer"
+                },
+                "target_chain_name": {
+                    "type": "string"
+                },
+                "transaction_count": {
+                    "description": "本周期交易笔数，计算字段",
+                    "type": "integer"
+                }
+            }
+        },
         "dao.ServiceChargeLogView": {
             "type": "object",
             "properties": {
@@ -4018,9 +4979,6 @@ var doc = `{
         "dao.TokenListCount": {
             "type": "object",
             "properties": {
-                "anchorId": {
-                    "type": "integer"
-                },
                 "count": {
                     "type": "integer"
                 },

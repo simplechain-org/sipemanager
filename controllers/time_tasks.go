@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
-	"sync"
 	"time"
+
+	"sipemanager/blockchain"
+	"sipemanager/dao"
+	"sipemanager/utils"
 
 	"github.com/robfig/cron/v3"
 	"github.com/simplechain-org/go-simplechain"
@@ -13,10 +15,6 @@ import (
 	"github.com/simplechain-org/go-simplechain/common"
 	"github.com/simplechain-org/go-simplechain/core/types"
 	"github.com/sirupsen/logrus"
-
-	"sipemanager/blockchain"
-	"sipemanager/dao"
-	"sipemanager/utils"
 )
 
 func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
@@ -38,14 +36,12 @@ func GetRpcApi(node dao.InstanceNodes) (*blockchain.Api, error) {
 func (this *Controller) ListenCrossEvent() {
 	cron := cron.New()
 	cron.AddFunc("@every 5s", func() {
-		fmt.Println("current event time is ", time.Now())
 		nodes, err := this.dao.GetInstancesJoinNode()
 		filterNodes := utils.RemoveRepByLoop(nodes)
 		if err != nil {
 			logrus.Error(utils.ErrLogCode{LogType: "controller => time_task => ListenCrossEvent:", Code: 20006, Message: "cant not found nodes", Err: nil})
 		}
-		fmt.Printf("-------nodes-----%+v\n", filterNodes)
-		go this.createCrossEvent(nodes)
+		go this.createCrossEvent(filterNodes)
 	})
 	cron.Start()
 }
@@ -53,44 +49,80 @@ func (this *Controller) ListenCrossEvent() {
 func (this *Controller) ListenAnchors() {
 	cron := cron.New()
 	cron.AddFunc("@every 10s", func() {
-		//nodes, err := this.dao.GetInstancesJoinNode()
-		//if err != nil {
-		//	logrus.Warn(&ErrLogCode{message: "routers => ListenAnchors:", code: 30005, err: err.Error()})
-		//}
-		//filterNodes := utils.RemoveRepByLoop(nodes)
-		//for _, node := range filterNodes {
 		this.AnalysisAnchors()
-		//}
+		dbMaxNums, err := this.dao.GetAllMaxBlockNumber()
+		if err != nil {
+			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenAnchors:", Code: 20011, Message: err.Error(), Err: nil})
+		}
+		for _, dbMax := range dbMaxNums {
+			if dbMax.Number > 15 {
+				this.dao.Delete(dbMax.Number-15, dbMax.ChainId)
+			}
+		}
 	})
 	cron.Start()
 }
 
-func (this *Controller) ListenBlock() {
-	var group sync.WaitGroup
-	NodeChannel := make(chan BlockChannel)
-	fmt.Println("current event time is ", time.Now())
+func (this *Controller) ListenHeartChannel() {
+	for {
+		ch, ok := <-this.NodeChannel
+		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
+		if ok {
+			time.Sleep(time.Duration(5) * time.Second)
+			chain, err := this.dao.GetChain(ch.ChainId)
+			if err != nil {
+				logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenHeartChannel:", Code: 20009, Message: err.Error(), Err: nil})
+			}
+			if chain.ContractInstanceId == ch.ContractInstanceId {
+				go this.HeartChannel(ch)
+			}
+		}
+	}
+
+}
+
+//func (this *Controller) ListenStopChannel() {
+//	for {
+//		ch, _ := <-this.CloseChannel
+//		NodeCh, _ := <-this.NodeChannel
+//		logrus.Infof("stop ---- is %+v", ch)
+//		if ch.Status && NodeCh.ContractInstanceId == ch.ContractInstanceId && NodeCh.ChainId == ch.ChainId {
+//			defer func() {
+//				this.onceClose.Do(func() {
+//					close(this.NodeChannel)
+//				})
+//				this.onceClose.Do(func() {
+//					close(this.NodeChannel)
+//					fmt.Println("send goroutine closed !")
+//					this.group.Done()
+//				})
+//			}()
+//		}
+//	}
+//}
+
+func (this *Controller) ListenDirectBlock() {
 	nodes, err := this.dao.GetInstancesJoinNode()
 	filterNodes := utils.RemoveRepByLoop(nodes)
-	//count := len(filterNodes)
 	if err != nil {
 		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
 	}
-	go this.createBlock(filterNodes, &group, NodeChannel)
+	go this.createBlock(filterNodes)
+}
 
-	for i := 0; i <= len(filterNodes); i++ {
-		ch, ok := <-NodeChannel
-		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
-		if ok {
-			go this.HeartChannel(ch, group, NodeChannel)
+func (this *Controller) UpdateDirectBlock(chainId uint) {
+	nodes, err := this.dao.GetInstancesJoinNode()
+	filterNodes := utils.RemoveRepByLoop(nodes)
+	updateChains := make([]dao.InstanceNodes, 0)
+	for _, item := range filterNodes {
+		if item.ChainId == chainId {
+			updateChains = append(updateChains, item)
 		}
 	}
-	//for range NodeChannel {
-	//	count--
-	//	if count == 0 {
-	//		close(NodeChannel)
-	//	}
-	//}
-
+	if err != nil {
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => ListenBlock:", Code: 20007, Message: err.Error(), Err: nil})
+	}
+	go this.createBlock(updateChains)
 }
 
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
@@ -130,7 +162,7 @@ type CrossMakerTx struct {
 	Value         *big.Int
 	DestValue     *big.Int
 	Data          []byte
-	Raw           types.Log // Blockchain specific contextual infos
+	Raw           types.Log
 }
 
 type CrossTakerTx struct {
@@ -140,13 +172,13 @@ type CrossTakerTx struct {
 	From          common.Address
 	Value         *big.Int
 	DestValue     *big.Int
-	Raw           types.Log // Blockchain specific contextual infos
+	Raw           types.Log
 }
 
 type CrossMakerFinish struct {
 	TxId [32]byte
 	To   common.Address
-	Raw  types.Log // Blockchain specific contextual infos
+	Raw  types.Log
 }
 
 func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.InstanceNodes) {
@@ -213,60 +245,55 @@ func (this *Controller) EventLog(logs []types.Log, abiParsed abi.ABI, node dao.I
 	}
 }
 
-func (this *Controller) HeartChannel(ch BlockChannel, group sync.WaitGroup, NodeChannel chan BlockChannel) {
+func (this *Controller) HeartChannel(ch BlockChannel) {
 
-	cron := cron.New()
-	cron.AddFunc("@every 5s", func() {
-		current, err := this.dao.GetNodeById(ch.ChainId)
-		if err != nil {
-			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => HeartChannel:", Code: 20005, Message: err.Error(), Err: nil})
-		}
-		chain, err := this.dao.GetChain(current.ChainId)
-		if err != nil {
-			logrus.Error(err)
-			return
-		}
-		currents := []dao.InstanceNodes{
-			dao.InstanceNodes{
-				Address:    current.Address,
-				Port:       current.Port,
-				IsHttps:    current.IsHttps,
-				NetworkId:  chain.NetworkId,
-				Name:       current.Name,
-				ChainId:    current.ChainId,
-				ContractId: ch.currentNode.ContractId,
-			},
-		}
-		go this.createBlock(currents, &group, NodeChannel)
-		ch, ok := <-NodeChannel
-		logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
-		//select {
-		//case <-NodeChannel:
-		//	fmt.Println("消费完成……………………")
-		//	return
-		//case <-time.After(time.Second * 5):
-		//	fmt.Println("超时………………………")
-		//	return
-		//}
-	})
-	cron.Start()
-	// Heart Recursive execution
-	//if ok {
-	//	time.Sleep(10 * time.Second)
-	//	go this.HeartChannel(ch, group, NodeChannel)
+	//ch, ok := <-this.NodeChannel
+	//logrus.Infof("node HeartChannel is %+v, ok = %+v", ch, ok)
+	//select {
+	//case <-NodeChannel:
+	//	fmt.Println("消费完成……………………")
+	//	return
+	//case <-time.After(time.Second * 5):
+	//	fmt.Println("超时………………………")
+	//	return
 	//}
-}
 
-func (this *Controller) createBlock(nodes []dao.InstanceNodes, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
-	a := time.Now()
-	for _, node := range nodes {
-		group.Add(1)
-		go this.syncAllNodes(node, group, NodeChannel)
+	current, err := this.dao.GetNodeById(ch.NodeId)
+	if err != nil {
+		defer utils.DeferRecoverLog("controller => time_task => HeartChannel:", err.Error(), 20005, nil)
+		panic(err.Error())
 	}
-	fmt.Println(time.Since(a))
+	chain, err := this.dao.GetChain(current.ChainId)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	currents := []dao.InstanceNodes{
+		dao.InstanceNodes{
+			Address:            current.Address,
+			Port:               current.Port,
+			IsHttps:            current.IsHttps,
+			NetworkId:          chain.NetworkId,
+			Name:               current.Name,
+			ChainId:            current.ChainId,
+			ContractId:         ch.CurrentNode.ContractId,
+			CrossAddress:       ch.CurrentNode.CrossAddress,
+			NodeId:             current.ID,
+			ContractInstanceId: ch.ContractInstanceId,
+		},
+	}
+	go this.createBlock(currents)
 }
 
-func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGroup, NodeChannel chan<- BlockChannel) {
+func (this *Controller) createBlock(nodes []dao.InstanceNodes) {
+	for _, node := range nodes {
+		this.group.Add(1)
+		go this.syncAllNodes(node)
+	}
+}
+
+func (this *Controller) syncAllNodes(node dao.InstanceNodes) {
 	api, err := GetRpcApi(node)
 	chainId := node.ChainId
 	header, err := api.GetHeaderByNumber()
@@ -289,12 +316,16 @@ func (this *Controller) syncAllNodes(node dao.InstanceNodes, group *sync.WaitGro
 		}
 		this.BlocksListen(from, to, api, node)
 	}
-	NodeChannel <- BlockChannel{
-		ChainId:     chainId,
-		BlockNumber: dbMaxNum,
-		currentNode: node,
+
+	this.NodeChannel <- BlockChannel{
+		ChainId:            chainId,
+		NodeId:             node.NodeId,
+		BlockNumber:        dbMaxNum,
+		CurrentNode:        node,
+		ContractInstanceId: node.ContractInstanceId,
 	}
-	group.Done()
+
+	this.group.Done()
 }
 
 func (this *Controller) BlocksListen(from int64, to int64, api *blockchain.Api, node dao.InstanceNodes) error {

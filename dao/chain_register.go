@@ -94,10 +94,8 @@ func (this *DataBaseAccessObject) GetTargetChainIdBySourceChainId(sourceChainId 
 func (this *DataBaseAccessObject) GetChainRegisterByChaiId(sourceChainId uint, targetChainId uint) (*ChainRegister, error) {
 	var result ChainRegister
 	err := this.db.Table((&ChainRegister{}).TableName()).
-		Where("source_chain_id=?", sourceChainId).
-		Or("source_chain_id=?", targetChainId).
-		Where("target_chain_id=?", targetChainId).
-		Or("target_chain_id=?", sourceChainId).First(&result).Error
+		Where("source_chain_id=? and target_chain_id=?", sourceChainId, targetChainId).
+		Or("source_chain_id=? and target_chain_id=?", targetChainId, sourceChainId).First(&result).Error
 	return &result, err
 }
 
@@ -120,7 +118,8 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 	err := this.db.Table((&ChainRegister{}).TableName()).Order("id asc").Find(&result).Error
 	for _, item := range result {
 		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, item.SourceChainId).Find(&opposite).Error
-		if err == nil {
+		if err != nil {
+			return nil, err
 		}
 		if len(opposite) == 1 {
 			sourceId := strconv.Itoa(int(item.SourceChainId))
@@ -128,7 +127,7 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 			source, err := this.GetChain(item.SourceChainId)
 			target, err := this.GetChain(item.TargetChainId)
 			if err != nil {
-
+				return nil, err
 			}
 			tokenList := TokenListInterface{
 				ChainID:            item.SourceChainId,
@@ -156,8 +155,8 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 }
 
 type ChainRegisterView struct {
-	//创建时间
-	CreatedAt       string `json:"CreatedAt" gorm:"CreatedAt"`
+	ID              uint   `json:"ID" gorm:"id"`
+	CreatedAt       string `json:"CreatedAt" gorm:"CreatedAt"` //创建时间
 	SourceChainId   uint   `json:"source_chain_id" gorm:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id" gorm:"target_chain_id"`
 	SourceChainName string `json:"source_chain_name" gorm:"source_chain_name"`
@@ -165,6 +164,8 @@ type ChainRegisterView struct {
 	Confirm         uint   `json:"confirm" gorm:"confirm"`
 	AnchorAddresses string `json:"anchor_addresses" gorm:"anchor_addresses"`
 	TxHash          string `json:"tx_hash" gorm:"tx_hash"`
+	Status          int    `json:"status"`
+	StatusText      string `json:"status_text"`
 }
 
 func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*ChainRegisterView, error) {
@@ -177,7 +178,9 @@ func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*
     target_chain_id,
     anchor_addresses,
     confirm,
-    tx_Hash from chain_registers`
+    status,
+    status_text,
+    tx_hash from chain_registers`
 	result := make([]*ChainRegisterView, 0)
 	db := this.db.Raw(sql)
 	err := db.Offset(start).
@@ -200,9 +203,19 @@ func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView,
     target_chain_id,
     anchor_addresses,
     confirm,
-    tx_Hash from chain_registers where chain_registers.id=?`
+	status,
+	status_text,
+    tx_hash from chain_registers where chain_registers.id=?`
 	var result ChainRegisterView
-	db := this.db.Raw(sql, id)
-	err := db.First(&result).Error
+	db := this.db.Raw(sql, id).Limit(1)
+	err := db.Scan(&result).Error
 	return &result, err
+}
+func (this *DataBaseAccessObject) GetChainRegisterById(id uint) (*ChainRegister, error) {
+	var result ChainRegister
+	err := this.db.Model(&ChainRegister{}).Where("id=?", id).First(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
