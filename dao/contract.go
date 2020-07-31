@@ -6,14 +6,14 @@ import (
 )
 
 type Contract struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	ID        uint       `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	Name string `json:"name" binding:"required"`
-	Sol  string `gorm:"type:text" json:"sol" binding:"required"`
-	Abi  string `gorm:"type:text" json:"abi" binding:"required"`
-	Bin  string `gorm:"type:text" json:"bin" binding:"required"`
+	Name      string     `json:"name" binding:"required"`
+	Sol       string     `gorm:"type:text" json:"sol" binding:"required"`
+	Abi       string     `gorm:"type:text" json:"abi" binding:"required"`
+	Bin       string     `gorm:"type:text" json:"bin" binding:"required"`
 }
 
 func (this *Contract) TableName() string {
@@ -94,7 +94,7 @@ func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status st
 		} else {
 			sql += " where id not in (select distinct contract_id from contract_instances)"
 		}
-		sql+=" and `contracts`.`deleted_at` IS NULL "
+		sql += " and `contracts`.`deleted_at` IS NULL "
 		sql += fmt.Sprintf(" order by id limit %d offset %d", pageSize, start)
 		result := make([]*Contract, 0)
 		err := this.db.Raw(sql).Scan(&result).Error
@@ -102,9 +102,7 @@ func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status st
 
 	} else {
 		result := make([]*Contract, 0)
-		err := this.db.Table((&Contract{}).TableName()).Offset(start).
-			Limit(pageSize).
-			Find(&result).Error
+		err := this.db.Table((&Contract{}).TableName()).Offset(start).Limit(pageSize).Find(&result).Error
 		return result, err
 	}
 }
@@ -116,16 +114,14 @@ func (this *DataBaseAccessObject) GetContractCount(status string) (int, error) {
 		} else {
 			sql += " where id not in (select distinct contract_id from contract_instances)"
 		}
-		type Count struct {
-			//注意字段一定要大写
-			Total int
-		}
-		var count Count
-		err := this.db.Raw(sql).Scan(&count).Error
-		return count.Total, err
+		sql += " and `contracts`.`deleted_at` IS NULL "
+		var total Total
+		err := this.db.Raw(sql).Scan(&total).Error
+		return total.Total, err
 	} else {
-		var count int
-		err := this.db.Table((&Contract{}).TableName()).Count(&count).Error
-		return count, err
+		var total Total
+		sql := `select count(*) as total from contracts where contracts.deleted_at IS NULL`
+		err := this.db.Raw(sql).Scan(&total).Error
+		return total.Total, err
 	}
 }

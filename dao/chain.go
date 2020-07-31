@@ -5,15 +5,24 @@ import (
 )
 
 type Chain struct {
-	ID                 uint `gorm:"primary_key" json"id"`
+	ID                 uint `gorm:"primary_key" json:"id"`
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          *time.Time `sql:"index"`
-	Name               string     `json:"name" binding:"required"`                         //链的名称
-	NetworkId          uint64     `json:"network_id" binding:"required"`                   //链的网络编号
-	CoinName           string     `json:"coin_name" binding:"required"`                    //币名
-	Symbol             string     `json:"symbol" binding:"required"`                       //符号
-	ContractInstanceId uint       `gorm:"contract_instance_id" json"contract_instance_id"` //合约实例
+	Name               string     `json:"name" binding:"required"`                          //链的名称
+	NetworkId          uint64     `json:"network_id" binding:"required"`                    //链的网络编号
+	CoinName           string     `json:"coin_name" binding:"required"`                     //币名
+	Symbol             string     `json:"symbol" binding:"required"`                        //符号
+	ContractInstanceId uint       `gorm:"contract_instance_id" json:"contract_instance_id"` //合约实例
+}
+type ChainView struct {
+	ID                 uint   `gorm:"primary_key" json:"id"`
+	CreatedAt          string `gorm:"create_at" json:"create_at"`
+	Name               string `json:"name" binding:"required"`                          //链的名称
+	NetworkId          uint64 `json:"network_id" binding:"required"`                    //链的网络编号
+	CoinName           string `json:"coin_name" binding:"required"`                     //币名
+	Symbol             string `json:"symbol" binding:"required"`                        //符号
+	ContractInstanceId uint   `gorm:"contract_instance_id" json:"contract_instance_id"` //合约实例
 }
 
 func (this *Chain) TableName() string {
@@ -43,9 +52,16 @@ func (this *DataBaseAccessObject) GetChainByNetWorkId(NetWorkId uint64) (*Chain,
 	}
 	return &chain, nil
 }
-func (this *DataBaseAccessObject) ListAllChain() ([]*Chain, error) {
-	chains := make([]*Chain, 0)
-	err := this.db.Table((&Chain{}).TableName()).Find(&chains).Error
+func (this *DataBaseAccessObject) ListAllChain() ([]*ChainView, error) {
+	sql := `select id,
+    date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at,
+    name,
+    network_id,
+    coin_name,
+    symbol,
+    contract_instance_id from chains where chains.deleted_at IS NULL`
+	chains := make([]*ChainView, 0)
+	err := this.db.Raw(sql).Scan(&chains).Error
 	if err != nil {
 		return nil, err
 	}
@@ -143,15 +159,16 @@ func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*Chai
 	result := make([]*ChainInfo, 0)
 	db := this.db.Table((&Chain{}).TableName()).Joins("left join contract_instances on contract_instances.id=chains.contract_instance_id").
 		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address")
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	err := db.Offset(start).Limit(pageSize).Find(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetChainInfoCount() (int, error) {
-	var count int
-	err := this.db.Table((&Chain{}).TableName()).Count(&count).Error
-	return count, err
+	sql:=`select count(*) as total from 
+    (select chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address 
+    from chains left join contract_instances on contract_instances.id=chains.contract_instance_id WHERE chains.deleted_at IS NULL) as temp`
+	var total Total
+	err:=this.db.Raw(sql).Scan(&total).Error
+	return total.Total,err
 }
 func (this *DataBaseAccessObject) GetChainInfo(chainId uint) (*ChainInfo, error) {
 	var chain ChainInfo

@@ -13,6 +13,17 @@ import (
 	"github.com/simplechain-org/go-simplechain/crypto"
 )
 
+const (
+	WALLET_PRIVATEKEY_ERROR        int = 18001 //无效的私钥
+	WALLET_PASSWORD_ERROR          int = 18002 //钱包密码错误
+	WALLET_PRIVATEKEY_GEN_ERROR    int = 18003 //根据私钥产生钱包地址出错
+	WALLET_KEYSTORE_ERROR          int = 18004 //keystore文件格式错误
+	WALLET_MNEMONIC_ERROR          int = 18005 //无效助记词
+	WALLET_PASSWORD_KEYSTORE_ERROR int = 18006 //根据私钥生成keystore文件时出错
+	WALLET_EXISTS_ERROR            int = 18007 //钱包地址已经存在
+	WALLET_ID_NOT_EXISTS_ERROR     int = 18008 //钱包id对应的记录不存在，请确认钱包id的值
+)
+
 type WalletParam struct {
 	Name     string `json:"name" binding:"required" form:"name"`         //账户名称
 	Content  string `json:"content" binding:"required" form:"content"`   //私钥/助记词/keystore文件
@@ -37,7 +48,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 	var params WalletParam
 	var err error
 	if err := c.ShouldBind(&params); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	user, err := this.GetUser(c)
@@ -52,17 +63,17 @@ func (this *Controller) AddWallet(c *gin.Context) {
 		//私钥
 		privateKeyECDSA, err := crypto.HexToECDSA(params.Content)
 		if err != nil {
-			this.echoError(c, err)
+			this.ResponseError(c, WALLET_PRIVATEKEY_ERROR, err)
 			return
 		}
 		keyData, err := utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
 		if err != nil {
-			this.echoError(c, err)
+			this.ResponseError(c, WALLET_PASSWORD_ERROR, err)
 			return
 		}
 		address, err = utils.GetAddress(privateKeyECDSA)
 		if err != nil {
-			this.echoError(c, err)
+			this.ResponseError(c, WALLET_PRIVATEKEY_GEN_ERROR, err)
 			return
 		}
 		content = string(keyData)
@@ -72,39 +83,39 @@ func (this *Controller) AddWallet(c *gin.Context) {
 			//校验口令
 			_, err := keystore.DecryptKey([]byte(params.Content), params.Password)
 			if err != nil {
-				this.echoError(c, err)
+				this.ResponseError(c, WALLET_PASSWORD_ERROR, err)
 				return
 			}
 			var addressParam AddressParam
 			err = json.Unmarshal([]byte(params.Content), &addressParam)
 			if err != nil {
-				this.echoError(c, err)
+				this.ResponseError(c, WALLET_KEYSTORE_ERROR, err)
 				return
 			}
 			address = "0x" + addressParam.Address
-			content = string(params.Content)
+			content = params.Content
 		} else {
 			//助记词
 			privateKeyECDSA, err := utils.GetPrivateKeyFromMnemonic(params.Content)
 			if err != nil {
-				this.echoError(c, err)
+				this.ResponseError(c, WALLET_MNEMONIC_ERROR, err)
 				return
 			}
 			KeyData, err := utils.PrivateKeyToKeystore(privateKeyECDSA, params.Password)
 			if err != nil {
-				this.echoError(c, err)
+				this.ResponseError(c, WALLET_PASSWORD_KEYSTORE_ERROR, err)
 				return
 			}
 			address, err = utils.GetAddress(privateKeyECDSA)
 			if err != nil {
-				this.echoError(c, err)
+				this.ResponseError(c, WALLET_PRIVATEKEY_GEN_ERROR, err)
 				return
 			}
 			content = string(KeyData)
 		}
 	}
 	if this.dao.WalletExists(address) {
-		this.echoError(c, errors.New("钱包地址已经存在"))
+		this.ResponseError(c, WALLET_EXISTS_ERROR, errors.New("钱包地址已经存在"))
 		return
 	}
 	wallet := dao.Wallet{
@@ -115,7 +126,7 @@ func (this *Controller) AddWallet(c *gin.Context) {
 	}
 	id, err := this.dao.CreateWallet(&wallet)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, id)
@@ -127,8 +138,8 @@ func (this *Controller) AddWallet(c *gin.Context) {
 // @Produce  json
 // @Security ApiKeyAuth
 // @Success 200 {object} JsonResult{data=dao.Wallet}
-// @Router /wallet/list [get]
-func (this *Controller) ListWallet(c *gin.Context) {
+// @Router /wallet/list/all [get]
+func (this *Controller) ListAllWallet(c *gin.Context) {
 	user, err := this.GetUser(c)
 	if err != nil {
 		this.echoError(c, err)
@@ -136,7 +147,7 @@ func (this *Controller) ListWallet(c *gin.Context) {
 	}
 	wallets, err := this.dao.ListWalletByUserId(user.ID)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, wallets)
@@ -162,27 +173,27 @@ type UpdateWalletParam struct {
 func (this *Controller) UpdateWallet(c *gin.Context) {
 	var params UpdateWalletParam
 	if err := c.ShouldBind(&params); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(params.WalletId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	key, err := keystore.DecryptKey([]byte(wallet.Content), params.OldPassword)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, err)
 		return
 	}
 	content, err := utils.PrivateKeyToKeystore(key.PrivateKey, params.NewPassword)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, WALLET_PASSWORD_KEYSTORE_ERROR, err)
 		return
 	}
 	err = this.dao.UpdateWallet(params.WalletId, content)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -200,27 +211,29 @@ func (this *Controller) RemoveWallet(c *gin.Context) {
 	walletIdStr := c.Query("wallet_id")
 	walletId, err := strconv.ParseUint(walletIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	_, err = this.dao.GetWallet(uint(walletId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	err = this.dao.RemoveWallet(uint(walletId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
 }
+
 type WalletResult struct {
-	TotalCount  int              `json:"total_count"`  //总记录数
-	CurrentPage int              `json:"current_page"` //当前页数
-	PageSize    int              `json:"page_size"`    //页的大小
+	TotalCount  int               `json:"total_count"`  //总记录数
+	CurrentPage int               `json:"current_page"` //当前页数
+	PageSize    int               `json:"page_size"`    //页的大小
 	PageData    []*dao.WalletView `json:"page_data"`    //页的数据
 }
+
 // @Summary 钱包列表(分页显示)
 // @Tags wallet
 // @Accept  json
@@ -259,12 +272,12 @@ func (this *Controller) ListPageWallet(c *gin.Context) {
 	}
 	wallets, err := this.dao.GetWalletViewPage(user.ID, start, pageSize)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetWalletViewCount(user.ID)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	walletResult := &WalletResult{
@@ -275,5 +288,3 @@ func (this *Controller) ListPageWallet(c *gin.Context) {
 	}
 	this.echoResult(c, walletResult)
 }
-
-

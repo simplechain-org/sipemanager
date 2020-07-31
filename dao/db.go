@@ -48,7 +48,7 @@ func AutoMigrate(db *gorm.DB) {
 		return
 	}
 	db.AutoMigrate(&Node{})
-	db.AutoMigrate(&UserNode{})
+	//db.AutoMigrate(&UserNode{})
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Wallet{})
 	db.AutoMigrate(&Chain{})

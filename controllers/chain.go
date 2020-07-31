@@ -11,13 +11,18 @@ import (
 )
 
 const (
-	CHAIN_SAVE_ERROR   int = 10001 //链信息保存出错
-	CHAIN_UPDATE_ERROR int = 10002 //更新链信息出错
+	CHAIN_SAVE_ERROR                int = 10001 //链信息保存出错
+	CHAIN_UPDATE_ERROR              int = 10002 //更新链信息出错
+	CHAIN_ID_NOT_EXISTS_ERROR       int = 10003 //链id对应的记录不存在
+	CHAIN_CONTRACT_NOT_EXISTS_ERROR int = 10004 //链id对应的合约记录不存在
+	CHAIN_HAD_NODE_ERROR            int = 10005 //链下还存在节点，不能删除
+	CHAIN_HAD_CONTRACT_ERROR        int = 10006 //链下还存在相应的合约实例
+	CHAIN_REGISTER_ERROR            int = 10007 //链注册出错
 
 )
 
 // @Summary 添加链信息
-// @Tags node
+// @Tags CreateChain
 // @Accept  json
 // @Produce  json
 // @Param name formData int true "链的名称"
@@ -97,27 +102,27 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 func (this *Controller) RemoveChain(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
 	if chainIdStr == "" {
-		this.echoError(c, errors.New("缺少参数 chain_id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少参数 chain_id"))
 		return
 	}
 	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("chain_id不是一个整数:%s", err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("chain_id不是一个整数:%s", err.Error()))
 		return
 	}
 	check := this.dao.ChainHasNode(uint(chainId))
 	if check {
-		this.echoError(c, errors.New("还存在相应的节点，不能删除"))
+		this.ResponseError(c, CHAIN_HAD_NODE_ERROR, errors.New("还存在相应的节点，不能删除"))
 		return
 	}
 	check = this.dao.ChainHasContractInstance(uint(chainId))
 	if check {
-		this.echoError(c, errors.New("还存在相应的合约实例，不能删除"))
+		this.ResponseError(c, CHAIN_HAD_CONTRACT_ERROR, errors.New("还存在相应的合约实例，不能删除"))
 		return
 	}
 	err = this.dao.ChainRemove(uint(chainId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("删除链信息时发生错误:%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("删除链信息时发生错误:%s", err.Error()))
 		return
 	}
 	this.echoResult(c, "成功删除链信息")
@@ -164,12 +169,12 @@ func (this *Controller) ListChain(c *gin.Context) {
 
 	objects, err := this.dao.GetChainInfoPage(start, pageSize)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetChainInfoCount()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainResult := &ChainResult{
@@ -192,17 +197,17 @@ func (this *Controller) ListChain(c *gin.Context) {
 func (this *Controller) GetChainInfo(c *gin.Context) {
 	chainIdStr := c.Param("chain_id")
 	if chainIdStr == "" {
-		this.echoError(c, errors.New("缺少参数 chain_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("缺少参数 chain_id"))
 		return
 	}
 	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	chain, err := this.dao.GetChain(uint(chainId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, chain)
@@ -219,17 +224,17 @@ func (this *Controller) GetChainInfo(c *gin.Context) {
 func (this *Controller) GetNodeByChain(c *gin.Context) {
 	chainIdStr := c.Query("chain_id")
 	if chainIdStr == "" {
-		this.echoError(c, errors.New("缺少参数 chain_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("缺少参数 chain_id"))
 		return
 	}
 	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	chain, err := this.dao.ListNodeByChainId(uint(chainId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, chain)
@@ -245,7 +250,7 @@ func (this *Controller) GetNodeByChain(c *gin.Context) {
 func (this *Controller) ListAllChain(c *gin.Context) {
 	chains, err := this.dao.ListAllChain()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, chains)

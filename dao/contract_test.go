@@ -16,7 +16,7 @@ func TestDataBaseAccessObject_GetContractPage(t *testing.T) {
 		return
 	}
 	t.Log("not_deployed=",len(result))
-	result, err = obj.GetContractPage(0, 10,"all")
+	result, err = obj.GetContractPage(10, 10,"all")
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -43,4 +43,19 @@ func TestDataBaseAccessObject_GetContractCount(t *testing.T) {
 		return
 	}
 	t.Log("all=", result)
+}
+
+func TestDataBaseAccessObject_GetContractCount1(t *testing.T) {
+	result, err := obj.GetContractPage(10, 10,"all")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Log("all=",len(result))
+	count, err := obj.GetContractCount("all")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Log("count=", count)
 }

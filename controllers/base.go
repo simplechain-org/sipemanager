@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	REQUEST_PARAM_ERROR int = 19001
-	DATABASE_ERROR      int = 19300 //数据库错误
+	REQUEST_PARAM_ERROR         int = 19001
+	REQUEST_PARAM_INVALID_ERROR int = 19002 //参数非法
+	DATABASE_ERROR              int = 19300 //数据库错误
 )
 
 var dateFormat string = "2006-01-02 15:04:05"
@@ -70,7 +71,7 @@ func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
 	return api, nil
 }
 func (this *Controller) ResponseError(c *gin.Context, code int, err error) {
-	logrus.Error(err)
+	logrus.Errorf("code=%d;error=%s", code, err.Error())
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  err.Error(),
 		"code": code,

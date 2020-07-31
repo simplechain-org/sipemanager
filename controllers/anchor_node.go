@@ -16,6 +16,10 @@ import (
 	"github.com/simplechain-org/go-simplechain/crypto"
 )
 
+const (
+	ANCHOR_NODE_ID_NOT_EXISTS_ERROR int = 17001 //锚定节点不存在
+)
+
 type AddAnchorNodeParam struct {
 	//发起链
 	SourceChainId uint `json:"source_chain_id" form:"source_chain_id"`
@@ -58,41 +62,41 @@ type AddAnchorNodeParam struct {
 func (this *Controller) AddAnchorNode(c *gin.Context) {
 	var param AddAnchorNodeParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, fmt.Errorf("参数类型和值不匹配:%s", err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	param.AnchorAddress = strings.TrimSpace(param.AnchorAddress)
 	if !common.IsHexAddress(param.AnchorAddress) {
-		this.echoError(c, errors.New("锚定节点地址不合法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("锚定节点地址不合法"))
 		return
 	}
 	//调用合约增加锚定节点，要注意是双链
 	//添加到数据库
 	sourceContract, err := this.dao.GetContractByChainId(param.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取发起链失败，chain_id=%d", param.SourceChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("获取发起链失败，chain_id=%d", param.SourceChainId))
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("钱包id=%d的记录不存在", param.WalletId))
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, fmt.Errorf("钱包id=%d的记录不存在", param.WalletId))
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("钱包解锁失败:%s", err.Error()))
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, fmt.Errorf("钱包解锁失败:%s", err.Error()))
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("发起链的节点id=%d创建api失败:%s", param.SourceNodeId, err.Error()))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("发起链的节点id=%d创建api失败:%s", param.SourceNodeId, err.Error()))
 		return
 	}
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("目标链的节点id=%d创建api失败:%s", param.TargetNodeId, err.Error()))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("目标链的节点id=%d创建api失败:%s", param.TargetNodeId, err.Error()))
 		return
 	}
 	configSource := &blockchain.AnchorNodeConfig{
@@ -108,13 +112,13 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 	}
 	sourceHash, err := source.AddAnchors(configSource, callerConfigSource)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("调用发起链的合约添加锚定节点失败:%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用发起链的合约添加锚定节点失败:%s", err.Error()))
 		return
 	}
 	//目标链合约
 	targetContract, err := this.dao.GetContractByChainId(param.TargetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取目标链的合约失败，请确认合约已经部署，并配置到链 chain_id=%d", param.TargetChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("获取目标链的合约失败，请确认合约已经部署，并配置到链 chain_id=%d", param.TargetChainId))
 		return
 	}
 	configTarget := &blockchain.AnchorNodeConfig{
@@ -130,7 +134,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 	}
 	targetHash, err := target.AddAnchors(configTarget, callerConfigTarget)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("调用目标链的合约添加锚定节点失败:%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用目标链的合约添加锚定节点失败:%s", err.Error()))
 		return
 	}
 	anchorNode := &dao.AnchorNode{
@@ -146,7 +150,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 	}
 	id, err := this.dao.CreateAnchorNode(anchorNode)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("保存锚定节点数据失败：%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("保存锚定节点数据失败：%s", err.Error()))
 		return
 	}
 	go func(api *blockchain.Api, id uint, hash string) {
@@ -223,42 +227,42 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	//从数据库中删除
 	var param RemoveAnchorNodeParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, fmt.Errorf("参数类型和值不匹配:%s", err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("参数类型和值不匹配:%s", err.Error()))
 		return
 	}
 	anchorNode, err := this.dao.GetAnchorNode(param.AnchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("anchor_node_id=%d的记录没有找到", param.AnchorNodeId))
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("anchor_node_id=%d的记录没有找到", param.AnchorNodeId))
 		return
 	}
 	sourceContract, err := this.dao.GetContractByChainId(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("id=%d的链的跨链合约没有找到，请先配置跨链合约", anchorNode.SourceChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("id=%d的链的跨链合约没有找到，请先配置跨链合约", anchorNode.SourceChainId))
 		return
 	}
 	targetContract, err := this.dao.GetContractByChainId(anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("id=%d的链的跨链合约没有找到，请先配置跨链合约", anchorNode.TargetChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("id=%d的链的跨链合约没有找到，请先配置跨链合约", anchorNode.TargetChainId))
 		return
 	}
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("node_id=%d创建api失败:%s", param.SourceNodeId, err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("node_id=%d创建api失败:%s", param.SourceNodeId, err.Error()))
 		return
 	}
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("node_id=%d创建api失败:%s", param.TargetNodeId, err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("node_id=%d创建api失败:%s", param.TargetNodeId, err.Error()))
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("wallet_id=%d的钱包不存在", param.WalletId))
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, fmt.Errorf("wallet_id=%d的钱包不存在", param.WalletId))
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("钱包解锁失败:%s", err.Error()))
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, fmt.Errorf("钱包解锁失败:%s", err.Error()))
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
@@ -276,7 +280,7 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}
 	targetHash, err := target.RemoveAnchors(targetConfig, targetCallerConfig)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("调用目标链的合约移除锚定节点失败：%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用目标链的合约移除锚定节点失败：%s", err.Error()))
 		return
 	}
 	sourceConfig := &blockchain.AnchorNodeConfig{
@@ -292,7 +296,7 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}
 	sourceHash, err := target.RemoveAnchors(sourceConfig, sourceCallerConfig)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("调用发起链的合约移除锚定节点失败：%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用发起链的合约移除锚定节点失败：%s", err.Error()))
 		return
 	}
 	go func(source *blockchain.Api, target *blockchain.Api, id uint, sourceHash string, targetHash string) {
@@ -406,12 +410,12 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 
 	objects, err := this.dao.GetAnchorNodePage(start, pageSize, anchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("分页获取锚定节点数据失败:%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("分页获取锚定节点数据失败:%s", err.Error()))
 		return
 	}
 	count, err := this.dao.GetAnchorNodeCount(anchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取锚定节点总数失败:%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("获取锚定节点总数失败:%s", err.Error()))
 		return
 	}
 	result := make([]AnchorNodeView, 0, len(objects))
@@ -501,27 +505,27 @@ type ChainFeeInfo struct {
 func (this *Controller) GetAnchorNode(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
 	if anchorNodeIdStr == "" {
-		this.echoError(c, errors.New("anchor_node_id数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("anchor_node_id数据非法"))
 		return
 	}
 	id, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("anchor_node_id进行数据转换时出错:%s", err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, fmt.Errorf("anchor_node_id进行数据转换时出错:%s", err.Error()))
 		return
 	}
 	anchorNode, err := this.dao.GetAnchorNode(uint(id))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("id为%d对应的锚定节点不存在", id))
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("id为%d对应的锚定节点不存在", id))
 		return
 	}
 	chainA, err := this.dao.GetChain(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到锚定节点的发起链chain_id=%d", anchorNode.SourceChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("找不到锚定节点的发起链chain_id=%d", anchorNode.SourceChainId))
 		return
 	}
 	chainB, err := this.dao.GetChain(anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到锚定节点的目标链chain_id=%d", anchorNode.TargetChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("找不到锚定节点的目标链chain_id=%d", anchorNode.TargetChainId))
 		return
 	}
 	var status string
@@ -533,17 +537,17 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 
 	contractA, err := this.dao.GetContractByChainId(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到发起链的合约链chain_id=%d", anchorNode.SourceChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("找不到发起链的合约链chain_id=%d", anchorNode.SourceChainId))
 		return
 	}
 	makeFinishA, err := this.dao.GetTransactionSumFee(anchorNode.Address, contractA.Address, "makerFinish", anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取makerFinish交易数失败：%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("获取makerFinish交易数失败：%s", err.Error()))
 		return
 	}
 	reimbursedFeeA, err := this.dao.GetServiceChargeSumFee(anchorNode.ID, chainA.Symbol)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("计算总的手续费失败:%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("计算总的手续费失败:%s", err.Error()))
 		return
 	}
 
@@ -557,12 +561,12 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	//根据链id选择可以节点
 	sourceNode, err := this.dao.GetNodeByChainId(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("根据链id=%d获取可用的节点失败", anchorNode.SourceChainId))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("根据链id=%d获取可用的节点失败", anchorNode.SourceChainId))
 		return
 	}
 	source, err := this.getApiByNodeId(sourceNode.ID)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("根据节点id创建api失败:%s", err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("根据节点id创建api失败:%s", err.Error()))
 		return
 	}
 
@@ -571,7 +575,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	}
 	signCount, finishCount, err := source.GetAnchorWorkCount(config, callerConfig)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("查询签名数失败:%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("查询签名数失败:%s", err.Error()))
 		return
 	}
 	//本期总签名数
@@ -583,7 +587,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 
 	rewardA, err := this.dao.GetSignRewardLogSumFee(anchorNode.ID, chainA.Symbol)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainFeeInfoA := &ChainFeeInfo{
@@ -595,18 +599,18 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 
 	contractB, err := this.dao.GetContractByChainId(anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 		return
 	}
 	makeFinishB, err := this.dao.GetTransactionSumFee(anchorNode.Address, contractB.Address, "makerFinish", anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 
 	reimbursedFeeB, err := this.dao.GetServiceChargeSumFee(anchorNode.ID, chainB.Symbol)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 
@@ -619,12 +623,12 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	//根据链id选择可以节点
 	targetNode, err := this.dao.GetNodeByChainId(anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	target, err := this.getApiByNodeId(targetNode.ID)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	callerConfig = &blockchain.CallerConfig{
@@ -632,7 +636,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	}
 	signCount, finishCount, err = target.GetAnchorWorkCount(config, callerConfig)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, err)
 		return
 	}
 	//本期总签名数
@@ -644,7 +648,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 
 	rewardB, err := this.dao.GetSignRewardLogSumFee(anchorNode.ID, chainB.Symbol)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainFeeInfoB := &ChainFeeInfo{
@@ -687,12 +691,12 @@ type UpdateAnchorNodeParam struct {
 func (this *Controller) UpdateAnchorNode(c *gin.Context) {
 	var param UpdateAnchorNodeParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, fmt.Errorf("数据类型不匹配:%s", err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("数据类型不匹配:%s", err.Error()))
 		return
 	}
 	err := this.dao.UpdateAnchorNode(param.ID, param.SourceRpcUrl, param.TargetRpcUrl)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("修改锚定节点的rpc url失败:%s", err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("修改锚定节点的rpc url失败:%s", err.Error()))
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -708,7 +712,7 @@ func (this *Controller) UpdateAnchorNode(c *gin.Context) {
 func (this *Controller) ListAllAnchorNode(c *gin.Context) {
 	anchorNodes, err := this.dao.ListAnchorNode()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, anchorNodes)
