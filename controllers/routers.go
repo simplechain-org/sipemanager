@@ -24,7 +24,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 		dao:         object,
 		NodeChannel: make(chan BlockChannel, 4096),
 	}
-	//go func() { c.ListenEvent() }()
+	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
@@ -39,12 +39,10 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/wallet", validateLogin, c.AddWallet)
 	router.POST("/api/v1/wallet/update", validateLogin, c.UpdateWallet)
 
-
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
-
 
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
