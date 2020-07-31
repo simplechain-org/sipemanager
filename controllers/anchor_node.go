@@ -62,8 +62,8 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		return
 	}
 	param.AnchorAddress = strings.TrimSpace(param.AnchorAddress)
-	if !common.IsHexAddress(param.AnchorAddress){
-		this.echoError(c,errors.New("锚定节点地址不合法"))
+	if !common.IsHexAddress(param.AnchorAddress) {
+		this.echoError(c, errors.New("锚定节点地址不合法"))
 		return
 	}
 	//调用合约增加锚定节点，要注意是双链
@@ -404,14 +404,14 @@ func (this *Controller) ListAnchorNode(c *gin.Context) {
 	}
 	start := (currentPage - 1) * pageSize
 
-	objects, err := this.dao.GetAnchorNodePage(start, pageSize,anchorNodeId)
+	objects, err := this.dao.GetAnchorNodePage(start, pageSize, anchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("分页获取锚定节点数据失败:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("分页获取锚定节点数据失败:%s", err.Error()))
 		return
 	}
 	count, err := this.dao.GetAnchorNodeCount(anchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取锚定节点总数失败:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("获取锚定节点总数失败:%s", err.Error()))
 		return
 	}
 	result := make([]AnchorNodeView, 0, len(objects))
@@ -516,12 +516,12 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	}
 	chainA, err := this.dao.GetChain(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到锚定节点的发起链chain_id=%d",anchorNode.SourceChainId))
+		this.echoError(c, fmt.Errorf("找不到锚定节点的发起链chain_id=%d", anchorNode.SourceChainId))
 		return
 	}
 	chainB, err := this.dao.GetChain(anchorNode.TargetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到锚定节点的目标链chain_id=%d",anchorNode.TargetChainId))
+		this.echoError(c, fmt.Errorf("找不到锚定节点的目标链chain_id=%d", anchorNode.TargetChainId))
 		return
 	}
 	var status string
@@ -533,17 +533,17 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 
 	contractA, err := this.dao.GetContractByChainId(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到发起链的合约链chain_id=%d",anchorNode.SourceChainId))
+		this.echoError(c, fmt.Errorf("找不到发起链的合约链chain_id=%d", anchorNode.SourceChainId))
 		return
 	}
 	makeFinishA, err := this.dao.GetTransactionSumFee(anchorNode.Address, contractA.Address, "makerFinish", anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取makerFinish交易数失败：%s",err.Error()))
+		this.echoError(c, fmt.Errorf("获取makerFinish交易数失败：%s", err.Error()))
 		return
 	}
 	reimbursedFeeA, err := this.dao.GetServiceChargeSumFee(anchorNode.ID, chainA.Symbol)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("计算总的手续费失败:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("计算总的手续费失败:%s", err.Error()))
 		return
 	}
 
@@ -557,12 +557,12 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	//根据链id选择可以节点
 	sourceNode, err := this.dao.GetNodeByChainId(anchorNode.SourceChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("根据链id=%d获取可用的节点失败",anchorNode.SourceChainId))
+		this.echoError(c, fmt.Errorf("根据链id=%d获取可用的节点失败", anchorNode.SourceChainId))
 		return
 	}
 	source, err := this.getApiByNodeId(sourceNode.ID)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("根据节点id创建api失败:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("根据节点id创建api失败:%s", err.Error()))
 		return
 	}
 
@@ -571,7 +571,7 @@ func (this *Controller) GetAnchorNode(c *gin.Context) {
 	}
 	signCount, finishCount, err := source.GetAnchorWorkCount(config, callerConfig)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("查询签名数失败:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("查询签名数失败:%s", err.Error()))
 		return
 	}
 	//本期总签名数
@@ -696,4 +696,20 @@ func (this *Controller) UpdateAnchorNode(c *gin.Context) {
 		return
 	}
 	this.echoSuccess(c, "Success")
+}
+
+// @Summary 获取所有锚定节点
+// @Tags ListAnchorNode
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} JsonResult{data=dao.AnchorNode}
+// @Router /anchor/node/list/all [get]
+func (this *Controller) ListAllAnchorNode(c *gin.Context) {
+	anchorNodes, err := this.dao.ListAnchorNode()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	this.echoResult(c, anchorNodes)
 }

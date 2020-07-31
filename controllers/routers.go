@@ -122,6 +122,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/chain/cross/prepare/reward", validateLogin, c.AddPrepareReward)
 
 	router.GET("/api/v1//wallet/list/page", validateLogin, c.ListPageWallet)
+	router.GET("/api/v1/anchor/node/list/all", validateLogin, c.ListAllAnchorNode)
 }
 
 type BlockChannel struct {
