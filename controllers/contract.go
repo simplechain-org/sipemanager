@@ -345,8 +345,8 @@ func (this *Controller) ListContractAll(c *gin.Context) {
 }
 
 type ContractInstanceView struct {
-	ID         uint   `json:"ID"`
-	CreatedAt  string `json:"CreatedAt"`
+	ID         uint   `json:"id"`
+	CreatedAt  string `json:"created_at"`
 	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
 	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
 	Address    string `gorm:"address" json:"address"`

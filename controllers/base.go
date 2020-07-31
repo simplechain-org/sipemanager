@@ -8,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	REQUEST_PARAM_ERROR int = 19001
+	DATABASE_ERROR      int = 19300 //数据库错误
+)
+
 var dateFormat string = "2006-01-02 15:04:05"
 
 type JsonResult struct {
@@ -63,4 +68,12 @@ func (this *Controller) getApiByNodeId(id uint) (*blockchain.Api, error) {
 		return nil, err
 	}
 	return api, nil
+}
+func (this *Controller) ResponseError(c *gin.Context, code int, err error) {
+	logrus.Error(err)
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  err.Error(),
+		"code": code,
+		"data": nil,
+	})
 }
