@@ -2,11 +2,14 @@ package dao
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Wallet struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	Name    string `gorm:"size:255" json:"name"`
 	Content string `gorm:"type:text" json:"content"`
 	UserId  uint
@@ -64,8 +67,8 @@ func (this *DataBaseAccessObject) RemoveWallet(id uint) error {
 }
 
 type WalletView struct {
-	ID        uint   `gorm:"id" json:"ID"`
-	CreatedAt string `gorm:"created_at" json:"CreatedAt"`
+	ID        uint   `gorm:"id" json:"id"`
+	CreatedAt string `gorm:"created_at" json:"created_at"`
 	Name      string `gorm:"size:255" json:"name"`
 	Content   string `gorm:"type:text" json:"content"`
 	Address   string `gorm:"size:255" json:"address"`

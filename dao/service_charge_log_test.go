@@ -70,7 +70,7 @@ func TestDataBaseAccessObject_GetServiceChargeLogCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetServiceChargeLogPage(t *testing.T) {
-	result, err := obj.GetServiceChargeLogPage(0, 10, uint(1))
+	result, err := obj.GetServiceChargeLogPage(0, 10, 0)
 	if err != nil {
 		t.Fatal(err)
 		return

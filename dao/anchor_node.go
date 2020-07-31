@@ -4,23 +4,27 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"math/big"
+	"time"
 )
 
 //锚定节点
 type AnchorNode struct {
-	gorm.Model
-	Name          string `gorm:"name"`    //锚定节点名称
-	Address       string `gorm:"address"` //锚定节点地址
-	SourceChainId uint   `gorm:"source_chain_id"`
-	TargetChainId uint   `gorm:"target_chain_id"`
-	SourceHash    string `gorm:"source_hash"`   //链上的交易哈希
-	TargetHash    string `gorm:"target_hash"`   //链上的交易哈希
-	SourceStatus  uint   `gorm:"source_status"` //链上达成的状态  锚定节点添加成功
-	TargetStatus  uint   `gorm:"target_status"` //链上达成的状态  锚定节点添加成功
-	Pledge        string `gorm:"pledge"`        //质押sipc的金额
-	Status        bool   `gorm:"status"`
-	SourceRpcUrl  string `gorm:"source_rpc_url"` //锚定节点绑定的rpc地址
-	TargetRpcUrl  string `gorm:"target_rpc_url"` //锚定节点绑定的rpc地址
+	ID            uint       `gorm:"primary_key" json:"id"`
+	CreatedAt     time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt     *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	Name          string     `gorm:"name" json:"name"`       //锚定节点名称
+	Address       string     `gorm:"address" json:"address"` //锚定节点地址
+	SourceChainId uint       `gorm:"source_chain_id" json:"source_chain_id"`
+	TargetChainId uint       `gorm:"target_chain_id" json:"target_chain_id"`
+	SourceHash    string     `gorm:"source_hash" json:"source_hash"`     //链上的交易哈希
+	TargetHash    string     `gorm:"target_hash" json:"target_hash"`     //链上的交易哈希
+	SourceStatus  uint       `gorm:"source_status" json:"source_status"` //链上达成的状态  锚定节点添加成功
+	TargetStatus  uint       `gorm:"target_status" json:"target_status"` //链上达成的状态  锚定节点添加成功
+	Pledge        string     `gorm:"pledge" json:"pledge"`               //质押sipc的金额
+	Status        bool       `gorm:"status" json:"status"`
+	SourceRpcUrl  string     `gorm:"source_rpc_url" json:"source_rpc_url"` //锚定节点绑定的rpc地址
+	TargetRpcUrl  string     `gorm:"target_rpc_url" json:"target_rpc_url"` //锚定节点绑定的rpc地址
 }
 
 func (this *AnchorNode) TableName() string {
@@ -76,20 +80,23 @@ func (this *DataBaseAccessObject) ListAnchorNode() ([]AnchorNode, error) {
 	}
 	return anchorNodes, nil
 }
-func (this *DataBaseAccessObject) GetAnchorNodeCount() (int, error) {
+func (this *DataBaseAccessObject) GetAnchorNodeCount(anchorNodeId uint) (int, error) {
 	var count int
-	err := this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).
-		Where("source_status=?", 1).
-		Count(&count).Error
+	db:=this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
+	if anchorNodeId!=0{
+		db=db.Where("id=?",anchorNodeId)
+	}
+	err := db.Count(&count).Error
 	return count, err
 }
 
-func (this *DataBaseAccessObject) GetAnchorNodePage(start, pageSize int) ([]*AnchorNode, error) {
+func (this *DataBaseAccessObject) GetAnchorNodePage(start, pageSize int,anchorNodeId uint) ([]*AnchorNode, error) {
 	result := make([]*AnchorNode, 0)
-	err := this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).
-		Where("source_status=?", 1).Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	db:=this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
+	if anchorNodeId!=0{
+		db=db.Where("id=?",anchorNodeId)
+	}
+	err :=db.Offset(start).Limit(pageSize).Find(&result).Error
 	return result, err
 }
 

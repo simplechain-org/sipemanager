@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -155,4 +156,17 @@ func TestDataBaseAccessObject_RemoveAnchorNode(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
+}
+func TestDataBaseAccessObject_GetAnchorNodePage(t *testing.T) {
+	result,err:=obj.GetAnchorNodePage(0,10,0)
+	if err!=nil{
+		t.Error(err)
+		return
+	}
+	data,err:=json.Marshal(result)
+	if err!=nil{
+		t.Error(err)
+		return
+	}
+	t.Log(string(data))
 }

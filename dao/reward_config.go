@@ -1,11 +1,14 @@
 package dao
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type RewardConfig struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId   uint   `json:"source_chain_id"`
 	TargetChainId   uint   `json:"target_chain_id"`
 	RegulationCycle uint   `json:"regulation_cycle"` //调控周期
@@ -14,7 +17,7 @@ type RewardConfig struct {
 
 type RewardConfigView struct {
 	CreatedAt        string `gorm:"created_at" json:"created_at"`
-	ID               uint   `gorm:"id" json:"ID"`
+	ID               uint   `gorm:"id" json:"id"`
 	SourceChainId    uint   `gorm:"source_chain_id" json:"source_chain_id"`
 	TargetChainId    uint   `gorm:"target_chain_id" json:"target_chain_id"`
 	SourceChainName  string `json:"source_chain_name" gorm:"source_chain_name"`

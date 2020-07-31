@@ -1,9 +1,14 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type MakerOrder struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId uint   `json:"source_chain_id"`
 	TargetChainId uint   `json:"target_chain_id"`
 	Maker         string `json:"maker"`

@@ -2,11 +2,15 @@ package dao
 
 import (
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 //合约实例
 type ContractInstance struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
 	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
 	Address    string `gorm:"address" json:"address"`

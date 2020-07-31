@@ -2,11 +2,14 @@ package dao
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Contract struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	Name string `json:"name" binding:"required"`
 	Sol  string `gorm:"type:text" json:"sol" binding:"required"`
 	Abi  string `gorm:"type:text" json:"abi" binding:"required"`

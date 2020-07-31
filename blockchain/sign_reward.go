@@ -26,11 +26,11 @@ type AnchorNodeRewardConfig struct {
 func (this *Api) GetTotalReward(config *AnchorNodeRewardConfig, callerConfig *CallerConfig) (*big.Int, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
-		return nil, fmt.Errorf("读取合约的abi文件json内容出错:%s",err.Error())
+		return nil, fmt.Errorf("读取合约的abi文件json内容出错:%s", err.Error())
 	}
 	out, err := abi.Pack("getTotalReward", big.NewInt(0).SetUint64(config.TargetNetworkId))
 	if err != nil {
-		return nil, fmt.Errorf("getTotalReward合约方法打包错误：%s",err.Error())
+		return nil, fmt.Errorf("getTotalReward合约方法打包错误：%s", err.Error())
 	}
 	msg := simplechain.CallMsg{
 		From: callerConfig.From,
@@ -39,18 +39,18 @@ func (this *Api) GetTotalReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 	}
 	result, err := this.simpleClient.CallContract(context.Background(), msg, nil)
 	if err != nil {
-		return nil, fmt.Errorf("调用合约方法出错:%s",err.Error())
+		return nil, fmt.Errorf("调用合约方法出错:%s", err.Error())
 	}
 	return big.NewInt(0).SetBytes(result), nil
 }
 
-//分发交易签名奖励
+//发放交易签名奖励
 func (this *Api) AccumulateRewards(config *AnchorNodeRewardConfig, callerConfig *CallerConfig, reward *big.Int) (string, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
 		return "", err
 	}
-	out, err := abi.Pack("accumulateRewards", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress)
+	out, err := abi.Pack("accumulateRewards", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress, reward)
 	if err != nil {
 		return "", err
 	}
@@ -99,10 +99,12 @@ func (this *Api) AccumulateRewards(config *AnchorNodeRewardConfig, callerConfig 
 func (this *Api) GetAnchorWorkCount(config *AnchorNodeRewardConfig, callerConfig *CallerConfig) (*big.Int, *big.Int, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
+		fmt.Println("GetAnchorWorkCount abi.JSON", err.Error())
 		return nil, nil, err
 	}
 	data, err := abi.Pack("getAnchorWorkCount", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress)
 	if err != nil {
+		fmt.Println("GetAnchorWorkCount abi.Pack", err.Error())
 		return nil, nil, err
 	}
 
@@ -113,6 +115,7 @@ func (this *Api) GetAnchorWorkCount(config *AnchorNodeRewardConfig, callerConfig
 	}
 	result, err := this.simpleClient.CallContract(context.Background(), msg, nil)
 	if err != nil {
+		fmt.Println("GetAnchorWorkCount CallContract", err.Error())
 		return nil, nil, err
 	}
 
@@ -124,17 +127,19 @@ func (this *Api) GetAnchorWorkCount(config *AnchorNodeRewardConfig, callerConfig
 		ret0,
 		ret1,
 	}
-
+	if len(result) == 0 {
+		return big.NewInt(0), big.NewInt(0), nil
+	}
 	err = abi.Unpack(out, "getAnchorWorkCount", result)
-
 	if err != nil {
+		fmt.Println("GetAnchorWorkCount Unpack", err.Error())
 		return nil, nil, err
 	}
 	return *ret0, *ret1, nil
 
 }
 
-//获取链的单笔签名奖励
+//获取链的单笔预收手续费
 func (this *Api) GetChainReward(config *AnchorNodeRewardConfig, callerConfig *CallerConfig) (*big.Int, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
@@ -156,12 +161,15 @@ func (this *Api) GetChainReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 	return big.NewInt(0).SetBytes(result), nil
 
 }
+
 type SetRewardConfig struct {
 	AbiData         []byte
 	ContractAddress common.Address
 	TargetNetworkId uint64
 	AnchorAddress   common.Address
 }
+
+//设置链的单笔预收手续费
 func (this *Api) SetReward(config *SetRewardConfig, callerConfig *CallerConfig, reward *big.Int) (string, error) {
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {

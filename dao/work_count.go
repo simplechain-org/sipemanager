@@ -1,9 +1,14 @@
 package dao
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
 type WorkCount struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	SourceChainId       uint `gorm:"source_chain_id" json:"source_chain_id"`
 	TargetChainId       uint `gorm:"target_chain_id" json:"target_chain_id"`
 	AnchorNodeId        uint `gorm:"anchor_node_id" json:"anchor_node_id"` //锚定节点编号

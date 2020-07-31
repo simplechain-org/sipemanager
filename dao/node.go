@@ -2,12 +2,15 @@ package dao
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type Node struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
 	Address string `gorm:"size:255" json:"address" binding:"required"` //地址
 	Port    int    `json:"port" binding:"required"`                    //端口
 	IsHttps bool   `json:"is_https"`
@@ -17,16 +20,16 @@ type Node struct {
 }
 
 type NodeView struct {
-	ID        uint   `gorm:"id" json:"ID"`
+	ID        uint   `gorm:"id" json:"id"`
 	CreatedAt string `gorm:"created_at" json:"created_at"`
 	Address   string `gorm:"size:255" json:"address"` //地址
-	Port      int    `json:"port" binding:"required"` //端口
+	Port      int    `gorm:"port" json:"port" binding:"required"` //端口
 	Name      string `gorm:"size:255" json:"name" `
-	ChainId   uint   `json:"chain_id"` //链id
+	ChainId   uint   `gorm:"chain_id" json:"chain_id"` //链id
 	ChainName string `gorm:"chain_name" json:"chain_name"`
-	NetworkId uint64 `json:"network_id" binding:"required"` //链的网络编号
-	CoinName  string `json:"coin_name" binding:"required"`  //币名
-	Symbol    string `json:"symbol" binding:"required"`
+	NetworkId uint64 `gorm:"network_id" json:"network_id" binding:"required"` //链的网络编号
+	CoinName  string `gorm:"coin_name" json:"coin_name" binding:"required"`  //币名
+	Symbol    string `gorm:"symbol" json:"symbol" binding:"required"`
 }
 
 func (this *Node) TableName() string {
