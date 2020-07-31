@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -126,31 +127,29 @@ func (this *Controller) UpdateDirectBlock(chainId uint) {
 }
 
 func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
-	for i := 0; i < len(nodes); i++ {
-		//fmt.Printf("current nodes %+v ", nodes[i])
-		contract, err := this.dao.GetContractById(nodes[i].ContractId)
-		blockNumber := this.dao.GetMaxCrossNumber(nodes[i].ChainId)
+	for _, node := range nodes {
+		contract, err := this.dao.GetContractById(node.ContractId)
+		blockNumber := this.dao.GetMaxCrossNumber(node.ChainId)
 		addresses := []common.Address{
-			common.HexToAddress(nodes[i].CrossAddress),
+			common.HexToAddress(node.CrossAddress),
 		}
 
 		records := simplechain.FilterQuery{
 			FromBlock: big.NewInt(blockNumber),
 			Addresses: addresses,
 		}
-		api, err := GetRpcApi(nodes[i])
+		api, err := GetRpcApi(node)
 		logs, err := api.GetPastEvents(records)
 		if err != nil {
 			logrus.Errorf("FilterLogs:%v", err)
 		}
-
-		abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
-		if err != nil {
-			logrus.Warn(err.Error())
+		if len(logs) > 0 {
+			abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
+			if err != nil {
+				logrus.Warn(err.Error())
+			}
+			this.EventLog(logs, abiParsed, node)
 		}
-
-		this.EventLog(logs, abiParsed, nodes[i])
-
 	}
 }
 

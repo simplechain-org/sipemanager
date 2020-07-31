@@ -140,7 +140,7 @@ type BlockChannel struct {
 
 func (this *Controller) ListenEvent() {
 	go this.ListenHeartChannel()
-	//go this.ListenCrossEvent()
+	go this.ListenCrossEvent()
 	go this.ListenDirectBlock()
 	go this.ListenAnchors()
 	go this.UpdateRetroActive()

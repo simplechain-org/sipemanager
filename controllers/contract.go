@@ -429,3 +429,7 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 	}
 	this.echoResult(c, chainResult)
 }
+
+//func (this *Controller) CheckContractAbi() {
+//
+//}
