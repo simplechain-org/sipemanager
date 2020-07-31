@@ -10,6 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	CHAIN_SAVE_ERROR   int = 10001 //链信息保存出错
+	CHAIN_UPDATE_ERROR int = 10002 //更新链信息出错
+
+)
+
 // @Summary 添加链信息
 // @Tags node
 // @Accept  json
@@ -24,12 +30,12 @@ import (
 func (this *Controller) CreateChain(c *gin.Context) {
 	var param dao.Chain
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, fmt.Errorf("数据类型不匹配:%s",err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("数据类型不匹配:%s", err.Error()))
 		return
 	}
 	id, err := this.dao.CreateChain(&param)
 	if err != nil {
-		this.echoError(c, errors.New("保存链的基本信息时发生错误"))
+		this.ResponseError(c, CHAIN_SAVE_ERROR, errors.New("保存链的基本信息时发生错误"))
 		return
 	}
 	this.echoResult(c, id)
@@ -60,13 +66,13 @@ type UpdateChainParam struct {
 func (this *Controller) UpdateChain(c *gin.Context) {
 	var param UpdateChainParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, fmt.Errorf("数据类型不匹配:%s",err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("数据类型不匹配:%s", err.Error()))
 		return
 	}
 	err := this.dao.UpdateChain(param.Id,
 		param.Name, param.NetworkId, param.CoinName, param.Symbol, param.ContractInstanceId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("更新链信息时发生错误:%s",err.Error()))
+		this.ResponseError(c, CHAIN_UPDATE_ERROR, fmt.Errorf("更新链信息时发生错误:%s", err.Error()))
 		return
 	}
 	if param.ContractInstanceId != 0 {
@@ -91,7 +97,7 @@ func (this *Controller) RemoveChain(c *gin.Context) {
 	}
 	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("chain_id不是一个整数:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("chain_id不是一个整数:%s", err.Error()))
 		return
 	}
 	check := this.dao.ChainHasNode(uint(chainId))
@@ -106,7 +112,7 @@ func (this *Controller) RemoveChain(c *gin.Context) {
 	}
 	err = this.dao.ChainRemove(uint(chainId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("删除链信息时发生错误:%s",err.Error()))
+		this.echoError(c, fmt.Errorf("删除链信息时发生错误:%s", err.Error()))
 		return
 	}
 	this.echoResult(c, "成功删除链信息")

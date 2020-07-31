@@ -179,7 +179,7 @@ func (this *Controller) GetTotalReward(c *gin.Context) {
 	this.echoResult(c, totalReward)
 }
 
-// @Summary 单笔签名奖励
+// @Summary 单笔手续费
 // @Tags GetChainReward
 // @Accept  json
 // @Produce  json
