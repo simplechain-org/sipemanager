@@ -84,7 +84,7 @@ type UpdateNodeParam struct {
 // @Param port formData int true "端口"
 // @Param name formData string true "名称"
 // @Security ApiKeyAuth
-// @Success 200 {object}
+// @Success 200 {object} JsonResult{data=object}
 // @Router /node [put]
 func (this *Controller) UpdateNode(c *gin.Context) {
 	var params UpdateNodeParam
