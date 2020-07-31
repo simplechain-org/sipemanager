@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -66,6 +67,7 @@ func (this *Controller) ListenAnchors() {
 func (this *Controller) ListenHeartChannel() {
 	for {
 		ch, ok := <-this.NodeChannel
+		fmt.Println("node channel is", ch.ChainId, ch.BlockNumber)
 		logrus.Infof("node channel is %+v, ok = %+v", ch, ok)
 		if ok {
 			time.Sleep(time.Duration(5) * time.Second)
