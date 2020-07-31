@@ -140,12 +140,13 @@ func (this *Controller) createCrossEvent(nodes []dao.InstanceNodes) {
 		api, err := GetRpcApi(node)
 		logs, err := api.GetPastEvents(records)
 		if err != nil {
-			logrus.Errorf("FilterLogs:%v", err)
+			logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => FilterLogs:", Code: 20014, Message: err.Error(), Err: nil})
 		}
+
 		if len(logs) > 0 {
 			abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
 			if err != nil {
-				logrus.Warn(err.Error())
+				logrus.Warn(utils.ErrLogCode{LogType: "controller => time_task => createCrossEvent:", Code: 20013, Message: "Unable to parse ABi normally", Err: err})
 			}
 			this.EventLog(logs, abiParsed, node)
 		}

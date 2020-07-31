@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +15,11 @@ import (
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+)
+
+const (
+	CONTRACT_CHECK_ERROR int = 19005 //跨链合约Abi检查出错
+
 )
 
 // @Summary 上传本地合约
@@ -430,6 +438,24 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 	this.echoResult(c, chainResult)
 }
 
-//func (this *Controller) CheckContractAbi() {
-//
-//}
+const (
+	MakerMethod    string = "2c50336e"
+	MakerFinMethod string = "870f1f4a"
+	TakerMethod    string = "f7478f6a"
+)
+
+func (this *Controller) CheckContractAbi(contractInstanceId uint) error {
+	instance, err := this.dao.GetContractInstanceById(contractInstanceId)
+	contract, err := this.dao.GetContractById(instance.ContractId)
+	abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
+	makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
+	makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
+	taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+	if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
+		return errors.New("Unable to parse ABi normally")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
