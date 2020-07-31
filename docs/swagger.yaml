@@ -47,8 +47,6 @@ definitions:
     type: object
   controllers.AnchorNodeView:
     properties:
-      ID:
-        type: integer
       anchor_node_name:
         description: 锚定节点名称
         type: string
@@ -67,6 +65,8 @@ definitions:
       created_at:
         description: 创建时间
         type: string
+      id:
+        type: integer
       pledge:
         description: 质押金额
         type: string
@@ -84,29 +84,6 @@ definitions:
         type: string
       sign_count:
         type: string
-    type: object
-  controllers.Block:
-    properties:
-      difficulty:
-        type: string
-      gasLimit:
-        type: integer
-      gasUsed:
-        type: integer
-      miner:
-        type: string
-      nonce:
-        type: integer
-      number:
-        type: string
-      parentHash:
-        type: string
-      sha3Uncles:
-        type: string
-      timestamp:
-        type: integer
-      transactions:
-        type: integer
     type: object
   controllers.ChainFeeInfo:
     properties:
@@ -127,11 +104,6 @@ definitions:
     type: object
   controllers.ChainRegisterInfo:
     properties:
-      CreatedAt:
-        description: 创建时间
-        type: string
-      ID:
-        type: integer
       anchor_addresses:
         type: string
       anchor_nodes:
@@ -140,9 +112,18 @@ definitions:
         type: array
       confirm:
         type: integer
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        type: integer
       source_chain_id:
         type: integer
       source_chain_name:
+        type: string
+      status:
+        type: integer
+      status_text:
         type: string
       target_chain_id:
         type: integer
@@ -204,10 +185,6 @@ definitions:
     type: object
   controllers.ContractInstanceView:
     properties:
-      CreatedAt:
-        type: string
-      ID:
-        type: integer
       address:
         type: string
       chain_id:
@@ -217,6 +194,10 @@ definitions:
         type: string
       contract_id:
         description: 合约id
+        type: integer
+      created_at:
+        type: string
+      id:
         type: integer
       name:
         type: string
@@ -299,6 +280,23 @@ definitions:
     required:
     - code
     type: object
+  controllers.NodeResult:
+    properties:
+      current_page:
+        description: 当前页数
+        type: integer
+      page_data:
+        description: 页的数据
+        items:
+          $ref: '#/definitions/dao.NodeView'
+        type: array
+      page_size:
+        description: 页的大小
+        type: integer
+      total_count:
+        description: 总记录数
+        type: integer
+    type: object
   controllers.PrepareRewardResult:
     properties:
       current_page:
@@ -379,105 +377,80 @@ definitions:
         description: 总记录数
         type: integer
     type: object
-  controllers.Transaction:
+  controllers.WalletResult:
     properties:
-      from:
-        type: string
-      gas:
+      current_page:
+        description: 当前页数
         type: integer
-      gasPrice:
-        type: string
-      hash:
-        type: string
-      input:
+      page_data:
+        description: 页的数据
         items:
-          type: integer
+          $ref: '#/definitions/dao.WalletView'
         type: array
-      nonce:
+      page_size:
+        description: 页的大小
         type: integer
-      to:
-        type: string
-      value:
-        type: string
-    type: object
-  controllers.TransactionReceipt:
-    properties:
-      blockHash:
-        type: string
-      blockNumber:
-        type: string
-      contractAddress:
-        type: string
-      cumulativeGasUsed:
+      total_count:
+        description: 总记录数
         type: integer
-      gas:
-        type: integer
-      gasPrice:
-        type: string
-      gasUsed:
-        type: integer
-      input:
-        type: string
-      nonce:
-        type: integer
-      root:
-        items:
-          type: integer
-        type: array
-      status:
-        type: string
-      to:
-        type: string
-      transactionHash:
-        type: string
-      transactionIndex:
-        type: integer
-      value:
-        type: string
     type: object
   dao.AnchorNode:
     properties:
       address:
         description: 锚定节点地址
         type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       name:
         description: 锚定节点名称
         type: string
       pledge:
         description: 质押sipc的金额
         type: string
-      sourceChainId:
+      source_chain_id:
         type: integer
-      sourceHash:
+      source_hash:
         description: 链上的交易哈希
         type: string
-      sourceRpcUrl:
+      source_rpc_url:
         description: 锚定节点绑定的rpc地址
         type: string
-      sourceStatus:
+      source_status:
         description: 链上达成的状态  锚定节点添加成功
         type: integer
       status:
         type: boolean
-      targetChainId:
+      target_chain_id:
         type: integer
-      targetHash:
+      target_hash:
         description: 链上的交易哈希
         type: string
-      targetRpcUrl:
+      target_rpc_url:
         description: 锚定节点绑定的rpc地址
         type: string
-      targetStatus:
+      target_status:
         description: 链上达成的状态  锚定节点添加成功
         type: integer
+      updated_at:
+        type: string
     type: object
   dao.Chain:
     properties:
       coin_name:
         description: 币名
         type: string
-      contractInstanceId:
+      contract_instance_id:
         description: 合约实例
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
         type: integer
       name:
         description: 链的名称
@@ -487,6 +460,8 @@ definitions:
         type: integer
       symbol:
         description: 符号
+        type: string
+      updatedAt:
         type: string
     required:
     - coin_name
@@ -505,6 +480,12 @@ definitions:
       contract_instance_id:
         description: 合约实例
         type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       name:
         description: 链的名称
         type: string
@@ -514,21 +495,27 @@ definitions:
       symbol:
         description: 符号
         type: string
+      updated_at:
+        type: string
     type: object
   dao.ChainRegisterView:
     properties:
-      CreatedAt:
-        description: 创建时间
-        type: string
-      ID:
-        type: integer
       anchor_addresses:
         type: string
       confirm:
         type: integer
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        type: integer
       source_chain_id:
         type: integer
       source_chain_name:
+        type: string
+      status:
+        type: integer
+      status_text:
         type: string
       target_chain_id:
         type: integer
@@ -543,9 +530,17 @@ definitions:
         type: string
       bin:
         type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       name:
         type: string
       sol:
+        type: string
+      updated_at:
         type: string
     required:
     - abi
@@ -563,7 +558,15 @@ definitions:
       contract_id:
         description: 合约id
         type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       tx_hash:
+        type: string
+      updated_at:
         type: string
     type: object
   dao.MaxUncle:
@@ -581,6 +584,12 @@ definitions:
       chain_id:
         description: 链id
         type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       is_https:
         type: boolean
       name:
@@ -588,6 +597,8 @@ definitions:
       port:
         description: 端口
         type: integer
+      updated_at:
+        type: string
       user_id:
         type: integer
     required:
@@ -598,8 +609,6 @@ definitions:
     type: object
   dao.NodeView:
     properties:
-      ID:
-        type: integer
       address:
         description: 地址
         type: string
@@ -613,6 +622,8 @@ definitions:
         type: string
       created_at:
         type: string
+      id:
+        type: integer
       name:
         type: string
       network_id:
@@ -631,6 +642,12 @@ definitions:
     type: object
   dao.PrepareRewardView:
     properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       source_chain_coin:
         type: string
       source_chain_id:
@@ -647,13 +664,11 @@ definitions:
         type: string
       target_reward:
         type: string
+      updated_at:
+        type: string
     type: object
   dao.PunishmentView:
     properties:
-      CreatedAt:
-        type: string
-      ID:
-        type: integer
       anchor_node_id:
         description: 锚定节点编号
         type: integer
@@ -663,6 +678,10 @@ definitions:
       coin:
         description: 惩罚币种
         type: string
+      created_at:
+        type: string
+      id:
+        type: integer
       manage_type:
         description: 管理类型
         type: string
@@ -672,10 +691,16 @@ definitions:
     type: object
   dao.RetroActive:
     properties:
+      created_at:
+        type: string
       ctx_id:
+        type: string
+      deleted_at:
         type: string
       event:
         description: 1 maker  2 taker
+        type: integer
+      id:
         type: integer
       network_id:
         type: integer
@@ -684,9 +709,17 @@ definitions:
         type: integer
       tx_hash:
         type: string
+      updated_at:
+        type: string
     type: object
   dao.RewardConfig:
     properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       regulation_cycle:
         description: 调控周期
         type: integer
@@ -697,13 +730,15 @@ definitions:
         type: integer
       target_chain_id:
         type: integer
+      updated_at:
+        type: string
     type: object
   dao.RewardConfigView:
     properties:
-      ID:
-        type: integer
       created_at:
         type: string
+      id:
+        type: integer
       in_progress:
         description: 已进行多少天，计算字段
         type: integer
@@ -727,29 +762,29 @@ definitions:
     type: object
   dao.ServiceChargeLogView:
     properties:
-      CreatedAt:
-        type: string
-      ID:
-        type: integer
-      anchorNodeId:
+      anchor_node_id:
         description: 锚定节点编号
         type: integer
-      anchorNodeName:
+      anchor_node_name:
         description: 锚定节点名称
         type: string
       coin:
         description: 报销的币种
         type: string
+      created_at:
+        type: string
       fee:
         description: 报销手续费
         type: string
+      id:
+        type: integer
       sender:
         description: 出账账户地址
         type: string
       status:
         description: 状态
         type: integer
-      transactionHash:
+      transaction_hash:
         description: 交易哈希
         type: string
     type: object
@@ -822,10 +857,31 @@ definitions:
         type: string
       content:
         type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
       name:
+        type: string
+      updated_at:
         type: string
       userId:
         type: integer
+    type: object
+  dao.WalletView:
+    properties:
+      address:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
     type: object
 info:
   contact: {}
@@ -935,6 +991,27 @@ paths:
       summary: 锚定节点列表
       tags:
       - ListAnchorNode
+  /anchor/node/list/all:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/dao.AnchorNode'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 获取所有锚定节点
+      tags:
+      - ListAnchorNode
   /anchor/node/obtain:
     get:
       consumes:
@@ -961,7 +1038,7 @@ paths:
       - ApiKeyAuth: []
       summary: 锚定节点详情
       tags:
-      - ListAnchorNode
+      - GetAnchorNode
   /anchor/node/remove:
     post:
       consumes:
@@ -1078,83 +1155,6 @@ paths:
       summary: 本期总签名数及签名工作量占比
       tags:
       - GetAnchorWorkCount
-  /block/list:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JsonResult'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.Block'
-                  type: array
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 分页获取区块列表
-      tags:
-      - block
-  /block/transaction/{hash}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: tx hash
-        in: query
-        name: hash
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JsonResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/controllers.TransactionReceipt'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 交易详情
-      tags:
-      - block
-  /block/transaction/{number}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: blockNumber
-        in: query
-        name: number
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JsonResult'
-            - properties:
-                data:
-                  $ref: '#/definitions/controllers.Transaction'
-              type: object
-      security:
-      - ApiKeyAuth: []
-      summary: 分页列表
-      tags:
-      - block
   /chain/{chain_id}:
     delete:
       consumes:
@@ -1223,7 +1223,7 @@ paths:
       - ApiKeyAuth: []
       summary: 添加链信息
       tags:
-      - node
+      - CreateChain
   /chain/cross/prepare/reward:
     post:
       consumes:
@@ -2011,6 +2011,11 @@ paths:
         name: anchor_names
         required: true
         type: array
+      - description: 锚定节点质押金额
+        in: formData
+        name: pledge
+        required: true
+        type: string
       - description: 钱包id
         in: formData
         name: wallet_id
@@ -2029,6 +2034,8 @@ paths:
           schema:
             $ref: '#/definitions/controllers.JsonResult'
       summary: 注册新的跨链对
+      tags:
+      - RegisterChainTwoWay
   /contract/remove/{contract_id}:
     delete:
       consumes:
@@ -2139,7 +2146,7 @@ paths:
       - ApiKeyAuth: []
       summary: 添加node
       tags:
-      - node
+      - AddNode
     put:
       consumes:
       - application/json
@@ -2173,20 +2180,20 @@ paths:
       - application/json
       responses:
         "200":
-          description: NodeId
+          description: OK
           schema:
             allOf:
             - $ref: '#/definitions/controllers.JsonResult'
             - properties:
                 data:
-                  type: integer
+                  type: object
               type: object
       security:
       - ApiKeyAuth: []
       summary: 编辑节点
       tags:
-      - node
-  /node/list:
+      - UpdateNode
+  /node/list/all:
     get:
       consumes:
       - application/json
@@ -2206,9 +2213,41 @@ paths:
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 节点列表
+      summary: 节点列表(获取用户的所有节点)
       tags:
-      - node
+      - GetAllNodes
+  /node/list/page:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页，默认1
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数，默认10
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.NodeResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 节点的管理（分页获取节点列表）
+      tags:
+      - ListNode
   /node/remove/{id}:
     delete:
       consumes:
@@ -2235,7 +2274,7 @@ paths:
       - ApiKeyAuth: []
       summary: 删除节点
       tags:
-      - node
+      - DeleteNode
   /punishment/add:
     post:
       consumes:
@@ -2508,7 +2547,7 @@ paths:
               type: object
       security:
       - ApiKeyAuth: []
-      summary: 单笔签名奖励
+      summary: 单笔手续费
       tags:
       - GetChainReward
   /reward/chain/single/:
@@ -3063,7 +3102,7 @@ paths:
       summary: 添加钱包
       tags:
       - wallet
-  /wallet/list:
+  /wallet/list/all:
     get:
       consumes:
       - application/json
@@ -3082,6 +3121,38 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 钱包列表
+      tags:
+      - wallet
+  /wallet/list/page:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前页
+        in: query
+        name: current_page
+        required: true
+        type: string
+      - description: 页的记录数
+        in: query
+        name: page_size
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JsonResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.WalletResult'
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 钱包列表(分页显示)
       tags:
       - wallet
   /wallet/remove:

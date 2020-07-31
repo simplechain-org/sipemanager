@@ -56,18 +56,23 @@ func TestDataBaseAccessObject_GetTargetChainId(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetChainInfoPage(t *testing.T) {
-	result, err := obj.GetChainInfoPage(10, 10)
+	result, err := obj.GetChainInfoPage(0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, o := range result {
 		t.Log(o)
 	}
+	count, err := obj.GetChainInfoCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(count)
 
 }
 
 func TestDataBaseAccessObject_GetChainInfoCount(t *testing.T) {
-	result, err := obj.GetChainInfoPage(0, 10)
+	result, err := obj.GetChainInfoCount()
 	if err != nil {
 		t.Fatal(err)
 	}

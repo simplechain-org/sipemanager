@@ -24,35 +24,27 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 		dao:         object,
 		NodeChannel: make(chan BlockChannel, 4096),
 	}
-	go func() { c.ListenEvent() }()
+	//go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
 	router.GET("/api/v1/check/health", c.CheckHealth)
 	//auth
-	router.GET("/api/v1/block/list", validateLogin, c.GetPageBlock)
-	router.GET("/api/v1/block/transaction/:number", validateLogin, c.GetBlockTransaction)
-	router.GET("/api/v1/transaction/:hash", validateLogin, c.GetTransactionReceipt)
-	router.GET("/api/v1/node/list", validateLogin, c.GetNodes)
+	router.GET("/api/v1/node/list/all", validateLogin, c.GetAllNodes)
 	router.POST("/api/v1/node", validateLogin, c.AddNode)
 
 	router.DELETE("/api/v1/chain/:chain_id", c.RemoveChain)
 
-	router.GET("/api/v1/wallet/list", validateLogin, c.ListWallet)
+	router.GET("/api/v1/wallet/list/all", validateLogin, c.ListAllWallet)
 	router.POST("/api/v1/wallet", validateLogin, c.AddWallet)
 	router.POST("/api/v1/wallet/update", validateLogin, c.UpdateWallet)
 
-	router.POST("/api/v1/contract/produce", validateLogin, c.Produce)
-	router.POST("/api/v1/contract/consume", validateLogin, c.Consume)
-	router.GET("/api/v1/contract/transaction", validateLogin, c.ListCrossTransaction)
 
 	router.GET("/api/v1/contract/chain", validateLogin, c.GetContractOnChain)
 
 	router.GET("/api/v1/chain/info/:chain_id", validateLogin, c.GetChainInfo)
 	router.POST("/api/v1/chain/create", validateLogin, c.CreateChain)
 
-	router.GET("/api/v1/contract/produce/list", validateLogin, c.ListMakerOrder)
-	router.GET("/api/v1/contract/consume/list", validateLogin, c.ListTakerOrder)
 
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
@@ -123,6 +115,8 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 
 	router.GET("/api/v1//wallet/list/page", validateLogin, c.ListPageWallet)
 	router.GET("/api/v1/anchor/node/list/all", validateLogin, c.ListAllAnchorNode)
+	router.GET("/api/v1/node/list/page", validateLogin, c.ListNode)
+
 }
 
 type BlockChannel struct {

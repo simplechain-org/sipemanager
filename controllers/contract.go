@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +15,12 @@ import (
 
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+)
+
+const (
+	CONTRACT_CHECK_ERROR   int = 12005 //跨链合约Abi检查出错
+	CONTRACT_INVOKE_ERROR  int = 12001 //合约调用出错
+	CONTRACT_IN_USED_ERROR int = 12002 //合约正在使用
 )
 
 // @Summary 上传本地合约
@@ -28,12 +37,12 @@ import (
 func (this *Controller) AddContract(c *gin.Context) {
 	var param dao.Contract
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	id, err := this.dao.CreateContract(&param)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, id)
@@ -62,12 +71,12 @@ type UpdateContractParam struct {
 func (this *Controller) updateContract(c *gin.Context) {
 	var param UpdateContractParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	err := this.dao.UpdateContract(param.Id, param.Name, param.Sol, param.Abi, param.Bin)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -84,17 +93,17 @@ func (this *Controller) updateContract(c *gin.Context) {
 func (this *Controller) RemoveContract(c *gin.Context) {
 	contractIdStr := c.Param("contract_id")
 	if contractIdStr == "" {
-		this.echoError(c, errors.New("缺少参数 contract_id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少参数 contract_id"))
 		return
 	}
 	contractId, err := strconv.ParseUint(contractIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	can, err := this.dao.ContractCanDelete(uint(contractId))
 	if err == nil && !can {
-		this.echoError(c, errors.New("合约还在使用中，不可以删除"))
+		this.ResponseError(c, CONTRACT_IN_USED_ERROR, errors.New("合约还在使用中，不可以删除"))
 		return
 	}
 	err = this.dao.RemoveContract(uint(contractId))
@@ -430,6 +439,24 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 	this.echoResult(c, chainResult)
 }
 
-//func (this *Controller) CheckContractAbi() {
-//
-//}
+const (
+	MakerMethod    string = "2c50336e"
+	MakerFinMethod string = "870f1f4a"
+	TakerMethod    string = "f7478f6a"
+)
+
+func (this *Controller) CheckContractAbi(contractInstanceId uint) error {
+	instance, err := this.dao.GetContractInstanceById(contractInstanceId)
+	contract, err := this.dao.GetContractById(instance.ContractId)
+	abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
+	makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
+	makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
+	taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+	if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
+		return errors.New("Unable to parse ABi normally")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}

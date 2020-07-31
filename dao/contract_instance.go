@@ -7,14 +7,14 @@ import (
 
 //合约实例
 type ContractInstance struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
-	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
-	Address    string `gorm:"address" json:"address"`
-	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
+	ID         uint       `gorm:"primary_key" json:"id"`
+	CreatedAt  time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt  time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt  *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	ChainId    uint       `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
+	TxHash     string     `gorm:"tx_hash" json:"tx_hash"`
+	Address    string     `gorm:"address" json:"address"`
+	ContractId uint       `gorm:"contract_id" json:"contract_id"` //合约id
 }
 
 func (this *ContractInstance) TableName() string {
@@ -151,4 +151,12 @@ func (this *DataBaseAccessObject) GetContractInstanceCount() (int, error) {
 	var count int
 	err := this.db.Table((&ContractInstance{}).TableName()).Joins("inner join contracts on contract_instances.contract_id=contracts.id").Count(&count).Error
 	return count, err
+}
+
+func (this *DataBaseAccessObject) GetContractInstanceById(id uint) (*ContractInstance, error) {
+	var contractInstance ContractInstance
+	err := this.db.Table((&ContractInstance{}).TableName()).Where("id=?", id).
+		First(&contractInstance).Error
+	return &contractInstance, err
+
 }
