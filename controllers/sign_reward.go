@@ -88,12 +88,12 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 	start := (currentPage - 1) * pageSize
 	objects, err := this.dao.GetSignRewardLogPage(start, pageSize, anchorNodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetServiceChargeLogCount(anchorNodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	serviceChargeResult := &SignRewardResult{
@@ -118,36 +118,36 @@ func (this *Controller) GetTotalReward(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
 	nodeIdStr := c.Query("node_id")
 	if anchorNodeIdStr == "" || nodeIdStr == "" {
-		this.echoError(c, errors.New("缺少anchor_node_id或node_id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少anchor_node_id或node_id"))
 		return
 	}
 	anchorNodeId, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的anchor_node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的anchor_node_id"))
 	}
 	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的node_id"))
 	}
 	anchorNode, err := this.dao.GetAnchorNode(uint(anchorNodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	node, err := this.dao.GetNodeById(uint(nodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	source, err := this.getApiByNodeId(uint(nodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	//链的合约
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 		return
 	}
 	var targetChainId uint
@@ -159,7 +159,7 @@ func (this *Controller) GetTotalReward(c *gin.Context) {
 	//目标链
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	config := &blockchain.AnchorNodeRewardConfig{
@@ -173,7 +173,7 @@ func (this *Controller) GetTotalReward(c *gin.Context) {
 	}
 	totalReward, err := source.GetTotalReward(config, callerConfig)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, totalReward)
@@ -192,36 +192,36 @@ func (this *Controller) GetChainReward(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
 	nodeIdStr := c.Query("node_id")
 	if nodeIdStr == "" {
-		this.echoError(c, errors.New("缺少node_id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少node_id"))
 		return
 	}
 	anchorNodeId, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的anchor_node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的anchor_node_id"))
 	}
 	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的node_id"))
 	}
 	anchorNode, err := this.dao.GetAnchorNode(uint(anchorNodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	node, err := this.dao.GetNodeById(uint(nodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	source, err := this.getApiByNodeId(uint(nodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	//链的合约
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 		return
 	}
 	var targetChainId uint
@@ -233,7 +233,7 @@ func (this *Controller) GetChainReward(c *gin.Context) {
 	//目标链
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	config := &blockchain.AnchorNodeRewardConfig{
@@ -247,7 +247,7 @@ func (this *Controller) GetChainReward(c *gin.Context) {
 	}
 	reward, err := source.GetChainReward(config, callerConfig)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, err)
 		return
 	}
 	this.echoResult(c, reward)
@@ -271,36 +271,36 @@ func (this *Controller) GetAnchorWorkCount(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
 	nodeIdStr := c.Query("node_id")
 	if nodeIdStr == "" {
-		this.echoError(c, errors.New("缺少node_id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少node_id"))
 		return
 	}
 	anchorNodeId, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的anchor_node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的anchor_node_id"))
 	}
 	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("非法的node_id"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("非法的node_id"))
 	}
 	anchorNode, err := this.dao.GetAnchorNode(uint(anchorNodeId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取锚定节点:anchor_node_id=%d失败", anchorNodeId))
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("获取锚定节点:anchor_node_id=%d失败", anchorNodeId))
 		return
 	}
 	node, err := this.dao.GetNodeById(uint(nodeId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("获取节点:nodeId=%d 失败", nodeId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("获取节点:nodeId=%d 失败", nodeId))
 		return
 	}
 	source, err := this.getApiByNodeId(uint(nodeId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("使用节点创建api失败nodeId=%d", nodeId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("使用节点创建api失败nodeId=%d", nodeId))
 		return
 	}
 	//链的合约
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("链chain_id=%d 尚未配置跨链合约，请先配置", node.ChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("链chain_id=%d 尚未配置跨链合约，请先配置", node.ChainId))
 		return
 	}
 	var targetChainId uint
@@ -312,7 +312,7 @@ func (this *Controller) GetAnchorWorkCount(c *gin.Context) {
 	//目标链
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到目标链 targetChainId=%d", targetChainId))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("找不到目标链 targetChainId=%d", targetChainId))
 		return
 	}
 	config := &blockchain.AnchorNodeRewardConfig{
@@ -326,7 +326,7 @@ func (this *Controller) GetAnchorWorkCount(c *gin.Context) {
 	}
 	signCount, finishCount, err := source.GetAnchorWorkCount(config, callerConfig)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("GetAnchorWorkCount请求合约失败：%s", err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("GetAnchorWorkCount请求合约失败：%s", err.Error()))
 		return
 	}
 	//本期总签名数
@@ -360,8 +360,7 @@ func (this *Controller) GetAnchorWorkCount(c *gin.Context) {
 		}
 		signCount, finishCount, err := source.GetAnchorWorkCount(config, callerConfig)
 		if err != nil {
-			this.echoError(c, fmt.Errorf("GetAnchorWorkCount请求合约失败：%s", err.Error()))
-			this.echoError(c, err)
+			this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("GetAnchorWorkCount请求合约失败：%s", err.Error()))
 			return
 		}
 		count = count.Add(count, signCount)
@@ -407,28 +406,28 @@ type AddSignRewardParam struct {
 func (this *Controller) AddSignReward(c *gin.Context) {
 	var param AddSignRewardParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	anchorNode, err := this.dao.GetAnchorNode(param.AnchorNodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到id为%d的锚定节点",param.AnchorNodeId))
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("找不到id为%d的锚定节点", param.AnchorNodeId))
 		return
 	}
 	node, err := this.dao.GetNodeById(param.NodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("找不到node_id为%d的节点",param.NodeId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("找不到node_id为%d的节点", param.NodeId))
 		return
 	}
 	source, err := this.getApiByNodeId(param.NodeId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("node_id为%d的节点创建api失败:%s",param.NodeId,err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("node_id为%d的节点创建api失败:%s", param.NodeId, err.Error()))
 		return
 	}
 	//链的合约
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("chain_id=%d上的还没有跨链合约",node.ChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain_id=%d上的还没有跨链合约", node.ChainId))
 		return
 	}
 	var targetChainId uint
@@ -439,17 +438,17 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 	}
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("chain_id=%d链不存在",targetChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("chain_id=%d链不存在", targetChainId))
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("wallect_id=%d钱包不存在",param.WalletId))
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, fmt.Errorf("wallect_id=%d钱包不存在", param.WalletId))
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.echoError(c, errors.New("钱包解锁失败"+err.Error()))
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, errors.New("钱包解锁失败"+err.Error()))
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
@@ -467,12 +466,12 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 	}
 	bigReward, success := big.NewInt(0).SetString(param.Reward, 10)
 	if !success {
-		this.echoError(c, errors.New("reward数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("reward数据非法"))
 		return
 	}
 	hash, err := source.AccumulateRewards(config, callerConfig, bigReward)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("调用合约发放签名奖励失败:%s",err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用合约发放签名奖励失败:%s", err.Error()))
 		return
 	}
 	signRewardLog := &dao.SignRewardLog{
@@ -485,7 +484,7 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 	}
 	id, err := this.dao.CreateSignRewardLog(signRewardLog)
 	if err != nil {
-		this.echoError(c, fmt.Errorf("保存发放签名奖励记录失败:%s",err.Error()))
+		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("保存发放签名奖励记录失败:%s", err.Error()))
 		return
 	}
 	go func(source *blockchain.Api, id uint, hash string) {
@@ -521,8 +520,6 @@ type ConfigureSignRewardParam struct {
 	Coin         string `json:"coin" form:"coin"`     //奖励币种
 }
 
-
-
 // @Summary 获取单笔签名奖励(根据节点和锚定节点)
 // @Tags GetSignRewardByAnchorNode
 // @Accept  json
@@ -535,46 +532,46 @@ type ConfigureSignRewardParam struct {
 func (this *Controller) GetSignRewardByAnchorNode(c *gin.Context) {
 	anchorNodeIdStr := c.Query("anchor_node_id")
 	if anchorNodeIdStr == "" {
-		this.echoError(c, errors.New("anchor_node_id不能为空"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("anchor_node_id不能为空"))
 		return
 	}
 	nodeIdStr := c.Query("node_id")
 	if nodeIdStr == "" {
-		this.echoError(c, errors.New("node_id不能为空"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("node_id不能为空"))
 		return
 	}
 	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("node_id数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("node_id数据非法"))
 		return
 	}
 	node, err := this.dao.GetNodeById(uint(nodeId))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("不存在node_id为%d的节点", nodeId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("不存在node_id为%d的节点", nodeId))
 		return
 	}
 
 	id, err := strconv.ParseUint(anchorNodeIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("anchor_node_id数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("anchor_node_id数据非法"))
 		return
 	}
 	anchorNode, err := this.dao.GetAnchorNode(uint(id))
 	if err != nil {
-		this.echoError(c, fmt.Errorf("不存在anchor_node_id为%d的锚定节点", id))
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("不存在anchor_node_id为%d的锚定节点", id))
 		return
 	}
 	if node.ChainId == anchorNode.TargetChainId {
 		rewardConfig, err := this.dao.GetLatestRewardConfig(anchorNode.TargetChainId, anchorNode.SourceChainId)
 		if err != nil {
-			this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+			this.ResponseError(c, DATABASE_ERROR, errors.New("还没有配置单笔签名奖励"))
 			return
 		}
 		this.echoResult(c, rewardConfig)
 	} else {
 		rewardConfig, err := this.dao.GetLatestRewardConfig(anchorNode.SourceChainId, anchorNode.TargetChainId)
 		if err != nil {
-			this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+			this.ResponseError(c, DATABASE_ERROR, errors.New("还没有配置单笔签名奖励"))
 			return
 		}
 		this.echoResult(c, rewardConfig)
@@ -593,27 +590,27 @@ func (this *Controller) GetSignRewardByAnchorNode(c *gin.Context) {
 func (this *Controller) GetSignRewardBySourceAndTarget(c *gin.Context) {
 	sourceChainIdStr := c.Query("source_chain_id")
 	if sourceChainIdStr == "" {
-		this.echoError(c, errors.New("source_chain_id不能为空"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("source_chain_id不能为空"))
 		return
 	}
 	targetChainIdStr := c.Query("target_chain_id")
 	if targetChainIdStr == "" {
-		this.echoError(c, errors.New("target_chain_id不能为空"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("target_chain_id不能为空"))
 		return
 	}
 	sourceChainId, err := strconv.ParseUint(sourceChainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("source_chain_id数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("source_chain_id数据非法"))
 		return
 	}
 	targetChainId, err := strconv.ParseUint(targetChainIdStr, 10, 64)
 	if err != nil {
-		this.echoError(c, errors.New("target_chain_id数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("target_chain_id数据非法"))
 		return
 	}
 	rewardConfig, err := this.dao.GetLatestRewardConfig(uint(sourceChainId), uint(targetChainId))
 	if err != nil {
-		this.echoError(c, errors.New("还没有配置单笔签名奖励"))
+		this.ResponseError(c, DATABASE_ERROR, errors.New("还没有配置单笔签名奖励"))
 		return
 	}
 	this.echoResult(c, rewardConfig)

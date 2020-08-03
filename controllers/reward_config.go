@@ -24,12 +24,12 @@ import (
 func (this *Controller) AddRewardConfig(c *gin.Context) {
 	var param dao.RewardConfig
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	id, err := this.dao.CreateRewardConfig(&param)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, id)
@@ -46,17 +46,17 @@ func (this *Controller) AddRewardConfig(c *gin.Context) {
 func (this *Controller) GetRewardConfigInfo(c *gin.Context) {
 	idStr := c.Param("id")
 	if idStr == "" {
-		this.echoError(c, errors.New("缺少参数 id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少参数 id"))
 		return
 	}
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	result, err := this.dao.GetRewardConfig(uint(id))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, result)
@@ -73,17 +73,17 @@ func (this *Controller) GetRewardConfigInfo(c *gin.Context) {
 func (this *Controller) RemoveRewardConfig(c *gin.Context) {
 	idStr := c.Param("id")
 	if idStr == "" {
-		this.echoError(c, errors.New("缺少参数 id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少参数 id"))
 		return
 	}
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	err = this.dao.RemoveRelativeRewardConfig(uint(id))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -130,12 +130,12 @@ func (this *Controller) ListRewardConfig(c *gin.Context) {
 
 	objects, err := this.dao.GetRewardConfigPage(start, pageSize)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetRewardConfigCount()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	rewardConfigResult := &RewardConfigResult{
@@ -164,12 +164,12 @@ type GetRewardConfigParam struct {
 func (this *Controller) GetRewardConfig(c *gin.Context) {
 	var param GetRewardConfigParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
 		return
 	}
 	result, err := this.dao.GetLatestRewardConfig(param.SourceChainId, param.TargetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, result)
@@ -194,23 +194,23 @@ type UpdateRewardConfigParam struct {
 func (this *Controller) UpdateRewardConfig(c *gin.Context) {
 	var param UpdateRewardConfigParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
 		return
 	}
 	last, err := this.dao.GetRewardConfigById(param.Id)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	//调整周期必须大于0
 	if param.RegulationCycle == 0 {
-		this.echoError(c, errors.New("调控周期必须大于0"))
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("调控周期必须大于0"))
 		return
 	}
 	//校验sign_reward为整数
 	_, ok := big.NewInt(0).SetString(param.SignReward, 10)
 	if !ok {
-		this.echoError(c, errors.New("sign_reward数据非法"))
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("sign_reward数据非法"))
 		return
 	}
 	rewardConfig := &dao.RewardConfig{
@@ -222,7 +222,7 @@ func (this *Controller) UpdateRewardConfig(c *gin.Context) {
 	//记录历史，所以每次更新都是新增一条记录
 	id, err := this.dao.CreateRewardConfig(rewardConfig)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, id)
