@@ -67,3 +67,12 @@ func (this *DataBaseAccessObject) GetPunishmentCount(anchorNodeId uint) (int, er
 	err := db.Count(&count).Error
 	return count, err
 }
+func (this *DataBaseAccessObject) PunishmentRecordNotFound(anchorNodeId uint, manageType string) bool {
+	var punishment Punishment
+	return this.db.Table((&Punishment{}).TableName()).Where("anchor_node_id=?", anchorNodeId).
+		Where("manage_type=?", manageType).First(&punishment).RecordNotFound()
+
+}
+func (this *DataBaseAccessObject) RemovePunishmentByManageType(anchorNodeId uint, manageType string) error {
+	return this.db.Where("anchor_node_id = ?", anchorNodeId).Where("manage_type=?", manageType).Delete(&Chain{}).Error
+}
