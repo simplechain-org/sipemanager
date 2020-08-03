@@ -88,13 +88,19 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		return
 	}
 
-	contract, err := this.dao.GetContractByChainId(chain.ID)
+	contract, err := this.dao.GetContractInstanceById(chain.ContractInstanceId)
 	if err != nil {
 		fmt.Println("3",err)
 		this.echoError(c, err)
 		return
 	}
 
+	conAbi,err := this.dao.GetContractById(contract.ContractId)
+	if err != nil {
+		fmt.Println("111",err)
+		this.echoError(c, err)
+		return
+	}
 	user, err := this.GetUser(c)
 	if err != nil {
 		fmt.Println("4",err)
@@ -177,7 +183,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
-		stat,err := api.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(contract.Abi),big.NewInt(int64(chain.NetworkId)))
+		stat,err := api.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(chain.NetworkId)))
 		fmt.Println(stat)
 		if err != nil {
 			fmt.Println("10",err)
@@ -207,7 +213,13 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
-		objContract, err := this.dao.GetContractByChainId(targetId)
+		targetChain,err := this.dao.GetChain(targetId)
+		if err != nil {
+			fmt.Println("121",err)
+			this.echoError(c, err)
+			return
+		}
+		objContract, err := this.dao.GetContractInstanceById(targetChain.ContractInstanceId)
 		if err != nil {
 			fmt.Println("13",err)
 			this.echoError(c, err)
@@ -241,7 +253,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		//}
 		//todo obApi对称
 		fmt.Println(objContract.Address,param.NetworkId)
-		stat,err := obApi.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(objContract.Abi),big.NewInt(int64(param.NetworkId)))
+		stat,err := obApi.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(param.NetworkId)))
 		if err != nil {
 			fmt.Println("16",err)
 			this.echoError(c, err)
@@ -314,7 +326,7 @@ func (this *Controller)UpdateRetroActive()  {
 								break
 							}
 						}
-						contract, err := this.dao.GetContractByChainId(chain.ID)
+						contract, err := this.dao.GetContractInstanceById(chain.ID)
 						if err != nil {
 							break
 						}
@@ -328,8 +340,13 @@ func (this *Controller)UpdateRetroActive()  {
 							fmt.Println("14",err)
 							break
 						}
+						conAbi,err := this.dao.GetContractById(contract.ContractId)
+						if err != nil {
+							fmt.Println("111",err)
+							break
+						}
 
-						stat,err := api.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(contract.Abi),big.NewInt(int64(chain.NetworkId)))
+						stat,err := api.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(chain.NetworkId)))
 						fmt.Println("777",stat,chain.NetworkId,v.CtxId)
 						if err != nil {
 							break
@@ -354,9 +371,19 @@ func (this *Controller)UpdateRetroActive()  {
 							fmt.Println("12",err)
 							break
 						}
-						objContract, err := this.dao.GetContractByChainId(targetId)
+						targetChain,err := this.dao.GetChain(targetId)
+						if err != nil {
+							fmt.Println("14",err)
+							break
+						}
+						objContract, err := this.dao.GetContractInstanceById(targetChain.ContractInstanceId)
 						if err != nil {
 							fmt.Println("13",err)
+							break
+						}
+						conAbi,err := this.dao.GetContractById(objContract.ContractId)
+						if err != nil {
+							fmt.Println("111",err)
 							break
 						}
 						chain,err := this.dao.GetChain(targetId)
@@ -380,7 +407,7 @@ func (this *Controller)UpdateRetroActive()  {
 							}
 						}
 						fmt.Println(objContract.Address,v.NetworkId)
-						stat,err := obApi.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(objContract.Abi),big.NewInt(int64(v.NetworkId)))
+						stat,err := obApi.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(v.NetworkId)))
 						if err != nil {
 							fmt.Println("16",err)
 							break
