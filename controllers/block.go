@@ -173,25 +173,25 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 
 	}
 }
-func (this *Controller) getApi(userId uint, networkId uint64) (*blockchain.Api, error) {
-	node, err := this.dao.GetNodeByUserIdAndNetworkId(userId, networkId)
-	if err != nil {
-		return nil, err
-	}
-	chain, err := this.dao.GetChain(node.ChainId)
-	if err != nil {
-		return nil, err
-	}
-	n := &blockchain.Node{
-		Address:   node.Address,
-		Port:      node.Port,
-		ChainId:   node.ChainId,
-		IsHttps:   node.IsHttps,
-		NetworkId: chain.NetworkId,
-	}
-	api, err := blockchain.NewApi(n)
-	if err != nil {
-		return nil, err
-	}
-	return api, nil
-}
+//func (this *Controller) getApi(userId uint, networkId uint64) (*blockchain.Api, error) {
+//	node, err := this.dao.GetNodeByUserIdAndNetworkId(userId, networkId)
+//	if err != nil {
+//		return nil, err
+//	}
+//	chain, err := this.dao.GetChain(node.ChainId)
+//	if err != nil {
+//		return nil, err
+//	}
+//	n := &blockchain.Node{
+//		Address:   node.Address,
+//		Port:      node.Port,
+//		ChainId:   node.ChainId,
+//		IsHttps:   node.IsHttps,
+//		NetworkId: chain.NetworkId,
+//	}
+//	api, err := blockchain.NewApi(n)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return api, nil
+//}
