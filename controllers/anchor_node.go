@@ -153,7 +153,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		this.ResponseError(c, DATABASE_ERROR, fmt.Errorf("保存锚定节点数据失败：%s", err.Error()))
 		return
 	}
-	go func(api *blockchain.Api, id uint, hash string) {
+	go func(api *blockchain.Api, id uint, hash string, address string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
 		maxCount := 30
@@ -167,6 +167,16 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 					fmt.Println(err)
 					continue
 				}
+				anchorNode, err := this.dao.GetAnchorNode(id)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.SourceChainId, anchorNode.TargetChainId, address, "+", id)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 				break
 			}
 			if i >= maxCount {
@@ -174,9 +184,9 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 			}
 			i++
 		}
-	}(source, id, sourceHash)
+	}(source, id, sourceHash, sourceContract.Address)
 
-	go func(api *blockchain.Api, id uint, hash string) {
+	go func(api *blockchain.Api, id uint, hash string, address string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
 		maxCount := 30
@@ -190,6 +200,16 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 					fmt.Println(err)
 					continue
 				}
+				anchorNode, err := this.dao.GetAnchorNode(id)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.TargetChainId, anchorNode.SourceChainId, address, "+", id)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 				break
 			}
 			if i >= maxCount {
@@ -197,7 +217,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 			}
 			i++
 		}
-	}(target, id, targetHash)
+	}(target, id, targetHash, targetContract.Address)
 	this.echoSuccess(c, "Success")
 }
 
@@ -299,7 +319,7 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用发起链的合约移除锚定节点失败：%s", err.Error()))
 		return
 	}
-	go func(source *blockchain.Api, target *blockchain.Api, id uint, sourceHash string, targetHash string) {
+	go func(source *blockchain.Api, target *blockchain.Api, id uint, sourceHash string, targetHash string, sourceAddress string, targetAddress string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
 		maxCount := 30
@@ -312,6 +332,21 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 					receipt, err := target.TransactionReceipt(common.HexToHash(targetHash))
 					if err == nil && receipt != nil {
 						if receipt.Status == 1 {
+							anchorNode, err := this.dao.GetAnchorNode(id)
+							if err != nil {
+								fmt.Println(err)
+								continue
+							}
+							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.SourceChainId, anchorNode.TargetChainId, sourceAddress, "_", id)
+							if err != nil {
+								fmt.Println(err)
+								continue
+							}
+							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.TargetChainId, anchorNode.SourceChainId, targetAddress, "_", id)
+							if err != nil {
+								fmt.Println(err)
+								continue
+							}
 							//两条链都已经完成合约调用成功，那么就移除删除数据库中锚定节点的数据
 							err = this.dao.RemoveAnchorNode(id)
 							if err != nil {
@@ -328,7 +363,7 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 			}
 			i++
 		}
-	}(source, target, param.AnchorNodeId, sourceHash, targetHash)
+	}(source, target, param.AnchorNodeId, sourceHash, targetHash, sourceContract.Address, targetContract.Address)
 	this.echoSuccess(c, "Success")
 }
 
