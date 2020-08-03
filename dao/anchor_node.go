@@ -82,21 +82,21 @@ func (this *DataBaseAccessObject) ListAnchorNode() ([]AnchorNode, error) {
 }
 func (this *DataBaseAccessObject) GetAnchorNodeCount(anchorNodeId uint) (int, error) {
 	var count int
-	db:=this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
-	if anchorNodeId!=0{
-		db=db.Where("id=?",anchorNodeId)
+	db := this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
+	if anchorNodeId != 0 {
+		db = db.Where("id=?", anchorNodeId)
 	}
 	err := db.Count(&count).Error
 	return count, err
 }
 
-func (this *DataBaseAccessObject) GetAnchorNodePage(start, pageSize int,anchorNodeId uint) ([]*AnchorNode, error) {
+func (this *DataBaseAccessObject) GetAnchorNodePage(start, pageSize int, anchorNodeId uint) ([]*AnchorNode, error) {
 	result := make([]*AnchorNode, 0)
-	db:=this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
-	if anchorNodeId!=0{
-		db=db.Where("id=?",anchorNodeId)
+	db := this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
+	if anchorNodeId != 0 {
+		db = db.Where("id=?", anchorNodeId)
 	}
-	err :=db.Offset(start).Limit(pageSize).Find(&result).Error
+	err := db.Offset(start).Limit(pageSize).Find(&result).Error
 	return result, err
 }
 
@@ -115,6 +115,9 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 		return errors.New("pledge数据非法")
 	}
 	sub = sub.Sub(sub, fee)
+	if sub.Sign() < 0 {
+		return errors.New("value数据非法")
+	}
 	return this.db.Table((&AnchorNode{}).TableName()).
 		Where("id=?", anchorNodeId).
 		Update("pledge", sub.String()).Error
