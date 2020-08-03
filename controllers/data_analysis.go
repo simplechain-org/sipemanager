@@ -139,7 +139,6 @@ func (this *Controller) AnchorCount(c *gin.Context) {
 	for _, id := range anchorIds {
 		n, _ := strconv.Atoi(id)
 		anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType, uint(n))
-		fmt.Println(anchors)
 		if err != nil {
 			this.echoError(c, err)
 			return
@@ -380,7 +379,6 @@ func (this *Controller) QueryMonitorBy(token dao.TokenListInterface) (map[string
 			}
 		}
 		if err != nil {
-			fmt.Println(454546, err)
 			return MonCountMap, err
 		}
 	}

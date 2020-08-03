@@ -75,15 +75,17 @@ func (this *DataBaseAccessObject) TxAnchorsReplace(data TxAnchors) error {
 }
 
 type TokenListCount struct {
-	Count    uint
-	Fee      uint64
-	TimeType string
-	Date     string
+	Count      uint
+	Fee        uint64
+	TimeType   string
+	Date       string
+	AnchorId   uint
+	AnchorName string
 }
 
 func (this *DataBaseAccessObject) TokenListAnchorCount(data TokenListInterface, startTime string, endTime string, timeType string, anchorId uint) ([]TokenListCount, error) {
 	txAnchors := make([]TokenListCount, 0)
-
+	Anchor, err := this.GetAnchorNode(anchorId)
 	var sql = `
 SELECT sum(t1.count) count, sum(t1.fee) fee , t1.timeType timeType, t1.date date
 FROM (
@@ -104,6 +106,8 @@ WHERE date BETWEEN '%s' and '%s'  and timeType = '%s' and anchor_id= %d GROUP BY
 			&result.TimeType,
 			&result.Date,
 		)
+		result.AnchorId = anchorId
+		result.AnchorName = Anchor.Name
 		txAnchors = append(txAnchors, result)
 	}
 	return txAnchors, err
