@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	PUNISHMENT_SUSPEND_ERROR = 15001 //锚定节点签名功能已被禁用
+	PUNISHMENT_SUSPEND_ERROR           = 15001 //锚定节点签名功能已被禁用
+	PUNISHMENT_RECOVERY_ERROR          = 15002 //当前已经暂停的锚定节点才能恢复
+	PUNISHMENT_SUSPEND_DUPLICATE_ERROR = 15003 //重复暂停同一个锚定节点
 )
 
 type AddPunishmentParam struct {
@@ -65,9 +67,17 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		var status bool
 		if param.ManageType == "recovery" {
 			status = true
+			if this.dao.PunishmentRecordNotFound(param.AnchorNodeId, "suspend") {
+				this.ResponseError(c, PUNISHMENT_RECOVERY_ERROR, errors.New("当前已经暂停的锚定节点才能恢复"))
+				return
+			}
 		}
 		if param.ManageType == "suspend" {
 			status = false
+			if !this.dao.PunishmentRecordNotFound(param.AnchorNodeId, "suspend") {
+				this.ResponseError(c, PUNISHMENT_SUSPEND_DUPLICATE_ERROR, errors.New("重复暂停同一个锚定节点"))
+				return
+			}
 		}
 		//链的合约
 		contract, err := this.dao.GetContractByChainId(node.ChainId)
