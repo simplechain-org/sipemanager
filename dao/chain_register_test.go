@@ -120,3 +120,13 @@ func TestDataBaseAccessObject_GetChainRegister(t *testing.T) {
 	}
 
 }
+
+func TestDataBaseAccessObject_ChainRegisterRecordNotFound(t *testing.T) {
+	t.Log(obj.ChainRegisterRecordNotFound(1, 2, "0x95566BF949aDC929EfEE9b59dAE8A1e8876b2560", 1))
+}
+func TestDataBaseAccessObject_UpdateChainRegisterAnchorAddresses(t *testing.T) {
+	err := obj.UpdateChainRegisterAnchorAddresses(1, 2, "0x95566BF949aDC929EfEE9b59dAE8A1e8876b2561", "+", 55)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -53,17 +53,17 @@ type RegisterChainTwoWayParam struct {
 func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	var param RegisterChainTwoWayParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.ResponseError(c,WALLET_ID_NOT_EXISTS_ERROR,err)
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.ResponseError(c,WALLET_PASSWORD_ERROR, err)
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, err)
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
@@ -71,12 +71,12 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	errChan := make(chan error, 2)
 	source, err := this.getApiByNodeId(param.SourceNodeId)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR,err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	target, err := this.getApiByNodeId(param.TargetNodeId)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR,err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	db := this.dao.BeginTransaction()
@@ -94,7 +94,7 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		if err != nil {
 			fmt.Println("CreateAnchorNodeByTx ", err)
 			db.Rollback()
-			this.ResponseError(c, DATABASE_ERROR,err)
+			this.ResponseError(c, DATABASE_ERROR, err)
 			return
 		}
 		ids = append(ids, fmt.Sprintf("%d", id))
@@ -102,7 +102,25 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	idString := strings.Join(ids, ",")
 	pledge, ok := new(big.Int).SetString(param.Pledge, 10)
 	if !ok {
-		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR,errors.New("pledge 值非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("pledge 值非法"))
+		return
+	}
+	sourceContract, err := this.dao.GetContractByChainId(param.SourceChainId)
+	if err != nil {
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
+		return
+	}
+	targetContract, err := this.dao.GetContractByChainId(param.TargetChainId)
+	if err != nil {
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
+		return
+	}
+	if !this.dao.ChainRegisterRecordNotFound(param.SourceChainId, param.TargetChainId, sourceContract.Address, 1) {
+		this.ResponseError(c, CHAIN_REGISTER_EXISTS_ERROR, errors.New("链已经注册"))
+		return
+	}
+	if !this.dao.ChainRegisterRecordNotFound(param.TargetChainId, param.SourceChainId, targetContract.Address, 1) {
+		this.ResponseError(c, CHAIN_REGISTER_EXISTS_ERROR, errors.New("链已经注册"))
 		return
 	}
 	//注册一条链 source(1)->target(2)
@@ -119,7 +137,7 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	if errMsg != "" {
 		fmt.Println("errMsg ", errMsg)
 		db.Rollback()
-		this.ResponseError(c, CHAIN_REGISTER_ERROR,errors.New(errMsg))
+		this.ResponseError(c, CHAIN_REGISTER_ERROR, errors.New(errMsg))
 		return
 	}
 	db.Commit()
@@ -262,12 +280,12 @@ func (this *Controller) ListChainRegister(c *gin.Context) {
 
 	objects, err := this.dao.GetChainRegisterPage(start, pageSize)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetChainRegisterCount()
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainRegisterResult := &ChainRegisterResult{
@@ -295,17 +313,17 @@ type ChainRegisterInfo struct {
 func (this *Controller) GetChainRegisterInfo(c *gin.Context) {
 	chainRegisterIdStr := c.Query("id")
 	if chainRegisterIdStr == "" {
-		this.ResponseError(c, REQUEST_PARAM_ERROR,errors.New("缺少参数 id"))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("缺少参数 id"))
 		return
 	}
 	id, err := strconv.ParseUint(chainRegisterIdStr, 10, 64)
 	if err != nil {
-		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	chain, err := this.dao.GetChainRegister(uint(id))
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainRegisterInfo := &ChainRegisterInfo{

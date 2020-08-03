@@ -18,6 +18,7 @@ const (
 	CHAIN_HAD_NODE_ERROR            int = 10005 //链下还存在节点，不能删除
 	CHAIN_HAD_CONTRACT_ERROR        int = 10006 //链下还存在相应的合约实例
 	CHAIN_REGISTER_ERROR            int = 10007 //链注册出错
+	CHAIN_REGISTER_EXISTS_ERROR     int = 10008 //链已经注册
 
 )
 

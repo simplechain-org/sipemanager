@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"strconv"
 	"strings"
@@ -8,18 +10,18 @@ import (
 )
 
 type ChainRegister struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId   uint   `json:"source_chain_id"`
-	TargetChainId   uint   `json:"target_chain_id"`
-	Confirm         uint   `json:"confirm"`
-	AnchorAddresses string `json:"anchor_addresses"`
-	Status          int    `json:"status"`
-	StatusText      string `json:"status_text"`
-	TxHash          string `json:"tx_hash"`
-	Address         string `json:"address"` // 合约地址
+	ID              uint       `gorm:"primary_key" json:"id"`
+	CreatedAt       time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt       *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId   uint       `json:"source_chain_id"`
+	TargetChainId   uint       `json:"target_chain_id"`
+	Confirm         uint       `json:"confirm"`
+	AnchorAddresses string     `json:"anchor_addresses"`
+	Status          int        `json:"status"`
+	StatusText      string     `json:"status_text"`
+	TxHash          string     `json:"tx_hash"`
+	Address         string     `json:"address"` // 合约地址
 }
 
 func (this *ChainRegister) TableName() string {
@@ -222,4 +224,52 @@ func (this *DataBaseAccessObject) GetChainRegisterById(id uint) (*ChainRegister,
 		return nil, err
 	}
 	return &result, nil
+}
+func (this *DataBaseAccessObject) UpdateChainRegisterAnchorAddresses(sourceChainId, targetChainId uint, address string, symbol string, anchorNodeId uint) error {
+	var result ChainRegister
+	err := this.db.Model(&ChainRegister{}).
+		Where("source_chain_id=?", sourceChainId).
+		Where("target_chain_id=?", targetChainId).
+		Where("address=?", address).First(&result).Error
+	if err != nil {
+		return err
+	}
+	anchorNodeIdStr := fmt.Sprintf("%d", anchorNodeId)
+	if symbol == "+" {
+		if result.AnchorAddresses != "" {
+			ids := strings.Split(result.AnchorAddresses, ",")
+			for _, id := range ids {
+				if id == anchorNodeIdStr {
+					//已经存在
+					return errors.New("锚定节点已经存在")
+				}
+			}
+			ids = append(ids, anchorNodeIdStr)
+			anchorNodeAddress := strings.Join(ids, ",")
+			return this.db.Table((&ChainRegister{}).TableName()).Where("id = ?", result.ID).Update("anchor_addresses", anchorNodeAddress).Error
+		}
+	} else if symbol == "-" {
+		if result.AnchorAddresses != "" {
+			updateAddress := make([]string, 0)
+			ids := strings.Split(result.AnchorAddresses, ",")
+			for _, id := range ids {
+				if id != anchorNodeIdStr {
+					//把anchorNodeIdStr从anchor_addresses中移除
+					updateAddress = append(updateAddress, id)
+				}
+			}
+			anchorNodeAddress := strings.Join(updateAddress, ",")
+			return this.db.Table((&ChainRegister{}).TableName()).Where("id = ?", result.ID).Update("anchor_addresses", anchorNodeAddress).Error
+		}
+	}
+	return nil
+}
+func (this *DataBaseAccessObject) ChainRegisterRecordNotFound(sourceChainId, targetChainId uint, address string, status int) bool {
+	var result ChainRegister
+	return this.db.Model(&ChainRegister{}).
+		Where("source_chain_id=?", sourceChainId).
+		Where("target_chain_id=?", targetChainId).
+		Where("address=?", address).
+		Where("status=?", status).First(&result).RecordNotFound()
+
 }
