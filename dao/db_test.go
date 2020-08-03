@@ -5,9 +5,9 @@ import "testing"
 var config = &DBConfig{
 	Username: "root",
 	Password: "root",
-	Address:  "192.168.3.116",
+	Address:  "192.168.8.104",
 	Port:     3306,
-	DbName:   "sipe",
+	DbName:   "sipe_manager",
 	Charset:  "utf8mb4",
 	MaxIdle:  1000,
 	MaxOpen:  2000,
