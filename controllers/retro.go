@@ -81,14 +81,14 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		this.echoError(c, errors.New("already exit"))
 		return
 	}
-	chainId,err :=  this.dao.GetChainIdByNetworkId(param.NetworkId)
+	chain,err :=  this.dao.GetChainByNetWorkId(param.NetworkId)
 	if err != nil {
 		fmt.Println("2",err)
 		this.echoError(c, err)
 		return
 	}
 
-	contract, err := this.dao.GetContractByChainId(chainId)
+	contract, err := this.dao.GetContractByChainId(chain.ID)
 	if err != nil {
 		fmt.Println("3",err)
 		this.echoError(c, err)
@@ -102,7 +102,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		return
 	}
 
-	sourceNode, err := this.dao.GetNodeByChainId(chainId)
+	sourceNode, err := this.dao.GetNodeByChainId(chain.ID)
 	if err != nil {
 		fmt.Println("11",err)
 		this.echoError(c, err)
@@ -164,7 +164,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 	}
 
 	if param.Event == 1 {
-		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 		if err != nil {
 			fmt.Println("12",err)
 			this.echoError(c, err)
@@ -201,7 +201,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			param.Status = 2
 		}
 	} else {
-		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 		if err != nil {
 			fmt.Println("12",err)
 			this.echoError(c, err)
@@ -293,7 +293,7 @@ func (this *Controller)UpdateRetroActive()  {
 
 			for _,v := range result {
 				if v.Status == 1 {
-					chainId,err :=  this.dao.GetChainIdByNetworkId(v.NetworkId)
+					chain,err :=  this.dao.GetChainByNetWorkId(v.NetworkId)
 					if err != nil {
 						fmt.Println("2",err)
 						break
@@ -314,11 +314,11 @@ func (this *Controller)UpdateRetroActive()  {
 								break
 							}
 						}
-						contract, err := this.dao.GetContractByChainId(chainId)
+						contract, err := this.dao.GetContractByChainId(chain.ID)
 						if err != nil {
 							break
 						}
-						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 						if err != nil {
 							fmt.Println("12",err)
 							break
@@ -349,7 +349,7 @@ func (this *Controller)UpdateRetroActive()  {
 							v.Status = 2
 						}
 					} else {
-						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chainId)
+						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 						if err != nil {
 							fmt.Println("12",err)
 							break
