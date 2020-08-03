@@ -5,18 +5,18 @@ import (
 )
 
 type MakerOrder struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId uint   `json:"source_chain_id"`
-	TargetChainId uint   `json:"target_chain_id"`
-	Maker         string `json:"maker"`
-	SourceValue   uint64 `json:"source_value"`
-	TargetValue   uint64 `json:"target_value"`
-	Status        int    `json:"status"`
-	StatusText    string `json:"status_text"`
-	TxHash        string `json:"tx_hash"`
+	ID            uint       `gorm:"primary_key" json:"id"`
+	CreatedAt     time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt     *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId uint       `json:"source_chain_id"`
+	TargetChainId uint       `json:"target_chain_id"`
+	Maker         string     `json:"maker"`
+	SourceValue   uint64     `json:"source_value"`
+	TargetValue   uint64     `json:"target_value"`
+	Status        int        `json:"status"`
+	StatusText    string     `json:"status_text"`
+	TxHash        string     `json:"tx_hash"`
 }
 
 func (this *MakerOrder) TableName() string {

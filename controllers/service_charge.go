@@ -90,12 +90,12 @@ func (this *Controller) ListServiceCharge(c *gin.Context) {
 	start := (currentPage - 1) * pageSize
 	objects, err := this.dao.GetServiceChargeLogPage(start, pageSize, anchorNodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetServiceChargeLogCount(anchorNodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	serviceChargeResult := &ServiceChargeResult{
@@ -133,29 +133,28 @@ type AddServiceChargeParam struct {
 func (this *Controller) AddServiceCharge(c *gin.Context) {
 	var param AddServiceChargeParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
 		return
 	}
 	anchorNode, err := this.dao.GetAnchorNode(param.AnchorNodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,ANCHOR_NODE_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	node, err := this.dao.GetNodeById(param.NodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	source, err := this.getApiByNodeId(param.NodeId)
 	if err != nil {
-		fmt.Println("GetApiByNodeId:", err.Error())
-		this.echoError(c, err)
+		this.ResponseError(c,NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	//链的合约
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 		return
 	}
 	var targetChainId uint
@@ -166,19 +165,17 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 	}
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,CHAIN_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		fmt.Println("GetWallet:", err.Error())
-		this.echoError(c, err)
+		this.ResponseError(c,WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		fmt.Println("GetPrivateKey:", err.Error())
-		this.echoError(c, err)
+		this.ResponseError(c, WALLET_PASSWORD_ERROR,err)
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
@@ -196,12 +193,12 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 	}
 	fee, success := big.NewInt(0).SetString(param.Fee, 10)
 	if !success {
-		this.echoError(c, errors.New("fee数据非法"))
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("fee数据非法"))
 		return
 	}
 	hash, err := source.AccumulateRewards(config, callerConfig, fee)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,CONTRACT_INVOKE_ERROR, err)
 		return
 	}
 	serviceChargeLog := &dao.ServiceChargeLog{
@@ -213,7 +210,7 @@ func (this *Controller) AddServiceCharge(c *gin.Context) {
 	}
 	id, err := this.dao.CreateServiceChargeLog(serviceChargeLog)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	go func(source *blockchain.Api, id uint, hash string) {
@@ -257,57 +254,57 @@ func (this *Controller) GetServiceChargeFee(c *gin.Context) {
 
 	coin := c.Query("coin")
 	if coin == "" {
-		this.echoError(c, errors.New("coin必须提供值"))
+		this.ResponseError(c,REQUEST_PARAM_ERROR, errors.New("coin必须提供值"))
 		return
 	}
 	anchorNodeIdStr := c.Query("anchor_node_id")
 
 	if anchorNodeIdStr == "" {
-		this.echoError(c, errors.New("anchor_node_id必须提供值"))
+		this.ResponseError(c,REQUEST_PARAM_ERROR,errors.New("anchor_node_id必须提供值"))
 		return
 	}
 	anchorNodeId, err := strconv.ParseUint(anchorNodeIdStr, 10, 62)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR,err)
 		return
 	}
 	nodeIdStr := c.Query("node_id")
 
 	if nodeIdStr == "" {
-		this.echoError(c, errors.New("node_id必须提供值"))
+		this.ResponseError(c,REQUEST_PARAM_ERROR,err)
 		return
 	}
 	nodeId, err := strconv.ParseUint(nodeIdStr, 10, 62)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR,err)
 		return
 	}
 	node, err := this.dao.GetNodeById(uint(nodeId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	contract, err := this.dao.GetContractByChainId(node.ChainId)
 	if err != nil {
-		this.echoError(c, errors.New(fmt.Sprintf("获取链的合约失败 chain_id=%d", node.ChainId)))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR,errors.New(fmt.Sprintf("获取链的合约失败 chain_id=%d", node.ChainId)))
 		return
 	}
 	//获取锚定节点
 	anchorNode, err := this.dao.GetAnchorNode(uint(anchorNodeId))
 	if err != nil {
-		this.echoError(c, errors.New(fmt.Sprintf("获取锚定节点信息失败 chain_id=%d", anchorNodeId)))
+		this.ResponseError(c,ANCHOR_NODE_ID_NOT_EXISTS_ERROR, errors.New(fmt.Sprintf("获取锚定节点信息失败 chain_id=%d", anchorNodeId)))
 		return
 	}
 	//统计累计消耗手续费（从同步交易中获取）
 	accumulatedFee, err := this.dao.GetTransactionSumFee(anchorNode.Address, contract.Address, "makerFinish", node.ChainId)
 	if err != nil {
-		this.echoError(c, errors.New("统计累计消耗手续费发生错误:"+err.Error()))
+		this.ResponseError(c,DATABASE_ERROR, errors.New("统计累计消耗手续费发生错误:"+err.Error()))
 		return
 	}
 	//统计累计已报销手续费 (从报销表中获取，求和)
 	reimbursedFee, err := this.dao.GetServiceChargeSumFee(uint(anchorNodeId), coin)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	result := &ServiceChargeFee{
