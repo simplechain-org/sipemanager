@@ -101,12 +101,26 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	api, err := this.getApi(user.ID,param.NetworkId)
+
+	sourceNode, err := this.dao.GetNodeByChainId(chainId)
 	if err != nil {
-		fmt.Println("5",err)
+		fmt.Println("11",err)
 		this.echoError(c, err)
 		return
 	}
+	api, err := this.getApiByNodeId(sourceNode.ID)
+	if err != nil {
+		fmt.Println("12",err)
+		this.echoError(c, err)
+		return
+	}
+
+	//api, err := this.getApi(user.ID,param.NetworkId)
+	//if err != nil {
+	//	fmt.Println("5",err)
+	//	this.echoError(c, err)
+	//	return
+	//}
 	//查询交易receipt
 	receipt, err := api.TransactionReceipt(common.HexToHash(param.TxHash))
 	if err != nil {
@@ -199,19 +213,32 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
-		chain,err := this.dao.GetChain(targetId)
+		//chain,err := this.dao.GetChain(targetId)
+		//if err != nil {
+		//	fmt.Println("14",err)
+		//
+		//	this.echoError(c, err)
+		//	return
+		//}
+
+		sourceNode2, err := this.dao.GetNodeByChainId(targetId)
 		if err != nil {
 			fmt.Println("14",err)
-
 			this.echoError(c, err)
 			return
 		}
-		obApi, err := this.getApi(user.ID,chain.NetworkId)
+		obApi, err := this.getApiByNodeId(sourceNode2.ID)
 		if err != nil {
-			fmt.Println("5",err)
+			fmt.Println("13",err)
 			this.echoError(c, err)
 			return
 		}
+		//obApi, err := this.getApi(user.ID,chain.NetworkId)
+		//if err != nil {
+		//	fmt.Println("5",err)
+		//	this.echoError(c, err)
+		//	return
+		//}
 		//todo obApi对称
 		fmt.Println(objContract.Address,param.NetworkId)
 		stat,err := obApi.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(objContract.Abi),big.NewInt(int64(param.NetworkId)))
