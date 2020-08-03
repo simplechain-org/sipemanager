@@ -74,5 +74,5 @@ func (this *DataBaseAccessObject) PunishmentRecordNotFound(anchorNodeId uint, ma
 
 }
 func (this *DataBaseAccessObject) RemovePunishmentByManageType(anchorNodeId uint, manageType string) error {
-	return this.db.Where("anchor_node_id = ?", anchorNodeId).Where("manage_type=?", manageType).Delete(&Chain{}).Error
+	return this.db.Where("anchor_node_id = ?", anchorNodeId).Where("manage_type=?", manageType).Delete(&Punishment{}).Error
 }
