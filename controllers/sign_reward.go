@@ -414,6 +414,10 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 		this.ResponseError(c, ANCHOR_NODE_ID_NOT_EXISTS_ERROR, fmt.Errorf("找不到id为%d的锚定节点", param.AnchorNodeId))
 		return
 	}
+	if !this.dao.PunishmentRecordNotFound(anchorNode.ID, "suspend") {
+		this.ResponseError(c, PUNISHMENT_SUSPEND_ERROR, errors.New("锚定节点签名功能已被禁用"))
+		return
+	}
 	node, err := this.dao.GetNodeById(param.NodeId)
 	if err != nil {
 		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("找不到node_id为%d的节点", param.NodeId))
