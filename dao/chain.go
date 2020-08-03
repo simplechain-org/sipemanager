@@ -17,7 +17,7 @@ type Chain struct {
 }
 type ChainView struct {
 	ID                 uint   `gorm:"primary_key" json:"id"`
-	CreatedAt          string `gorm:"create_at" json:"create_at"`
+	CreatedAt          string `gorm:"created_at" json:"created_at"`
 	Name               string `json:"name" binding:"required"`                          //链的名称
 	NetworkId          uint64 `json:"network_id" binding:"required"`                    //链的网络编号
 	CoinName           string `json:"coin_name" binding:"required"`                     //币名

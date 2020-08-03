@@ -18,9 +18,11 @@ import (
 )
 
 const (
-	CONTRACT_CHECK_ERROR   int = 12005 //跨链合约Abi检查出错
 	CONTRACT_INVOKE_ERROR  int = 12001 //合约调用出错
 	CONTRACT_IN_USED_ERROR int = 12002 //合约正在使用
+	CONTRACT_ID_NOT_EXISTS_ERROR int = 12003 //合约id对应的合约不存在
+	CONTRACT_DEPLOY_ERROR int = 12004 //部署合约出错
+	CONTRACT_CHECK_ERROR   int = 12005 //跨链合约Abi检查出错
 )
 
 // @Summary 上传本地合约
@@ -108,7 +110,7 @@ func (this *Controller) RemoveContract(c *gin.Context) {
 	}
 	err = this.dao.RemoveContract(uint(contractId))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -158,12 +160,12 @@ func (this *Controller) ListContract(c *gin.Context) {
 
 	objects, err := this.dao.GetContractPage(start, pageSize, status)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetContractCount(status)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	contractResult := &ContractResult{
@@ -187,17 +189,17 @@ func (this *Controller) ListContract(c *gin.Context) {
 func (this *Controller) GetContractOnChain(c *gin.Context) {
 	chainId := c.Query("chain_id")
 	if chainId == "" {
-		this.echoError(c, errors.New("chain_id非法"))
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("chain_id非法"))
 		return
 	}
 	id, err := strconv.ParseUint(chainId, 10, 64)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	contracts, err := this.dao.GetContractsByChainId(uint(id))
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, contracts)
@@ -224,31 +226,35 @@ type ContractParam struct {
 func (this *Controller) InstanceContract(c *gin.Context) {
 	var param ContractParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
 		return
 	}
 	api, err := this.getApiByNodeId(param.NodeId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,WALLET_PASSWORD_ERROR, err)
 		return
 	}
 	contract, err := this.dao.GetContractById(param.ContractId)
+	if err != nil {
+		this.ResponseError(c,CONTRACT_ID_NOT_EXISTS_ERROR, err)
+		return
+	}
 	var data []byte
 	data = common.Hex2Bytes(contract.Bin)
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	hash, err := api.DeployContract(address, nil, data, api.GetNetworkId(), privateKey)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, CONTRACT_DEPLOY_ERROR,err)
 		return
 	}
 	contractObj := &dao.ContractInstance{
@@ -258,18 +264,16 @@ func (this *Controller) InstanceContract(c *gin.Context) {
 	}
 	contractId, err := this.dao.CreateContractInstance(contractObj)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	go func(id uint, hash string) {
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
-		maxCount := 300 //最多尝试300次
+		maxCount := 30
 		i := 0
 		for {
 			<-ticker.C
-			fmt.Println("now:", time.Now().Unix())
-			//时间到，做一下检测
 			receipt, err := api.TransactionReceipt(common.HexToHash(hash))
 			if err == nil && receipt != nil {
 				err = this.dao.UpdateContractAddress(contractId, receipt.ContractAddress.String())
@@ -315,7 +319,7 @@ type ExistsContractParam struct {
 func (this *Controller) AddExistsContract(c *gin.Context) {
 	var param ExistsContractParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR,err)
 		return
 	}
 	contract := &dao.Contract{
@@ -327,7 +331,7 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 	//创建合约对象
 	id, err := this.dao.CreateContract(contract)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	instance := &dao.ContractInstance{
@@ -338,16 +342,28 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 	}
 	id, err = this.dao.CreateContractInstance(instance)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, "Success")
 }
-
+//@Summary 获取所有的合约
+//@Accept application/x-www-form-urlencoded
+//@Accept application/json
+//@Produce application/json
+//@Param chain_id formData uint true "链id"
+//@Param tx_hash formData string true "交易哈希"
+//@Param address formData string true "合约地址"
+//@Param name formData string true "合约名称"
+//@Param sol formData string true "合约源码"
+//@Param abi formData string true "合约abi"
+//@Param bin formData string bin "合约bin"
+//@Success 200 {object} JsonResult
+//@Router /contract/instance/import [post]
 func (this *Controller) ListContractAll(c *gin.Context) {
 	contracts, err := this.dao.GetContracts()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, contracts)
@@ -404,7 +420,7 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 
 	objects, err := this.dao.GetContractInstancePage(start, pageSize)
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c, DATABASE_ERROR,err)
 		return
 	}
 	result := make([]ContractInstanceView, 0, len(objects))
@@ -427,7 +443,7 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 	}
 	count, err := this.dao.GetContractInstanceCount()
 	if err != nil {
-		this.echoError(c, err)
+		this.ResponseError(c,DATABASE_ERROR, err)
 		return
 	}
 	chainResult := &ContractInstanceResult{
