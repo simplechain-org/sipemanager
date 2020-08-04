@@ -6,30 +6,30 @@ import (
 
 //预扣费用，针对合约中的reward
 type PrepareReward struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId uint   `json:"source_chain_id"`
-	TargetChainId uint   `json:"target_chain_id"`
-	SourceReward  string `json:"source_reward"`
-	TargetReward  string `json:"target_reward"`
-	SourceHash    string `json:"source_hash"`
-	TargetHash    string `json:"target_hash"`
+	ID            uint       `gorm:"primary_key" json:"id"`
+	CreatedAt     time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt     *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId uint       `json:"source_chain_id"`
+	TargetChainId uint       `json:"target_chain_id"`
+	SourceReward  string     `json:"source_reward"`
+	TargetReward  string     `json:"target_reward"`
+	SourceHash    string     `json:"source_hash"`
+	TargetHash    string     `json:"target_hash"`
 }
 type PrepareRewardView struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId   uint   `json:"source_chain_id"`
-	TargetChainId   uint   `json:"target_chain_id"`
-	SourceReward    string `json:"source_reward"`
-	TargetReward    string `json:"target_reward"`
-	SourceChainName string `json:"source_chain_name"`
-	TargetChainName string `json:"target_chain_name"`
-	SourceChainCoin string `json:"source_chain_coin"`
-	TargetChainCoin string `json:"target_chain_coin"`
+	ID              uint       `gorm:"primary_key" json:"id"`
+	CreatedAt       time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt       *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId   uint       `json:"source_chain_id"`
+	TargetChainId   uint       `json:"target_chain_id"`
+	SourceReward    string     `json:"source_reward"`
+	TargetReward    string     `json:"target_reward"`
+	SourceChainName string     `json:"source_chain_name"`
+	TargetChainName string     `json:"target_chain_name"`
+	SourceChainCoin string     `json:"source_chain_coin"`
+	TargetChainCoin string     `json:"target_chain_coin"`
 }
 
 func (this *PrepareReward) TableName() string {

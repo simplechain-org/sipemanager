@@ -6,14 +6,14 @@ import (
 )
 
 type Wallet struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	ID        uint       `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	Name    string `gorm:"size:255" json:"name"`
-	Content string `gorm:"type:text" json:"content"`
-	UserId  uint
-	Address string `gorm:"size:255" json:"address"`
+	Name      string     `gorm:"size:255" json:"name"`
+	Content   string     `gorm:"type:text" json:"content"`
+	UserId    uint
+	Address   string `gorm:"size:255" json:"address"`
 }
 
 func (this *Wallet) TableName() string {
@@ -52,7 +52,7 @@ func (this *DataBaseAccessObject) UpdateWallet(id uint, content []byte) error {
 func (this *DataBaseAccessObject) WalletExists(address string) bool {
 	var count int
 
-	db := this.db.Table((&Wallet{}).TableName()).Where("address=?", address)
+	db := this.db.Table((&Wallet{}).TableName()).Where("address=? and deleted_at is null", address)
 
 	err := db.Count(&count).Error
 

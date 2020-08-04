@@ -163,12 +163,12 @@ func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*Chai
 	return result, err
 }
 func (this *DataBaseAccessObject) GetChainInfoCount() (int, error) {
-	sql:=`select count(*) as total from 
+	sql := `select count(*) as total from 
     (select chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address 
     from chains left join contract_instances on contract_instances.id=chains.contract_instance_id WHERE chains.deleted_at IS NULL) as temp`
 	var total Total
-	err:=this.db.Raw(sql).Scan(&total).Error
-	return total.Total,err
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 func (this *DataBaseAccessObject) GetChainInfo(chainId uint) (*ChainInfo, error) {
 	var chain ChainInfo

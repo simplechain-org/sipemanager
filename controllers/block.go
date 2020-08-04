@@ -35,6 +35,7 @@ type Block struct {
 	Nonce        uint64         `json:"nonce"`
 	Transactions int            `json:"transactions"`
 }
+
 func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.InstanceNodes) {
 	chainId := node.ChainId
 	//fmt.Printf("----当前写入区块号:%+v, ----当前ChainId： %+v ————\n", number, chainId)
@@ -173,6 +174,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 
 	}
 }
+
 //func (this *Controller) getApi(userId uint, networkId uint64) (*blockchain.Api, error) {
 //	node, err := this.dao.GetNodeByUserIdAndNetworkId(userId, networkId)
 //	if err != nil {

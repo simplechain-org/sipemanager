@@ -8,16 +8,16 @@ import (
 
 //报销手续费日志
 type ServiceChargeLog struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	AnchorNodeId    uint   `gorm:"anchor_node_id"`   //锚定节点编号
-	TransactionHash string `gorm:"transaction_hash"` //交易哈希
-	Fee             string `gorm:"fee"`              //报销手续费
-	Coin            string `gorm:"coin"`             //报销的币种
-	Sender          string `gorm:"sender"`           //出账账户地址
-	Status          uint   `gorm:"status"`           //状态
+	ID              uint       `gorm:"primary_key" json:"id"`
+	CreatedAt       time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt       *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	AnchorNodeId    uint       `gorm:"anchor_node_id"`   //锚定节点编号
+	TransactionHash string     `gorm:"transaction_hash"` //交易哈希
+	Fee             string     `gorm:"fee"`              //报销手续费
+	Coin            string     `gorm:"coin"`             //报销的币种
+	Sender          string     `gorm:"sender"`           //出账账户地址
+	Status          uint       `gorm:"status"`           //状态
 }
 
 type ServiceChargeLogView struct {

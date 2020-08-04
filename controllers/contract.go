@@ -4,25 +4,26 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/simplechain-org/go-simplechain/accounts/abi"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/simplechain-org/go-simplechain/common"
-	"github.com/simplechain-org/go-simplechain/crypto"
-
 	"sipemanager/blockchain"
 	"sipemanager/dao"
+
+	"github.com/gin-gonic/gin"
+	"github.com/simplechain-org/go-simplechain/accounts/abi"
+	"github.com/simplechain-org/go-simplechain/common"
+	"github.com/simplechain-org/go-simplechain/crypto"
 )
 
 const (
-	CONTRACT_INVOKE_ERROR  int = 12001 //合约调用出错
-	CONTRACT_IN_USED_ERROR int = 12002 //合约正在使用
+	CONTRACT_INVOKE_ERROR        int = 12001 //合约调用出错
+	CONTRACT_IN_USED_ERROR       int = 12002 //合约正在使用
 	CONTRACT_ID_NOT_EXISTS_ERROR int = 12003 //合约id对应的合约不存在
-	CONTRACT_DEPLOY_ERROR int = 12004 //部署合约出错
-	CONTRACT_CHECK_ERROR   int = 12005 //跨链合约Abi检查出错
+	CONTRACT_DEPLOY_ERROR        int = 12004 //部署合约出错
+	CONTRACT_CHECK_ERROR         int = 12005 //跨链合约Abi检查出错
 )
 
 // @Summary 上传本地合约
@@ -110,7 +111,7 @@ func (this *Controller) RemoveContract(c *gin.Context) {
 	}
 	err = this.dao.RemoveContract(uint(contractId))
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoSuccess(c, "Success")
@@ -160,12 +161,12 @@ func (this *Controller) ListContract(c *gin.Context) {
 
 	objects, err := this.dao.GetContractPage(start, pageSize, status)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetContractCount(status)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	contractResult := &ContractResult{
@@ -189,17 +190,17 @@ func (this *Controller) ListContract(c *gin.Context) {
 func (this *Controller) GetContractOnChain(c *gin.Context) {
 	chainId := c.Query("chain_id")
 	if chainId == "" {
-		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("chain_id非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("chain_id非法"))
 		return
 	}
 	id, err := strconv.ParseUint(chainId, 10, 64)
 	if err != nil {
-		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
 		return
 	}
 	contracts, err := this.dao.GetContractsByChainId(uint(id))
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, contracts)
@@ -226,27 +227,27 @@ type ContractParam struct {
 func (this *Controller) InstanceContract(c *gin.Context) {
 	var param ContractParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	api, err := this.getApiByNodeId(param.NodeId)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR, err)
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.ResponseError(c,WALLET_ID_NOT_EXISTS_ERROR, err)
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.ResponseError(c,WALLET_PASSWORD_ERROR, err)
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, err)
 		return
 	}
 	contract, err := this.dao.GetContractById(param.ContractId)
 	if err != nil {
-		this.ResponseError(c,CONTRACT_ID_NOT_EXISTS_ERROR, err)
+		this.ResponseError(c, CONTRACT_ID_NOT_EXISTS_ERROR, err)
 		return
 	}
 	var data []byte
@@ -254,7 +255,7 @@ func (this *Controller) InstanceContract(c *gin.Context) {
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 	hash, err := api.DeployContract(address, nil, data, api.GetNetworkId(), privateKey)
 	if err != nil {
-		this.ResponseError(c, CONTRACT_DEPLOY_ERROR,err)
+		this.ResponseError(c, CONTRACT_DEPLOY_ERROR, err)
 		return
 	}
 	contractObj := &dao.ContractInstance{
@@ -264,7 +265,7 @@ func (this *Controller) InstanceContract(c *gin.Context) {
 	}
 	contractId, err := this.dao.CreateContractInstance(contractObj)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	go func(id uint, hash string) {
@@ -319,7 +320,7 @@ type ExistsContractParam struct {
 func (this *Controller) AddExistsContract(c *gin.Context) {
 	var param ExistsContractParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c, REQUEST_PARAM_ERROR,err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	contract := &dao.Contract{
@@ -331,7 +332,7 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 	//创建合约对象
 	id, err := this.dao.CreateContract(contract)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	instance := &dao.ContractInstance{
@@ -342,11 +343,12 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 	}
 	id, err = this.dao.CreateContractInstance(instance)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, "Success")
 }
+
 //@Summary 获取所有的合约
 //@Accept application/x-www-form-urlencoded
 //@Accept application/json
@@ -363,7 +365,7 @@ func (this *Controller) AddExistsContract(c *gin.Context) {
 func (this *Controller) ListContractAll(c *gin.Context) {
 	contracts, err := this.dao.GetContracts()
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, contracts)
@@ -380,9 +382,9 @@ type ContractInstanceView struct {
 	ChainName  string `json:"chain_name"`
 }
 type ContractInstanceResult struct {
-	TotalCount  int                    `json:"total_count"`  //总记录数
-	CurrentPage int                    `json:"current_page"` //当前页数
-	PageSize    int                    `json:"page_size"`    //页的大小
+	TotalCount  int                         `json:"total_count"`  //总记录数
+	CurrentPage int                         `json:"current_page"` //当前页数
+	PageSize    int                         `json:"page_size"`    //页的大小
 	PageData    []*dao.ContractInstanceView `json:"page_data"`    //页的数据
 }
 
@@ -420,12 +422,12 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 
 	objects, err := this.dao.GetContractInstancePage(start, pageSize)
 	if err != nil {
-		this.ResponseError(c, DATABASE_ERROR,err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetContractInstanceCount()
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	chainResult := &ContractInstanceResult{
@@ -445,11 +447,26 @@ const (
 
 func (this *Controller) CheckContractAbi(contractInstanceId uint) error {
 	instance, err := this.dao.GetContractInstanceById(contractInstanceId)
+	if err != nil {
+		fmt.Println("GetContractInstanceById=", err)
+		return err
+	}
 	contract, err := this.dao.GetContractById(instance.ContractId)
+	if err != nil {
+		fmt.Println("GetContractById=", err)
+		return err
+	}
 	abiParsed, err := abi.JSON(strings.NewReader(contract.Abi))
+	if err != nil {
+		fmt.Println("GetContractById=", err)
+		return err
+	}
 	makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
 	makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
 	taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+	fmt.Println("makerStart=", makerStart)
+	fmt.Println("makerFinish=", makerFinish)
+	fmt.Println("taker=", taker)
 	if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
 		return errors.New("Unable to parse ABi normally")
 	}
@@ -457,4 +474,108 @@ func (this *Controller) CheckContractAbi(contractInstanceId uint) error {
 		return err
 	}
 	return nil
+}
+
+// @Summary 上传本地合约
+// @Tags AddContractFile
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param name formData string true "合约名称"
+// @Param sol formData file true "合约源码"
+// @Param abi formData file true "合约abi"
+// @Param bin formData file true "合约bin"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /contract/add/file [post]
+func (this *Controller) AddContractFile(c *gin.Context) {
+	name, ok := c.GetPostForm("name")
+	if !ok {
+		fmt.Println("name=", name)
+	}
+	form, err := c.MultipartForm()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	var sol string
+	var bin string
+	var abiContent string
+	sols := form.File["sol"]
+	if len(sols) > 0 {
+		file := sols[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		sol = string(data)
+	}
+	bins := form.File["bin"]
+	if len(bins) > 0 {
+		file := bins[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		bin = string(data)
+	}
+	abis := form.File["abi"]
+	if len(abis) > 0 {
+		file := abis[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		abiContent = string(data)
+	}
+	if name == "" || len(name) == 0 {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+	}
+	if sol == "" || bin == "" || abiContent == "" {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+	}
+	abiParsed, err := abi.JSON(strings.NewReader(abiContent))
+	if err != nil {
+		this.ResponseError(c, CONTRACT_CHECK_ERROR, err)
+		return
+	}
+	makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
+	makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
+	taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+	if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
+		this.ResponseError(c, CONTRACT_CHECK_ERROR, errors.New("Unable to parse ABi normally"))
+		return
+	}
+	param := &dao.Contract{
+		Sol:  sol,
+		Bin:  bin,
+		Abi:  abiContent,
+		Name: name,
+	}
+	id, err := this.dao.CreateContract(param)
+	if err != nil {
+		this.ResponseError(c, DATABASE_ERROR, err)
+		return
+	}
+	this.echoResult(c, id)
 }

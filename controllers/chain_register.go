@@ -147,7 +147,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 		PrivateKey: privateKey,
 		NetworkId:  api.GetNetworkId(),
 	}
-	chain, err := this.dao.GetChain(targetChainId)
+	targetChain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
 		errChan <- err
 		return
@@ -165,7 +165,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 	registerConfig := &blockchain.RegisterChainConfig{
 		AbiData:          []byte(contract.Abi),
 		ContractAddress:  common.HexToAddress(contract.Address),
-		TargetNetworkId:  chain.NetworkId,
+		TargetNetworkId:  targetChain.NetworkId,
 		AnchorAddresses:  anchorAddresses,
 		SignConfirmCount: uint8(signConfirmCount),
 		MaxValue:         pledge,

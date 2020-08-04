@@ -89,7 +89,7 @@ func (this *Api) RegisterChain(config *RegisterChainConfig, callerConfig *Caller
 	if err != nil {
 		return "", err
 	}
-	out, err := abi.Pack("chainRegister", big.NewInt(0).SetUint64(config.TargetNetworkId),config.MaxValue, config.SignConfirmCount, config.AnchorAddresses)
+	out, err := abi.Pack("chainRegister", big.NewInt(0).SetUint64(config.TargetNetworkId), config.MaxValue, config.SignConfirmCount, config.AnchorAddresses)
 
 	if err != nil {
 		return "", err

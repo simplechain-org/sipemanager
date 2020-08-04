@@ -24,7 +24,6 @@ func TestDataBaseAccessObject_CreateAnchorNode(t *testing.T) {
 	}
 	t.Log("anchor node id:", id)
 
-
 	//添加锚定节点
 	anchorNode = &AnchorNode{
 		Name:          "锚定节点5",
@@ -42,7 +41,6 @@ func TestDataBaseAccessObject_CreateAnchorNode(t *testing.T) {
 		return
 	}
 	t.Log("anchor node id:", id)
-
 
 	//添加锚定节点
 	anchorNode = &AnchorNode{
@@ -71,7 +69,7 @@ func TestDataBaseAccessObject_CreateAnchorNodeByTx(t *testing.T) {
 	}
 	defer db.Close()
 	obj := NewDataBaseAccessObject(db)
-	db2:=obj.BeginTransaction()
+	db2 := obj.BeginTransaction()
 	anchorNode := &AnchorNode{
 		Name:          "锚定节点2",
 		Address:       "0x2d9b3E6b4a446195c912e27c9F3EE592305314eg",
@@ -82,13 +80,13 @@ func TestDataBaseAccessObject_CreateAnchorNodeByTx(t *testing.T) {
 		SourceStatus:  0,
 		TargetStatus:  0,
 	}
-	id, err := obj.CreateAnchorNodeByTx(db2,anchorNode)
+	id, err := obj.CreateAnchorNodeByTx(db2, anchorNode)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	db2.Commit()
-	t.Log("CreateAnchorNodeByTx anchor node id:",id)
+	t.Log("CreateAnchorNodeByTx anchor node id:", id)
 
 }
 
@@ -101,8 +99,8 @@ func TestDataBaseAccessObject_UpdateSourceStatus(t *testing.T) {
 
 	obj := NewDataBaseAccessObject(db)
 
-	err=obj.UpdateSourceStatus(uint(1),uint(1))
-	if err!=nil{
+	err = obj.UpdateSourceStatus(uint(1), uint(1))
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -117,8 +115,8 @@ func TestDataBaseAccessObject_UpdateTargetStatus(t *testing.T) {
 
 	obj := NewDataBaseAccessObject(db)
 
-	err=obj.UpdateTargetStatus(uint(1),uint(1))
-	if err!=nil{
+	err = obj.UpdateTargetStatus(uint(1), uint(1))
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -134,8 +132,8 @@ func TestDataBaseAccessObject_GetAnchorNode(t *testing.T) {
 	obj := NewDataBaseAccessObject(db)
 
 	//如果数据不存在，则报错（record not found）
-	result,err:=obj.GetAnchorNode(uint(1))
-	if err!=nil{
+	result, err := obj.GetAnchorNode(uint(1))
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -151,20 +149,20 @@ func TestDataBaseAccessObject_RemoveAnchorNode(t *testing.T) {
 
 	obj := NewDataBaseAccessObject(db)
 
-	err=obj.RemoveAnchorNode(uint(1))
-	if err!=nil{
+	err = obj.RemoveAnchorNode(uint(1))
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
 }
 func TestDataBaseAccessObject_GetAnchorNodePage(t *testing.T) {
-	result,err:=obj.GetAnchorNodePage(0,10,0)
-	if err!=nil{
+	result, err := obj.GetAnchorNodePage(0, 10, 0)
+	if err != nil {
 		t.Error(err)
 		return
 	}
-	data,err:=json.Marshal(result)
-	if err!=nil{
+	data, err := json.Marshal(result)
+	if err != nil {
 		t.Error(err)
 		return
 	}

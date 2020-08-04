@@ -5,14 +5,14 @@ import (
 )
 
 type RewardConfig struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId   uint   `json:"source_chain_id"`
-	TargetChainId   uint   `json:"target_chain_id"`
-	RegulationCycle uint   `json:"regulation_cycle"` //调控周期
-	SignReward      string `json:"sign_reward"`      //单笔签名奖励
+	ID              uint       `gorm:"primary_key" json:"id"`
+	CreatedAt       time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt       *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId   uint       `json:"source_chain_id"`
+	TargetChainId   uint       `json:"target_chain_id"`
+	RegulationCycle uint       `json:"regulation_cycle"` //调控周期
+	SignReward      string     `json:"sign_reward"`      //单笔签名奖励
 }
 
 type RewardConfigView struct {
