@@ -53,9 +53,7 @@ func (this *DataBaseAccessObject) GetPunishmentPage(start, pageSize int, anchorN
 		sql += fmt.Sprintf(" where anchor_node_id=%d", anchorNodeId)
 	}
 	db := this.db.Raw(sql)
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetPunishmentCount(anchorNodeId uint) (int, error) {
@@ -74,5 +72,5 @@ func (this *DataBaseAccessObject) PunishmentRecordNotFound(anchorNodeId uint, ma
 
 }
 func (this *DataBaseAccessObject) RemovePunishmentByManageType(anchorNodeId uint, manageType string) error {
-	return this.db.Where("anchor_node_id = ?", anchorNodeId).Where("manage_type=?", manageType).Delete(&Chain{}).Error
+	return this.db.Where("anchor_node_id = ?", anchorNodeId).Where("manage_type=?", manageType).Delete(&Punishment{}).Error
 }

@@ -70,6 +70,10 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("锚定节点地址不合法"))
 		return
 	}
+	// 去除空格
+	param.AnchorAddress = strings.Replace(param.AnchorAddress, " ", "", -1)
+	// 去除换行符
+	param.AnchorAddress = strings.Replace(param.AnchorAddress, "\n", "", -1)
 	//调用合约增加锚定节点，要注意是双链
 	//添加到数据库
 	sourceContract, err := this.dao.GetContractByChainId(param.SourceChainId)

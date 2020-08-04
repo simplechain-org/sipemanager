@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	PUNISHMENT_SUSPEND_ERROR = 15001 //锚定节点签名功能已被禁用
+	PUNISHMENT_SUSPEND_ERROR           = 15001 //锚定节点签名功能已被禁用
+	PUNISHMENT_RECOVERY_ERROR          = 15002 //当前已经暂停的锚定节点才能恢复
+	PUNISHMENT_SUSPEND_DUPLICATE_ERROR = 15003 //重复暂停同一个锚定节点
 )
 
 type AddPunishmentParam struct {
@@ -65,9 +67,17 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		var status bool
 		if param.ManageType == "recovery" {
 			status = true
+			if this.dao.PunishmentRecordNotFound(param.AnchorNodeId, "suspend") {
+				this.ResponseError(c, PUNISHMENT_RECOVERY_ERROR, errors.New("当前已经暂停的锚定节点才能恢复"))
+				return
+			}
 		}
 		if param.ManageType == "suspend" {
 			status = false
+			if !this.dao.PunishmentRecordNotFound(param.AnchorNodeId, "suspend") {
+				this.ResponseError(c, PUNISHMENT_SUSPEND_DUPLICATE_ERROR, errors.New("重复暂停同一个锚定节点"))
+				return
+			}
 		}
 		//链的合约
 		contract, err := this.dao.GetContractByChainId(node.ChainId)
@@ -81,7 +91,12 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		} else if anchorNode.TargetChainId == node.ChainId {
 			targetChainId = anchorNode.SourceChainId
 		}
-		chain, err := this.dao.GetChain(targetChainId)
+		sourceChain, err := this.dao.GetChain(node.ChainId)
+		if err != nil {
+			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
+			return
+		}
+		targetChain, err := this.dao.GetChain(targetChainId)
 		if err != nil {
 			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
 			return
@@ -101,7 +116,7 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		config := &blockchain.AnchorNodeRewardConfig{
 			AbiData:         []byte(contract.Abi),
 			ContractAddress: common.HexToAddress(contract.Address),
-			TargetNetworkId: chain.NetworkId,
+			TargetNetworkId: targetChain.NetworkId,
 			AnchorAddress:   common.HexToAddress(anchorNode.Address),
 		}
 		callerConfig := &blockchain.CallerConfig{
@@ -120,11 +135,7 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 			this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 			return
 		}
-		targetChain, err := this.dao.GetChain(targetChainId)
-		if err != nil {
-			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
-			return
-		}
+
 		node, err := this.dao.GetNodeByChainId(targetChainId)
 		if err != nil {
 			this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
@@ -138,13 +149,13 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		targetConfig := &blockchain.AnchorNodeRewardConfig{
 			AbiData:         []byte(targetContract.Abi),
 			ContractAddress: common.HexToAddress(targetContract.Address),
-			TargetNetworkId: chain.NetworkId,
+			TargetNetworkId: sourceChain.NetworkId,
 			AnchorAddress:   common.HexToAddress(anchorNode.Address),
 		}
 		targetCallerConfig := &blockchain.CallerConfig{
 			From:       address,
 			PrivateKey: privateKey,
-			NetworkId:  targetChain.NetworkId,
+			NetworkId:  target.GetNetworkId(),
 		}
 		_, err = target.SetAnchorStatus(targetConfig, targetCallerConfig, status)
 		if err != nil {
