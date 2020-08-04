@@ -91,7 +91,12 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		} else if anchorNode.TargetChainId == node.ChainId {
 			targetChainId = anchorNode.SourceChainId
 		}
-		chain, err := this.dao.GetChain(targetChainId)
+		sourceChain, err := this.dao.GetChain(node.ChainId)
+		if err != nil {
+			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
+			return
+		}
+		targetChain, err := this.dao.GetChain(targetChainId)
 		if err != nil {
 			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
 			return
@@ -111,7 +116,7 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		config := &blockchain.AnchorNodeRewardConfig{
 			AbiData:         []byte(contract.Abi),
 			ContractAddress: common.HexToAddress(contract.Address),
-			TargetNetworkId: chain.NetworkId,
+			TargetNetworkId: targetChain.NetworkId,
 			AnchorAddress:   common.HexToAddress(anchorNode.Address),
 		}
 		callerConfig := &blockchain.CallerConfig{
@@ -130,11 +135,7 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 			this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, err)
 			return
 		}
-		targetChain, err := this.dao.GetChain(targetChainId)
-		if err != nil {
-			this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, err)
-			return
-		}
+
 		node, err := this.dao.GetNodeByChainId(targetChainId)
 		if err != nil {
 			this.ResponseError(c, NODE_ID_EXISTS_ERROR, err)
@@ -148,13 +149,13 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		targetConfig := &blockchain.AnchorNodeRewardConfig{
 			AbiData:         []byte(targetContract.Abi),
 			ContractAddress: common.HexToAddress(targetContract.Address),
-			TargetNetworkId: chain.NetworkId,
+			TargetNetworkId: sourceChain.NetworkId,
 			AnchorAddress:   common.HexToAddress(anchorNode.Address),
 		}
 		targetCallerConfig := &blockchain.CallerConfig{
 			From:       address,
 			PrivateKey: privateKey,
-			NetworkId:  targetChain.NetworkId,
+			NetworkId:  target.GetNetworkId(),
 		}
 		_, err = target.SetAnchorStatus(targetConfig, targetCallerConfig, status)
 		if err != nil {
