@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -130,27 +129,52 @@ LEFT JOIN nodes n on t.id = n.chain_id and n.deleted_at is null
 }
 
 type ContractInstanceView struct {
-	gorm.Model
+	ID         uint   `gorm:"id" json:"id"`
+	CreatedAt  string `gorm:"created_at" json:"created_at"`
 	ChainId    uint   `gorm:"chain_id" json:"chain_id"` //链id ,合约部署在那条链上
 	TxHash     string `gorm:"tx_hash" json:"tx_hash"`
 	Address    string `gorm:"address" json:"address"`
 	ContractId uint   `gorm:"contract_id" json:"contract_id"` //合约id
 	Name       string `gorm:"name" json:"name"`
+	ChainName  string `gorm:"chain_name" json:"chain_name"`
 }
+
+
 
 func (this *DataBaseAccessObject) GetContractInstancePage(start, pageSize int) ([]*ContractInstanceView, error) {
 	result := make([]*ContractInstanceView, 0)
-	db := this.db.Table((&ContractInstance{}).TableName()).Joins("inner join contracts on contract_instances.contract_id=contracts.id").
-		Select("contract_instances.id,contract_instances.chain_id,contract_instances.tx_hash,contract_instances.address,contract_instances.created_at,contract_instances.updated_at,contract_instances.deleted_at,contracts.name")
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	sql := `select 
+			contract_instances.id,
+			contract_instances.chain_id,
+			contract_instances.tx_hash,
+			contract_instances.address,
+			contract_instances.created_at,
+			contract_instances.updated_at,
+			contract_instances.deleted_at,
+            (select name from chains where chains.id=contract_instances.chain_id) as chain_name,
+			contracts.name from contract_instances,contracts 
+            where contract_instances.contract_id=contracts.id and contract_instances.deleted_at is null`
+
+	db := this.db.Raw(sql)
+
+	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetContractInstanceCount() (int, error) {
-	var count int
-	err := this.db.Table((&ContractInstance{}).TableName()).Joins("inner join contracts on contract_instances.contract_id=contracts.id").Count(&count).Error
-	return count, err
+	var total Total
+	sql:=`select count(*) as total from (select 
+			contract_instances.id,
+			contract_instances.chain_id,
+			contract_instances.tx_hash,
+			contract_instances.address,
+			contract_instances.created_at,
+			contract_instances.updated_at,
+			contract_instances.deleted_at,
+            (select name from chains where chains.id=contract_instances.chain_id) as chain_name,
+			contracts.name from contract_instances ,contracts where contract_instances.contract_id=contracts.id and contract_instances.deleted_at is null) as temp`
+	db := this.db.Raw(sql)
+	err := db.Scan(&total).Error
+	return total.Total, err
 }
 
 func (this *DataBaseAccessObject) GetContractInstanceById(id uint) (*ContractInstance, error) {

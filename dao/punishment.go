@@ -53,9 +53,7 @@ func (this *DataBaseAccessObject) GetPunishmentPage(start, pageSize int, anchorN
 		sql += fmt.Sprintf(" where anchor_node_id=%d", anchorNodeId)
 	}
 	db := this.db.Raw(sql)
-	err := db.Offset(start).
-		Limit(pageSize).
-		Find(&result).Error
+	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetPunishmentCount(anchorNodeId uint) (int, error) {

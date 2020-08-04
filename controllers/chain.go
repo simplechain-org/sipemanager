@@ -75,10 +75,12 @@ func (this *Controller) UpdateChain(c *gin.Context) {
 		this.ResponseError(c, REQUEST_PARAM_ERROR, fmt.Errorf("数据类型不匹配:%s", err.Error()))
 		return
 	}
-	checkErr := this.CheckContractAbi(param.ContractInstanceId)
-	if checkErr != nil {
-		this.ResponseError(c, CONTRACT_CHECK_ERROR, fmt.Errorf("跨链合约abi检查错误:%s", checkErr.Error()))
-		return
+	if param.ContractInstanceId != 0 {
+		checkErr := this.CheckContractAbi(param.ContractInstanceId)
+		if checkErr != nil {
+			this.ResponseError(c, CONTRACT_CHECK_ERROR, fmt.Errorf("跨链合约abi检查错误:%s", checkErr.Error()))
+			return
+		}
 	}
 	err := this.dao.UpdateChain(param.Id,
 		param.Name, param.NetworkId, param.CoinName, param.Symbol, param.ContractInstanceId)
