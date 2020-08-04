@@ -92,7 +92,6 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		}
 		id, err := this.dao.CreateAnchorNodeByTx(db, anchorNode)
 		if err != nil {
-			fmt.Println("CreateAnchorNodeByTx ", err)
 			db.Rollback()
 			this.ResponseError(c, DATABASE_ERROR, err)
 			return
@@ -135,7 +134,6 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 		}
 	}
 	if errMsg != "" {
-		fmt.Println("errMsg ", errMsg)
 		db.Rollback()
 		this.ResponseError(c, CHAIN_REGISTER_ERROR, errors.New(errMsg))
 		return
@@ -167,7 +165,7 @@ func (this *Controller) registerOneChain(db *gorm.DB, from common.Address, priva
 	registerConfig := &blockchain.RegisterChainConfig{
 		AbiData:          []byte(contract.Abi),
 		ContractAddress:  common.HexToAddress(contract.Address),
-		TargetNetworkId:  uint64(chain.NetworkId),
+		TargetNetworkId:  chain.NetworkId,
 		AnchorAddresses:  anchorAddresses,
 		SignConfirmCount: uint8(signConfirmCount),
 		MaxValue:         pledge,

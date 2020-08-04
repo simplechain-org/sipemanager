@@ -383,7 +383,7 @@ type ContractInstanceResult struct {
 	TotalCount  int                    `json:"total_count"`  //总记录数
 	CurrentPage int                    `json:"current_page"` //当前页数
 	PageSize    int                    `json:"page_size"`    //页的大小
-	PageData    []ContractInstanceView `json:"page_data"`    //页的数据
+	PageData    []*dao.ContractInstanceView `json:"page_data"`    //页的数据
 }
 
 // @Summary 合约上链
@@ -423,24 +423,6 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 		this.ResponseError(c, DATABASE_ERROR,err)
 		return
 	}
-	result := make([]ContractInstanceView, 0, len(objects))
-	for _, obj := range objects {
-		chain, err := this.dao.GetChain(obj.ChainId)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		result = append(result, ContractInstanceView{
-			ID:         obj.ID,
-			ChainId:    obj.ChainId,
-			TxHash:     obj.TxHash,
-			Address:    obj.Address,
-			ContractId: obj.ContractId,
-			Name:       obj.Name,
-			ChainName:  chain.Name,
-			CreatedAt:  obj.CreatedAt.Format(dateFormat),
-		})
-	}
 	count, err := this.dao.GetContractInstanceCount()
 	if err != nil {
 		this.ResponseError(c,DATABASE_ERROR, err)
@@ -450,7 +432,7 @@ func (this *Controller) ListContractInstances(c *gin.Context) {
 		TotalCount:  count,
 		CurrentPage: currentPage,
 		PageSize:    pageSize,
-		PageData:    result,
+		PageData:    objects,
 	}
 	this.echoResult(c, chainResult)
 }
