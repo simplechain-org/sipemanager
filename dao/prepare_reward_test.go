@@ -3,8 +3,8 @@ package dao
 import "testing"
 
 func TestDataBaseAccessObject_GetPrepareRewardCount(t *testing.T) {
-	result,err:=obj.GetPrepareRewardCount()
-	if err!=nil{
+	result, err := obj.GetPrepareRewardCount()
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -12,8 +12,8 @@ func TestDataBaseAccessObject_GetPrepareRewardCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetPrepareRewardPage(t *testing.T) {
-	result,err:=obj.GetPrepareRewardPage(0,10)
-	if err!=nil{
+	result, err := obj.GetPrepareRewardPage(0, 10)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}

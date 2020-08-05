@@ -164,7 +164,7 @@ type GetRewardConfigParam struct {
 func (this *Controller) GetRewardConfig(c *gin.Context) {
 	var param GetRewardConfigParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	result, err := this.dao.GetLatestRewardConfig(param.SourceChainId, param.TargetChainId)
@@ -194,23 +194,23 @@ type UpdateRewardConfigParam struct {
 func (this *Controller) UpdateRewardConfig(c *gin.Context) {
 	var param UpdateRewardConfigParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c,REQUEST_PARAM_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
 		return
 	}
 	last, err := this.dao.GetRewardConfigById(param.Id)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	//调整周期必须大于0
 	if param.RegulationCycle == 0 {
-		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("调控周期必须大于0"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("调控周期必须大于0"))
 		return
 	}
 	//校验sign_reward为整数
 	_, ok := big.NewInt(0).SetString(param.SignReward, 10)
 	if !ok {
-		this.ResponseError(c,REQUEST_PARAM_INVALID_ERROR, errors.New("sign_reward数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("sign_reward数据非法"))
 		return
 	}
 	rewardConfig := &dao.RewardConfig{
@@ -222,7 +222,7 @@ func (this *Controller) UpdateRewardConfig(c *gin.Context) {
 	//记录历史，所以每次更新都是新增一条记录
 	id, err := this.dao.CreateRewardConfig(rewardConfig)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	this.echoResult(c, id)

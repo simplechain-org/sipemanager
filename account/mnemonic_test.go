@@ -3,8 +3,8 @@ package account
 import (
 	"crypto/ecdsa"
 	"errors"
-	"github.com/simplechain-org/go-simplechain/crypto"
 	"github.com/simplechain-org/go-simplechain-hdwallet"
+	"github.com/simplechain-org/go-simplechain/crypto"
 	"testing"
 )
 

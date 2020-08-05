@@ -108,7 +108,7 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 	}
 	fee, success := big.NewInt(0).SetString(value, 10)
 	if !success {
-		return errors.New("value数据非法")
+		return errors.New("扣减数量非法")
 	}
 	sub, success := big.NewInt(0).SetString(obj.Pledge, 10)
 	if !success {
@@ -116,7 +116,7 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 	}
 	sub = sub.Sub(sub, fee)
 	if sub.Sign() < 0 {
-		return errors.New("value数据非法")
+		return errors.New("扣减数量非法")
 	}
 	return this.db.Table((&AnchorNode{}).TableName()).
 		Where("id=?", anchorNodeId).

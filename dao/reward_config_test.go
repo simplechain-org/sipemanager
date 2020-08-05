@@ -24,12 +24,12 @@ func TestDataBaseAccessObject_CreateRewardConfig(t *testing.T) {
 	t.Log("reward config id:", id)
 }
 func TestDataBaseAccessObject_GetRewardConfig(t *testing.T) {
-	rewardConfigView,err:=obj.GetRewardConfig(1)
-	if err!=nil{
+	rewardConfigView, err := obj.GetRewardConfig(1)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	fmt.Printf("rewardConfigView=%+v",rewardConfigView)
+	fmt.Printf("rewardConfigView=%+v", rewardConfigView)
 }
 func TestDataBaseAccessObject_CreateRewardConfig2(t *testing.T) {
 	//d, _ := time.ParseDuration("-24h")
@@ -75,8 +75,8 @@ func TestDataBaseAccessObject_CreateRewardConfig3(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetLatestRewardConfig(t *testing.T) {
-	result,err:=obj.GetLatestRewardConfig(1,2)
-	if err!=nil{
+	result, err := obj.GetLatestRewardConfig(1, 2)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -129,24 +129,24 @@ func TestDataBaseAccessObject_CreateRewardConfig4(t *testing.T) {
 	}
 }
 func TestDataBaseAccessObject_GetRewardConfigPage(t *testing.T) {
-	result,err:=obj.GetRewardConfigPage(0,10)
-	if err!=nil{
+	result, err := obj.GetRewardConfigPage(0, 10)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	for _,o:=range result{
+	for _, o := range result {
 		t.Log(o)
 	}
-	count,err:=obj.GetRewardConfigCount()
-	if err!=nil{
+	count, err := obj.GetRewardConfigCount()
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log("count:",count)
+	t.Log("count:", count)
 }
 func TestDataBaseAccessObject_GetRewardConfigById(t *testing.T) {
-	result,err:=obj.GetRewardConfigById(1)
-	if err!=nil{
+	result, err := obj.GetRewardConfigById(1)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}

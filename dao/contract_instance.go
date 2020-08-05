@@ -139,8 +139,6 @@ type ContractInstanceView struct {
 	ChainName  string `gorm:"chain_name" json:"chain_name"`
 }
 
-
-
 func (this *DataBaseAccessObject) GetContractInstancePage(start, pageSize int) ([]*ContractInstanceView, error) {
 	result := make([]*ContractInstanceView, 0)
 	sql := `select 
@@ -162,7 +160,7 @@ func (this *DataBaseAccessObject) GetContractInstancePage(start, pageSize int) (
 }
 func (this *DataBaseAccessObject) GetContractInstanceCount() (int, error) {
 	var total Total
-	sql:=`select count(*) as total from (select 
+	sql := `select count(*) as total from (select 
 			contract_instances.id,
 			contract_instances.chain_id,
 			contract_instances.tx_hash,

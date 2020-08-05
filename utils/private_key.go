@@ -4,10 +4,10 @@ import (
 	"crypto/ecdsa"
 	"errors"
 
+	"github.com/pborman/uuid"
+	"github.com/simplechain-org/go-simplechain-hdwallet"
 	"github.com/simplechain-org/go-simplechain/accounts/keystore"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/simplechain-org/go-simplechain-hdwallet"
-	"github.com/pborman/uuid"
 )
 
 func PrivateKeyToKeystore(privateKey *ecdsa.PrivateKey, auth string) ([]byte, error) {
