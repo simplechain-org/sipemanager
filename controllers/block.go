@@ -61,6 +61,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 	replaceErr := this.dao.BlockReplace(blockRecord)
 	if replaceErr != nil {
 		logrus.Warn(utils.ErrLogCode{LogType: "controller => block => SyncBlock:", Code: 30003, Message: err.Error(), Err: nil})
+		return
 	}
 
 	if len(block.Transactions()) > 0 {
@@ -75,6 +76,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 			receipt, err := api.TransactionReceipt(transaction.Hash())
 			if err != nil {
 				logrus.Error("TransactionReceipt:", err)
+				continue
 			}
 			// hexutil.Encode(transaction.Data()),
 			txRecord := dao.Transaction{
@@ -116,37 +118,38 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 			var args dao.MakerFinish
 			UnpackErr := method.Inputs.Unpack(&args, argdata)
 			if UnpackErr != nil {
-
-			} else {
-				txRecord.EventType = "makerFinish"
-				txReplaceErr := this.dao.TxReplace(txRecord)
-				if txReplaceErr != nil {
-					logrus.Error("Transactions Create:", txReplaceErr.Error())
-				}
-				targetChain, err := this.dao.GetChainByNetWorkId(args.RemoteChainId.Uint64())
-				if err != nil {
-					logrus.Error("CrossAnchors => GetChainByNetWorkId:", err.Error())
-				}
-				crossRecord := dao.CrossAnchors{
-					BlockNumber:     txRecord.BlockNumber,
-					GasUsed:         txRecord.GasUsed,
-					GasPrice:        txRecord.GasPrice,
-					ContractAddress: txRecord.To,
-					Timestamp:       txRecord.Timestamp,
-					Status:          txRecord.Status,
-					ChainId:         txRecord.ChainId,
-					RemoteChainId:   targetChain.ID,
-					EventType:       txRecord.EventType,
-					NetworkId:       node.NetworkId,
-					RemoteNetworkId: args.RemoteChainId.Uint64(),
-					AnchorAddress:   txRecord.From,
-					TxId:            args.Rtx.TxId.Hex(),
-					Hash:            txRecord.Hash,
-				}
-				crossErr := this.dao.CrossAnchorsReplace(crossRecord)
-				if crossErr != nil {
-					logrus.Error("CrossAnchors Create:", crossErr.Error())
-				}
+				logrus.Error("UnpackErr:", UnpackErr.Error())
+				continue
+			}
+			txRecord.EventType = "makerFinish"
+			txErr := this.dao.TxReplace(txRecord)
+			if txErr != nil {
+				logrus.Error("Transactions Create:", txReplaceErr.Error())
+			}
+			targetChain, err := this.dao.GetChainByNetWorkId(args.RemoteChainId.Uint64())
+			if err != nil {
+				logrus.Error("CrossAnchors => GetChainByNetWorkId:", err.Error())
+				continue
+			}
+			crossRecord := dao.CrossAnchors{
+				BlockNumber:     txRecord.BlockNumber,
+				GasUsed:         txRecord.GasUsed,
+				GasPrice:        txRecord.GasPrice,
+				ContractAddress: txRecord.To,
+				Timestamp:       txRecord.Timestamp,
+				Status:          txRecord.Status,
+				ChainId:         txRecord.ChainId,
+				RemoteChainId:   targetChain.ID,
+				EventType:       txRecord.EventType,
+				NetworkId:       node.NetworkId,
+				RemoteNetworkId: args.RemoteChainId.Uint64(),
+				AnchorAddress:   txRecord.From,
+				TxId:            args.Rtx.TxId.Hex(),
+				Hash:            txRecord.Hash,
+			}
+			crossErr := this.dao.CrossAnchorsReplace(crossRecord)
+			if crossErr != nil {
+				logrus.Error("CrossAnchors Create:", crossErr.Error())
 			}
 		}
 	}

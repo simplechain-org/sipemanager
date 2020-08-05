@@ -1,5 +1,9 @@
 package dao
 
+import (
+	"github.com/sirupsen/logrus"
+)
+
 type Uncle struct {
 	ParentHash  string `gorm:"column:parentHash"`
 	UncleHash   string `gorm:"column:sha3Uncles"`
@@ -42,11 +46,13 @@ func (this *DataBaseAccessObject) QueryMaxUncle() ([]MaxUncle, error) {
 	for rows.Next() {
 		rows.Scan(&result.BlockNumber, &result.ChainId)
 		chain, err := this.GetChain(result.ChainId)
-		result.ChainName = chain.Name
 		if err != nil {
-			return maxUncle, err
+			logrus.Error("QueryMaxUncle:", err.Error())
+			continue
 		}
+		result.ChainName = chain.Name
 		maxUncle = append(maxUncle, result)
+
 	}
 	return maxUncle, err
 }
