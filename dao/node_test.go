@@ -44,30 +44,30 @@ func TestDataBaseAccessObject_ListAllNode(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_ListNodeByUserId(t *testing.T) {
-	result,err:=obj.ListNodeByUserId(1)
-	if err!=nil{
+	result, err := obj.ListNodeByUserId(1)
+	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	for _,o:=range result{
+	for _, o := range result {
 		t.Log(o)
 	}
 
 }
 func TestDataBaseAccessObject_ChainIdExists(t *testing.T) {
-	fmt.Println("chain",obj.ChainIdExists(5))
+	fmt.Println("chain", obj.ChainIdExists(5))
 }
 
 func TestDataBaseAccessObject_ListNodeByUserIdPage(t *testing.T) {
-	result,err:=obj.ListNodeByUserIdPage(0,10,1)
-	if err!=nil{
+	result, err := obj.ListNodeByUserIdPage(0, 10, 1)
+	if err != nil {
 		t.Error(err)
 	}
 	t.Log(len(result))
 }
 func TestDataBaseAccessObject_GetNodeByUserIdCount(t *testing.T) {
-	result,err:=obj.GetNodeByUserIdCount(1)
-	if err!=nil{
+	result, err := obj.GetNodeByUserIdCount(1)
+	if err != nil {
 		t.Error(err)
 	}
 	t.Log(result)

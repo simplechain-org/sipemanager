@@ -6,19 +6,19 @@ import (
 
 //接单记录
 type TakerOrder struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
-	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	SourceChainId uint   `json:"source_chain_id"` //这是链记录的id不是networkId
-	TargetChainId uint   `json:"target_chain_id"`
-	Taker         string `json:"taker"`
-	SourceValue   uint64 `json:"source_value"`
-	TargetValue   uint64 `json:"target_value"`
-	Status        int    `json:"status"`
-	StatusText    string `json:"status_text"`
-	TxHash        string `json:"tx_hash"`
-	CtxId         string `json:"ctx_id"`
+	ID            uint       `gorm:"primary_key" json:"id"`
+	CreatedAt     time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt     *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
+	SourceChainId uint       `json:"source_chain_id"` //这是链记录的id不是networkId
+	TargetChainId uint       `json:"target_chain_id"`
+	Taker         string     `json:"taker"`
+	SourceValue   uint64     `json:"source_value"`
+	TargetValue   uint64     `json:"target_value"`
+	Status        int        `json:"status"`
+	StatusText    string     `json:"status_text"`
+	TxHash        string     `json:"tx_hash"`
+	CtxId         string     `json:"ctx_id"`
 }
 
 func (this *TakerOrder) TableName() string {

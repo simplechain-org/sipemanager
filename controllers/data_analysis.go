@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
 	"sipemanager/blockchain"
@@ -23,18 +22,21 @@ type AnchorsNodes struct {
 
 func (this *Controller) AnalysisAnchors() {
 	registers, err := this.dao.ListChainRegisterByStatus(1)
+	if err != nil {
+		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
+	}
 	for _, register := range registers {
 		sourceChain, err := this.dao.GetChain(register.SourceChainId)
 		targetChain, err := this.dao.GetChain(register.TargetChainId)
 		if err != nil {
-
+			logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "GetChain Anchors  Not Found", Err: nil})
 		}
 		anchorIds := strings.Split(register.AnchorAddresses, ",")
 		for _, anchorId := range anchorIds {
 			n, _ := strconv.Atoi(anchorId)
 			anchor, err := this.dao.GetAnchorNode(uint(n))
 			if err != nil {
-				fmt.Println("AnalysisAnchors", err)
+				logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "GetAnchorNode Anchors Not Found", Err: nil})
 				continue
 			}
 			txAnchor := dao.TxAnchors{
@@ -52,12 +54,9 @@ func (this *Controller) AnalysisAnchors() {
 			TxWeekErr := this.dao.QueryTxByWeeks(txAnchor, "makerFinish")
 			if TxHourErr != nil || TxDayErr != nil || TxWeekErr != nil {
 				logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40001, Message: "Analysis Anchors Failed", Err: nil})
+				continue
 			}
 		}
-	}
-
-	if err != nil {
-		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
 	}
 }
 
@@ -265,7 +264,7 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 			return anchor.ID, anchor.Name, nil
 		}
 	}
-	return 0, "未知锚定节点", nil
+	return 0, "nknown", nil
 }
 
 type AnchorNodeMonitor struct {

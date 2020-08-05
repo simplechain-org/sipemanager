@@ -106,12 +106,12 @@ func (this *Controller) AddPrepareReward(c *gin.Context) {
 	}
 	sourceApi, err := this.getApiByNodeId(sourceNode.ID)
 	if err != nil {
-		this.ResponseError(c, NODE_ID_EXISTS_ERROR,errors.New("为节点构建api失败"))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, errors.New("为节点构建api失败"))
 		return
 	}
 	sourceHash, err := sourceApi.SetReward(sourceConfig, sourceCallerConfig, sourceReward)
 	if err != nil {
-		this.ResponseError(c,CONTRACT_INVOKE_ERROR, errors.New("请求设置链上数据失败:"+err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, errors.New("请求设置链上数据失败:"+err.Error()))
 		return
 	}
 	targetConfig := &blockchain.SetRewardConfig{
@@ -126,12 +126,12 @@ func (this *Controller) AddPrepareReward(c *gin.Context) {
 	}
 	targetApi, err := this.getApiByNodeId(targetNode.ID)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR, errors.New("构建api失败:"+err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, errors.New("构建api失败:"+err.Error()))
 		return
 	}
 	targetHash, err := targetApi.SetReward(targetConfig, targetCallerConfig, targetReward)
 	if err != nil {
-		this.ResponseError(c, CONTRACT_INVOKE_ERROR,errors.New("设置链上数据失败:"+err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, errors.New("设置链上数据失败:"+err.Error()))
 		return
 	}
 	prepareReward := &dao.PrepareReward{
@@ -144,7 +144,7 @@ func (this *Controller) AddPrepareReward(c *gin.Context) {
 	}
 	id, err := this.dao.CreatePrepareReward(prepareReward)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, errors.New("保存预扣手续费出错"))
+		this.ResponseError(c, DATABASE_ERROR, errors.New("保存预扣手续费出错"))
 		return
 	}
 	this.echoResult(c, id)
@@ -174,54 +174,54 @@ type UpdatePrepareRewardParam struct {
 func (this *Controller) UpdatePrepareReward(c *gin.Context) {
 	var param UpdatePrepareRewardParam
 	if err := c.ShouldBind(&param); err != nil {
-		this.ResponseError(c,REQUEST_PARAM_ERROR, errors.New("参数错误:"+err.Error()))
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("参数错误:"+err.Error()))
 		return
 	}
 	wallet, err := this.dao.GetWallet(param.WalletId)
 	if err != nil {
-		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR,errors.New("钱包不存在"))
+		this.ResponseError(c, WALLET_ID_NOT_EXISTS_ERROR, errors.New("钱包不存在"))
 		return
 	}
 	privateKey, err := blockchain.GetPrivateKey([]byte(wallet.Content), param.Password)
 	if err != nil {
-		this.ResponseError(c,WALLET_PASSWORD_ERROR, errors.New("密码错误"))
+		this.ResponseError(c, WALLET_PASSWORD_ERROR, errors.New("密码错误"))
 		return
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	sourceChain, err := this.dao.GetChain(param.SourceChainId)
 	if err != nil {
-		this.ResponseError(c,CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("不存在链 id=%d", param.SourceChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("不存在链 id=%d", param.SourceChainId))
 		return
 	}
 	sourceNode, err := this.dao.GetNodeByChainId(param.SourceChainId)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR,fmt.Errorf("chain=%d下不存在节点", param.SourceChainId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在节点", param.SourceChainId))
 		return
 	}
 	sourceContract, err := this.dao.GetContractByChainId(param.SourceChainId)
 	if err != nil {
-		this.ResponseError(c,CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在跨链合约", param.SourceChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在跨链合约", param.SourceChainId))
 		return
 	}
 	targetChain, err := this.dao.GetChain(param.TargetChainId)
 	if err != nil {
-		this.ResponseError(c,CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("不存在链 id=%d", param.TargetChainId))
+		this.ResponseError(c, CHAIN_ID_NOT_EXISTS_ERROR, fmt.Errorf("不存在链 id=%d", param.TargetChainId))
 		return
 	}
 	targetNode, err := this.dao.GetNodeByChainId(param.TargetChainId)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在节点", param.TargetChainId))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在节点", param.TargetChainId))
 		return
 	}
 	targetContract, err := this.dao.GetContractByChainId(param.TargetChainId)
 	if err != nil {
-		this.ResponseError(c,CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在跨链合约", param.TargetChainId))
+		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain=%d下不存在跨链合约", param.TargetChainId))
 		return
 	}
 	sourceReward, success := big.NewInt(0).SetString(param.SourceReward, 10)
 	if !success {
-		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR,errors.New("source_reward数据非法"))
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("source_reward数据非法"))
 		return
 	}
 	targetReward, success := big.NewInt(0).SetString(param.TargetReward, 10)
@@ -242,12 +242,12 @@ func (this *Controller) UpdatePrepareReward(c *gin.Context) {
 	}
 	sourceApi, err := this.getApiByNodeId(sourceNode.ID)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR, errors.New("为节点构建api失败"))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, errors.New("为节点构建api失败"))
 		return
 	}
 	sourceHash, err := sourceApi.SetReward(sourceConfig, sourceCallerConfig, sourceReward)
 	if err != nil {
-		this.ResponseError(c,CONTRACT_INVOKE_ERROR, errors.New("请求设置链上数据失败:"+err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, errors.New("请求设置链上数据失败:"+err.Error()))
 		return
 	}
 	targetConfig := &blockchain.SetRewardConfig{
@@ -262,12 +262,12 @@ func (this *Controller) UpdatePrepareReward(c *gin.Context) {
 	}
 	targetApi, err := this.getApiByNodeId(targetNode.ID)
 	if err != nil {
-		this.ResponseError(c,NODE_ID_EXISTS_ERROR, errors.New("构建api失败:"+err.Error()))
+		this.ResponseError(c, NODE_ID_EXISTS_ERROR, errors.New("构建api失败:"+err.Error()))
 		return
 	}
 	targetHash, err := targetApi.SetReward(targetConfig, targetCallerConfig, targetReward)
 	if err != nil {
-		this.ResponseError(c,CONTRACT_INVOKE_ERROR, errors.New("设置链上数据失败:"+err.Error()))
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, errors.New("设置链上数据失败:"+err.Error()))
 		return
 	}
 	prepareReward := &dao.PrepareReward{
@@ -280,7 +280,7 @@ func (this *Controller) UpdatePrepareReward(c *gin.Context) {
 	}
 	err = this.dao.UpdatePrepareReward(prepareReward)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, errors.New("保存预扣手续费出错"))
+		this.ResponseError(c, DATABASE_ERROR, errors.New("保存预扣手续费出错"))
 		return
 	}
 	this.echoResult(c, "Success")
@@ -327,12 +327,12 @@ func (this *Controller) ListPrepareReward(c *gin.Context) {
 
 	objects, err := this.dao.GetPrepareRewardPage(start, pageSize)
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	count, err := this.dao.GetPrepareRewardCount()
 	if err != nil {
-		this.ResponseError(c,DATABASE_ERROR, err)
+		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
 	prepareRewardResult := &PrepareRewardResult{

@@ -3,10 +3,10 @@ package account
 import (
 	"crypto/ecdsa"
 
+	"github.com/pborman/uuid"
+	"github.com/simplechain-org/go-simplechain-hdwallet"
 	"github.com/simplechain-org/go-simplechain/accounts/keystore"
 	"github.com/simplechain-org/go-simplechain/crypto"
-	"github.com/simplechain-org/go-simplechain-hdwallet"
-	"github.com/pborman/uuid"
 )
 
 func GetPrivateKeyFromMnemonic(mnemonic string) (*ecdsa.PrivateKey, error) {

@@ -15,6 +15,7 @@ const (
 	PUNISHMENT_SUSPEND_ERROR           = 15001 //锚定节点签名功能已被禁用
 	PUNISHMENT_RECOVERY_ERROR          = 15002 //当前已经暂停的锚定节点才能恢复
 	PUNISHMENT_SUSPEND_DUPLICATE_ERROR = 15003 //重复暂停同一个锚定节点
+	PUNISHMENT_PLEDGE_ERROR            = 15004 //token扣减数量非法
 )
 
 type AddPunishmentParam struct {
@@ -179,8 +180,13 @@ func (this *Controller) AddPunishment(c *gin.Context) {
 		//扣减
 		err := this.dao.SubPledge(param.AnchorNodeId, param.Value)
 		if err != nil {
-			this.ResponseError(c, DATABASE_ERROR, err)
-			return
+			if err.Error() == "扣减数量非法" {
+				this.ResponseError(c, PUNISHMENT_PLEDGE_ERROR, err)
+				return
+			} else {
+				this.ResponseError(c, DATABASE_ERROR, err)
+				return
+			}
 		}
 	}
 	punishment := &dao.Punishment{

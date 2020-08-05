@@ -114,6 +114,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.GET("/api/v1//wallet/list/page", validateLogin, c.ListPageWallet)
 	router.GET("/api/v1/anchor/node/list/all", validateLogin, c.ListAllAnchorNode)
 	router.GET("/api/v1/node/list/page", validateLogin, c.ListNode)
+	router.POST("/api/v1/contract/add/file",validateLogin, c.AddContractFile)
 
 }
 

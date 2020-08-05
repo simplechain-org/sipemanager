@@ -2,26 +2,25 @@ package dao
 
 import "testing"
 
-
 func TestDataBaseAccessObject_GetContractPage(t *testing.T) {
-	result, err := obj.GetContractPage(0, 10,"deployed")
+	result, err := obj.GetContractPage(0, 10, "deployed")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log("deployed=",len(result))
-	result, err = obj.GetContractPage(0, 10,"not_deployed")
+	t.Log("deployed=", len(result))
+	result, err = obj.GetContractPage(0, 10, "not_deployed")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log("not_deployed=",len(result))
-	result, err = obj.GetContractPage(10, 10,"all")
+	t.Log("not_deployed=", len(result))
+	result, err = obj.GetContractPage(10, 10, "all")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log("all=",len(result))
+	t.Log("all=", len(result))
 }
 
 func TestDataBaseAccessObject_GetContractCount(t *testing.T) {
@@ -46,12 +45,12 @@ func TestDataBaseAccessObject_GetContractCount(t *testing.T) {
 }
 
 func TestDataBaseAccessObject_GetContractCount1(t *testing.T) {
-	result, err := obj.GetContractPage(10, 10,"all")
+	result, err := obj.GetContractPage(10, 10, "all")
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	t.Log("all=",len(result))
+	t.Log("all=", len(result))
 	count, err := obj.GetContractCount("all")
 	if err != nil {
 		t.Fatal(err)

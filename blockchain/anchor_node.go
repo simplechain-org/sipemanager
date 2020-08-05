@@ -27,7 +27,7 @@ func (this *Api) AddAnchors(config *AnchorNodeConfig, callerConfig *CallerConfig
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("AddAnchors remoteId=",config.TargetNetworkId," config.AnchorAddresses=",config.AnchorAddresses[0].String())
+	fmt.Println("AddAnchors remoteId=", config.TargetNetworkId, " config.AnchorAddresses=", config.AnchorAddresses[0].String())
 	out, err := abi.Pack("addAnchors", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddresses)
 	if err != nil {
 		return "", err
@@ -130,7 +130,7 @@ func (this *Api) SetAnchorStatus(config *AnchorNodeRewardConfig, callerConfig *C
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("remoteId",config.TargetNetworkId," config.AnchorAddress=",config.AnchorAddress,status)
+	fmt.Println("remoteId", config.TargetNetworkId, " config.AnchorAddress=", config.AnchorAddress, status)
 	out, err := abi.Pack("setAnchorStatus", big.NewInt(0).SetUint64(config.TargetNetworkId), config.AnchorAddress, status)
 	if err != nil {
 		return "", err

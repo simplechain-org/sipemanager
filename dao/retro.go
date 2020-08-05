@@ -7,15 +7,15 @@ import (
 )
 
 type RetroActive struct {
-	ID        uint `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time `gorm:"created_at" json:"created_at"`
-	UpdatedAt time.Time `gorm:"updated_at" json:"updated_at"`
+	ID        uint       `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	NetworkId       uint64 `json:"network_id"`
-	Status          int    `json:"status"`  //1 待签  2 签名完成
-	TxHash          string `json:"tx_hash"`
-	CtxId           string `json:"ctx_id"`
-	Event           int    `json:"event"`   //1 maker  2 taker
+	NetworkId uint64     `json:"network_id"`
+	Status    int        `json:"status"` //1 待签  2 签名完成
+	TxHash    string     `json:"tx_hash"`
+	CtxId     string     `json:"ctx_id"`
+	Event     int        `json:"event"` //1 maker  2 taker
 }
 
 func (this *RetroActive) TableName() string {
@@ -38,13 +38,13 @@ func (this *DataBaseAccessObject) UpdateRetroActiveStatus(id uint, status int) e
 	return nil
 }
 
-func (this *DataBaseAccessObject) ListRetroActive(offset,limit uint32) ([]RetroActive, error) {
+func (this *DataBaseAccessObject) ListRetroActive(offset, limit uint32) ([]RetroActive, error) {
 	var count uint32
 
 	if err := this.db.Model(&RetroActive{}).Count(&count).Error; err != nil {
 		return nil, err
 	}
-	fmt.Println(count,offset,limit,this.db)
+	fmt.Println(count, offset, limit, this.db)
 	if offset <= count {
 		result := make([]RetroActive, 0)
 		err := this.db.Table((&RetroActive{}).TableName()).Order("id desc").Offset(offset).Limit(limit).Find(&result).Error
@@ -53,7 +53,7 @@ func (this *DataBaseAccessObject) ListRetroActive(offset,limit uint32) ([]RetroA
 	return nil, errors.New("offset > count")
 }
 
-func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int,offset,limit uint32) ([]RetroActive, error) {
+func (this *DataBaseAccessObject) ListRetroActiveByStatus(status int, offset, limit uint32) ([]RetroActive, error) {
 	var count uint32
 	if err := this.db.Model(&RetroActive{}).Where("status=?", status).Count(&count).Error; err != nil {
 		return nil, err
