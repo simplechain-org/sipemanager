@@ -61,9 +61,17 @@ func (this *DataBaseAccessObject) GetContractById(id uint) (*Contract, error) {
 
 }
 func (this *DataBaseAccessObject) UpdateContract(id uint, name string, sol string, abi string, bin string) error {
-	return this.db.Table((&Contract{}).TableName()).
-		Where("id=?", id).
-		Updates(Contract{Name: name, Sol: sol, Abi: abi, Bin: bin}).Error
+	contract := Contract{Name: name}
+	if sol != "" {
+		contract.Sol = sol
+	}
+	if abi != "" {
+		contract.Abi = abi
+	}
+	if bin != "" {
+		contract.Bin = bin
+	}
+	return this.db.Table((&Contract{}).TableName()).Where("id=?", id).Updates(contract).Error
 }
 
 //判断合约是否可以删除
