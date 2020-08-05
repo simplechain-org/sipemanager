@@ -180,6 +180,20 @@ func (this *DataBaseAccessObject) QueryFinishList(offset, limit uint32, startTim
 		err := this.db.Table((&CrossAnchors{}).TableName()).Where("timestamp between ? and ? ", startTime, endTime).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
 		return result, count, err
 
+	case startTimeParam == "" && endTimeParam == "" && anchorIdParam != "":
+		anchorId, stringErr := strconv.Atoi(anchorIdParam)
+		if stringErr != nil {
+			return nil, 0, stringErr
+		}
+		anchor, anchorErr := this.GetAnchorNode(uint(anchorId))
+		if anchorErr != nil {
+			return nil, 0, anchorErr
+		}
+		if err := this.db.Model(&CrossAnchors{}).Where("anchorAddress = ?", anchor.Address).Count(&count).Error; err != nil {
+			return nil, 0, err
+		}
+		err := this.db.Table((&CrossAnchors{}).TableName()).Where("anchorAddress = ?", anchor.Address).Order("timestamp desc").Offset(offset).Limit(limit).Find(&result).Error
+		return result, count, err
 	default:
 		if err := this.db.Model(&CrossAnchors{}).Count(&count).Error; err != nil {
 			return nil, 0, err
