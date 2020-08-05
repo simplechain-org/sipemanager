@@ -64,7 +64,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 		txAnchors.TimeType = "hour"
 		err := this.TxAnchorsReplace(txAnchors)
 		if err != nil {
-			logrus.Error("QueryTxByHours", err.Error())
+			logrus.Error("QueryTxByHours:", err.Error())
 			return err
 		}
 	}
@@ -99,7 +99,7 @@ SELECT date_list date, IFNULL(count,0) count, IFNULL(fee,0) fee FROM
 		txAnchors.TimeType = "day"
 		err := this.TxAnchorsReplace(txAnchors)
 		if err != nil {
-			logrus.Error("QueryTxByDays", err.Error())
+			logrus.Error("QueryTxByDays:", err.Error())
 			return err
 		}
 	}
@@ -138,7 +138,7 @@ ON t1.cross_date= t2.date_list
 		txAnchors.TimeType = "week"
 		err := this.TxAnchorsReplace(txAnchors)
 		if err != nil {
-			logrus.Error("QueryTxByWeeks", err.Error())
+			logrus.Error("QueryTxByWeeks:", err.Error())
 			return err
 		}
 	}

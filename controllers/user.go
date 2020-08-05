@@ -31,7 +31,7 @@ func (this *Controller) GetUser(c *gin.Context) (*dao.User, error) {
 	}
 	username := claim["username"].(string)
 	user, err := this.dao.GetUserByUsername(username)
-	if !ok {
+	if err != nil {
 		return nil, errors.New("username does not exists")
 	}
 	return user, nil
