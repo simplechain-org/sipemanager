@@ -31,10 +31,22 @@ func (this *DataBaseAccessObject) UncleReplace(data Uncle) error {
 type MaxUncle struct {
 	BlockNumber int64
 	ChainId     uint
+	ChainName   string
 }
 
 func (this *DataBaseAccessObject) QueryMaxUncle() ([]MaxUncle, error) {
-	result := make([]MaxUncle, 0)
-	err := this.db.Raw("select IFNULL(max(blockNumber),0) blockNumber, chain_id from uncles GROUP BY chain_id").Scan(&result).Error
-	return result, err
+	maxUncle := make([]MaxUncle, 0)
+	rows, err := this.db.Raw("select IFNULL(max(blockNumber),0) blockNumber, chain_id from uncles GROUP BY chain_id").Rows()
+	defer rows.Close()
+	var result MaxUncle
+	for rows.Next() {
+		rows.Scan(&result.BlockNumber, &result.ChainId)
+		chain, err := this.GetChain(result.ChainId)
+		result.ChainName = chain.Name
+		if err != nil {
+			return maxUncle, err
+		}
+		maxUncle = append(maxUncle, result)
+	}
+	return maxUncle, err
 }
