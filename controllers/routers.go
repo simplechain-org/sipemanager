@@ -24,7 +24,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 		dao:         object,
 		NodeChannel: make(chan BlockChannel, 4096),
 	}
-	//go func() { c.ListenEvent() }()
+	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
@@ -48,12 +48,12 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 
 	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
-	router.GET("/api/v1/chart/maxUncle/list", validateLogin, c.MaxUncle)
+	router.GET("/api/v1/chart/maxUncle/list", c.MaxUncle)
 	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
-	router.GET("/api/v1/chart/anchorCount/list", validateLogin, c.AnchorCount)
-	router.GET("/api/v1/chart/crossTxCount/list", validateLogin, c.CrossTxCount)
+	router.GET("/api/v1/chart/anchorCount/list", c.AnchorCount)
+	router.GET("/api/v1/chart/crossTxCount/list", c.CrossTxCount)
 	router.GET("/api/v1/chart/finishList/list", c.getFinishList)
-	router.GET("/api/v1/chart/crossMonitor/list", validateLogin, c.GetCrossMonitor)
+	router.GET("/api/v1/chart/crossMonitor/list", c.GetCrossMonitor)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
 	router.GET("/api/v1/reward/total", validateLogin, c.GetTotalReward)
