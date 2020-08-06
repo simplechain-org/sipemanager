@@ -23,6 +23,7 @@ type AnchorsNodes struct {
 
 func (this *Controller) AnalysisAnchors() {
 	registers, err := this.dao.ListChainRegisterByStatus(1)
+	fmt.Println(343, registers)
 	if err != nil {
 		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
 	}
@@ -154,9 +155,11 @@ func (this *Controller) AnchorCount(c *gin.Context) {
 	token := tokenList[tokenKey]
 	anchorIds := strings.Split(token.AnchorAddresses, ",")
 	tokenCount := make(map[string][]dao.TokenListCount, 0)
+	fmt.Println(543, anchorIds)
 	for _, id := range anchorIds {
 		n, _ := strconv.Atoi(id)
 		anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType, uint(n))
+
 		if err != nil {
 			this.echoError(c, err)
 			return

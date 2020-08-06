@@ -24,7 +24,7 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 		dao:         object,
 		NodeChannel: make(chan BlockChannel, 4096),
 	}
-	//go func() { c.ListenEvent() }()
+	go func() { c.ListenEvent() }()
 	validateLogin := ValidateTokenMiddleware()
 	router.POST("/api/v1/user/register", c.Register)
 	router.POST("/api/v1/user/login", c.Login)
