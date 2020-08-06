@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	ANCHOR_NODE_ID_NOT_EXISTS_ERROR int = 17001 //锚定节点不存在
+	ANCHOR_NODE_ID_NOT_EXISTS_ERROR          int = 17001 //锚定节点不存在
+	ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR int = 17002 //指定的锚定节点不在所选的节点所在的链上
 )
 
 type AddAnchorNodeParam struct {
@@ -291,6 +292,55 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
+	chainRegister, err := this.dao.GetChainRegisterWithAddress(anchorNode.SourceChainId, anchorNode.TargetChainId, sourceContract.Address, 1)
+	if err != nil {
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, err)
+		return
+	}
+	ids := strings.Split(chainRegister.AnchorAddresses, ",")
+	anchorNodeIds := fmt.Sprintf("%d", anchorNode.ID)
+	var exists bool
+	for _, id := range ids {
+		if id == anchorNodeIds {
+			exists = true
+		}
+	}
+	if !exists {
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, errors.New("当前选中的锚定节点不是当前链的锚定节点"))
+		return
+	}
+	chainRegister, err = this.dao.GetChainRegisterWithAddress(anchorNode.SourceChainId, anchorNode.TargetChainId, targetContract.Address, 1)
+	if err != nil {
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, err)
+		return
+	}
+	ids = strings.Split(chainRegister.AnchorAddresses, ",")
+	anchorNodeIds = fmt.Sprintf("%d", anchorNode.ID)
+	for _, id := range ids {
+		if id == anchorNodeIds {
+			exists = true
+		}
+	}
+	if !exists {
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, errors.New("当前选中的锚定节点不是当前链的锚定节点"))
+		return
+	}
+	sourceConfig := &blockchain.AnchorNodeConfig{
+		AbiData:         []byte(sourceContract.Abi),
+		ContractAddress: common.HexToAddress(sourceContract.Address),
+		TargetNetworkId: target.GetNetworkId(),
+		AnchorAddresses: []common.Address{common.HexToAddress(anchorNode.Address)},
+	}
+	sourceCallerConfig := &blockchain.CallerConfig{
+		From:       address,
+		PrivateKey: privateKey,
+		NetworkId:  source.GetNetworkId(),
+	}
+	sourceHash, err := source.RemoveAnchors(sourceConfig, sourceCallerConfig)
+	if err != nil {
+		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用发起链的合约移除锚定节点失败：%s", err.Error()))
+		return
+	}
 	targetConfig := &blockchain.AnchorNodeConfig{
 		AbiData:         []byte(targetContract.Abi),
 		ContractAddress: common.HexToAddress(targetContract.Address),
@@ -305,22 +355,6 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	targetHash, err := target.RemoveAnchors(targetConfig, targetCallerConfig)
 	if err != nil {
 		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用目标链的合约移除锚定节点失败：%s", err.Error()))
-		return
-	}
-	sourceConfig := &blockchain.AnchorNodeConfig{
-		AbiData:         []byte(sourceContract.Abi),
-		ContractAddress: common.HexToAddress(sourceContract.Address),
-		TargetNetworkId: target.GetNetworkId(),
-		AnchorAddresses: []common.Address{common.HexToAddress(anchorNode.Address)},
-	}
-	sourceCallerConfig := &blockchain.CallerConfig{
-		From:       address,
-		PrivateKey: privateKey,
-		NetworkId:  source.GetNetworkId(),
-	}
-	sourceHash, err := target.RemoveAnchors(sourceConfig, sourceCallerConfig)
-	if err != nil {
-		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用发起链的合约移除锚定节点失败：%s", err.Error()))
 		return
 	}
 	go func(source *blockchain.Api, target *blockchain.Api, id uint, sourceHash string, targetHash string, sourceAddress string, targetAddress string) {

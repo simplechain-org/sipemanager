@@ -118,10 +118,10 @@ func (this *Controller) RemoveContract(c *gin.Context) {
 }
 
 type ContractResult struct {
-	TotalCount  int             `json:"total_count"`  //总记录数
-	CurrentPage int             `json:"current_page"` //当前页数
-	PageSize    int             `json:"page_size"`    //页的大小
-	PageData    []*dao.Contract `json:"page_data"`    //页的数据
+	TotalCount  int                 `json:"total_count"`  //总记录数
+	CurrentPage int                 `json:"current_page"` //当前页数
+	PageSize    int                 `json:"page_size"`    //页的大小
+	PageData    []*dao.ContractView `json:"page_data"`    //页的数据
 }
 
 // @Summary 合约管理
@@ -501,6 +501,8 @@ func (this *Controller) AddContractFile(c *gin.Context) {
 	var bin string
 	var abiContent string
 	sols := form.File["sol"]
+
+	fmt.Println("sol=", len(sols))
 	if len(sols) > 0 {
 		file := sols[0]
 		f, err := file.Open()
@@ -517,6 +519,7 @@ func (this *Controller) AddContractFile(c *gin.Context) {
 		sol = string(data)
 	}
 	bins := form.File["bin"]
+	fmt.Println("bins=", len(bins))
 	if len(bins) > 0 {
 		file := bins[0]
 		f, err := file.Open()
@@ -533,6 +536,7 @@ func (this *Controller) AddContractFile(c *gin.Context) {
 		bin = string(data)
 	}
 	abis := form.File["abi"]
+	fmt.Println("abis=", len(abis))
 	if len(abis) > 0 {
 		file := abis[0]
 		f, err := file.Open()
@@ -550,9 +554,11 @@ func (this *Controller) AddContractFile(c *gin.Context) {
 	}
 	if name == "" || len(name) == 0 {
 		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+		return
 	}
 	if sol == "" || bin == "" || abiContent == "" {
-		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("sol,bin,abi文件内容不能为空"))
+		return
 	}
 	abiParsed, err := abi.JSON(strings.NewReader(abiContent))
 	if err != nil {
@@ -578,4 +584,261 @@ func (this *Controller) AddContractFile(c *gin.Context) {
 		return
 	}
 	this.echoResult(c, id)
+}
+
+// @Summary 更新合约内容
+// @Tags updateContractFile
+// @Accept  json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Param id formData string true "合约id"
+// @Param name formData string true "合约名称"
+// @Param sol formData file true "合约源码"
+// @Param abi formData file true "合约abi"
+// @Param bin formData file true "合约bin"
+// @Success 200 {object} JsonResult{data=int}
+// @Router /contract/update/file [post]
+func (this *Controller) UpdateContractFile(c *gin.Context) {
+	name, ok := c.GetPostForm("name")
+	if !ok {
+		fmt.Println("name=", name)
+	}
+	idStr, ok := c.GetPostForm("id")
+	if !ok {
+		fmt.Println("id=", name)
+	}
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
+		return
+	}
+	form, err := c.MultipartForm()
+	if err != nil {
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
+		return
+	}
+	var sol string
+	var bin string
+	var abiContent string
+	sols := form.File["sol"]
+
+	fmt.Println("sol=", len(sols))
+	if len(sols) > 0 {
+		file := sols[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		sol = string(data)
+	}
+	bins := form.File["bin"]
+	fmt.Println("bins=", len(bins))
+	if len(bins) > 0 {
+		file := bins[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		bin = string(data)
+	}
+	abis := form.File["abi"]
+	fmt.Println("abis=", len(abis))
+	if len(abis) > 0 {
+		file := abis[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		abiContent = string(data)
+	}
+	if name == "" || len(name) == 0 {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+		return
+	}
+	if abiContent != "" {
+		abiParsed, err := abi.JSON(strings.NewReader(abiContent))
+		if err != nil {
+			this.ResponseError(c, CONTRACT_CHECK_ERROR, err)
+			return
+		}
+		makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
+		makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
+		taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+		if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
+			this.ResponseError(c, CONTRACT_CHECK_ERROR, errors.New("Unable to parse ABi normally"))
+			return
+		}
+	}
+	err = this.dao.UpdateContract(uint(id), name, sol, abiContent, bin)
+	if err != nil {
+		this.ResponseError(c, DATABASE_ERROR, err)
+		return
+	}
+	this.echoSuccess(c, "Success")
+}
+
+//@Summary 引用链上合约
+//@Accept application/x-www-form-urlencoded
+//@Accept application/json
+//@Produce application/json
+//@Param chain_id formData uint true "链id"
+//@Param tx_hash formData string true "交易哈希"
+//@Param address formData string true "合约地址"
+//@Param name formData string true "合约名称"
+//@Param sol formData file true "合约源码"
+//@Param abi formData file true "合约abi"
+//@Param bin formData file true "合约bin"
+//@Success 200 {object} JsonResult
+//@Router /contract/instance/import/file [post]
+func (this *Controller) AddExistsContractFile(c *gin.Context) {
+	name, ok := c.GetPostForm("name")
+	if !ok {
+		fmt.Println("name=", name)
+	}
+	form, err := c.MultipartForm()
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
+	var sol string
+	var bin string
+	var abiContent string
+	sols := form.File["sol"]
+
+	fmt.Println("sol=", len(sols))
+	if len(sols) > 0 {
+		file := sols[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		sol = string(data)
+	}
+	bins := form.File["bin"]
+	fmt.Println("bins=", len(bins))
+	if len(bins) > 0 {
+		file := bins[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		bin = string(data)
+	}
+	abis := form.File["abi"]
+	fmt.Println("abis=", len(abis))
+	if len(abis) > 0 {
+		file := abis[0]
+		f, err := file.Open()
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			this.echoError(c, err)
+			return
+		}
+		f.Close()
+		abiContent = string(data)
+	}
+	if name == "" || len(name) == 0 {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, err)
+		return
+	}
+	if sol == "" || bin == "" || abiContent == "" {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("sol,bin,abi文件内容不能为空"))
+		return
+	}
+	abiParsed, err := abi.JSON(strings.NewReader(abiContent))
+	if err != nil {
+		this.ResponseError(c, CONTRACT_CHECK_ERROR, err)
+		return
+	}
+	makerStart := hex.EncodeToString(abiParsed.Methods["makerStart"].ID())
+	makerFinish := hex.EncodeToString(abiParsed.Methods["makerFinish"].ID())
+	taker := hex.EncodeToString(abiParsed.Methods["taker"].ID())
+	if makerStart != MakerMethod || makerFinish != MakerFinMethod || taker != TakerMethod {
+		this.ResponseError(c, CONTRACT_CHECK_ERROR, errors.New("Unable to parse ABi normally"))
+		return
+	}
+	contract := &dao.Contract{
+		Name: name,
+		Sol:  sol,
+		Bin:  bin,
+		Abi:  abiContent,
+	}
+	//创建合约对象
+	id, err := this.dao.CreateContract(contract)
+	if err != nil {
+		this.ResponseError(c, DATABASE_ERROR, err)
+		return
+	}
+	chainIdStr, ok := c.GetPostForm("chain_id")
+	if !ok {
+		fmt.Println("chainId=", name)
+	}
+	txHash, ok := c.GetPostForm("tx_hash")
+	if !ok {
+		fmt.Println("txHash=", name)
+	}
+	address, ok := c.GetPostForm("address")
+	if !ok {
+		fmt.Println("address=", name)
+	}
+	chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
+	if err != nil {
+		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, err)
+		return
+	}
+	if txHash == "" || address == "" {
+		this.ResponseError(c, REQUEST_PARAM_ERROR, errors.New("参数不能为空"))
+		return
+	}
+	instance := &dao.ContractInstance{
+		ChainId:    uint(chainId),
+		TxHash:     txHash,
+		Address:    address,
+		ContractId: id,
+	}
+	id, err = this.dao.CreateContractInstance(instance)
+	if err != nil {
+		this.ResponseError(c, DATABASE_ERROR, err)
+		return
+	}
+	this.echoResult(c, "Success")
 }

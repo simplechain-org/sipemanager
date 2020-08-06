@@ -143,23 +143,29 @@ func (this *DataBaseAccessObject) UpdateChain(id uint, name string, networkId ui
 }
 
 type ChainInfo struct {
-	ID                 uint       `gorm:"primary_key" json:"id"`
-	CreatedAt          time.Time  `gorm:"created_at" json:"created_at"`
-	UpdatedAt          time.Time  `gorm:"updated_at" json:"updated_at"`
-	DeletedAt          *time.Time `sql:"index" gorm:"deleted_at" json:"deleted_at"`
-	Name               string     `json:"name" gorm:"name"`                                 //链的名称
-	NetworkId          uint64     `json:"network_id" gorm:"network_id"`                     //链的网络编号
-	CoinName           string     `json:"coin_name" gorm:"coin_name"`                       //币名
-	Symbol             string     `json:"symbol" gorm:"coin_name"`                          //符号
-	ContractInstanceId uint       `json:"contract_instance_id" gorm:"contract_instance_id"` //合约实例
-	Address            string     `json:"address" gorm:"address"`                           //合约地址
+	ID                 uint   `gorm:"primary_key" json:"id"`
+	CreatedAt          string `gorm:"created_at" json:"created_at"`
+	Name               string `json:"name" gorm:"name"`                                 //链的名称
+	NetworkId          uint64 `json:"network_id" gorm:"network_id"`                     //链的网络编号
+	CoinName           string `json:"coin_name" gorm:"coin_name"`                       //币名
+	Symbol             string `json:"symbol" gorm:"coin_name"`                          //符号
+	ContractInstanceId uint   `json:"contract_instance_id" gorm:"contract_instance_id"` //合约实例
+	Address            string `json:"address" gorm:"address"`                           //合约地址
 }
 
 func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*ChainInfo, error) {
 	result := make([]*ChainInfo, 0)
-	db := this.db.Table((&Chain{}).TableName()).Joins("left join contract_instances on contract_instances.id=chains.contract_instance_id").
-		Select("chains.id,chains.name,chains.network_id,chains.coin_name,chains.symbol,chains.contract_instance_id,chains.created_at,chains.updated_at,chains.deleted_at,contract_instances.address")
-	err := db.Offset(start).Limit(pageSize).Find(&result).Error
+	sql := `select chains.id,
+			chains.name,
+			chains.network_id,
+			chains.coin_name,
+			chains.symbol,
+			chains.contract_instance_id,
+			date_format(chains.created_at,'%Y-%m-%d %H:%i:%S') as created_at,
+			contract_instances.address from chains 
+			left join contract_instances on contract_instances.id=chains.contract_instance_id`
+	db := this.db.Raw(sql)
+	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetChainInfoCount() (int, error) {
