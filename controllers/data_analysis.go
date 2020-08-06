@@ -331,9 +331,17 @@ func (this *Controller) GetCrossMonitor(c *gin.Context) {
 	AnchorMon := make([]AnchorNodeMonitor, 0)
 
 	MonCountMap, err := this.QueryMonitorBy(token)
+	if err != nil {
+		this.echoError(c, err)
+		return
+	}
 	for _, anchorId := range anchorIds {
 		anId, _ := strconv.Atoi(anchorId)
 		anchor, err := this.dao.GetAnchorNode(uint(anId))
+		if err != nil {
+			fmt.Println("GetCrossMonitorError: ", anId, err)
+			continue
+		}
 		souBal, err := sourceApi.LatestBalanceAt(common.HexToAddress(anchor.Address))
 		tarBal, err := targetApi.LatestBalanceAt(common.HexToAddress(anchor.Address))
 		if err != nil {
