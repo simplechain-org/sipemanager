@@ -434,11 +434,18 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 		this.ResponseError(c, CHAIN_CONTRACT_NOT_EXISTS_ERROR, fmt.Errorf("chain_id=%d上的还没有跨链合约", node.ChainId))
 		return
 	}
+	//链的合约地址
 	var targetChainId uint
 	if anchorNode.SourceChainId == node.ChainId {
 		targetChainId = anchorNode.TargetChainId
 	} else if anchorNode.TargetChainId == node.ChainId {
 		targetChainId = anchorNode.SourceChainId
+	}
+	chainRegister, err := this.dao.GetChainRegisterWithAddress(anchorNode.SourceChainId, anchorNode.TargetChainId, contract.Address, 1)
+	if err != nil {
+		fmt.Println("当前选中的锚定节点不是当前链的锚定节点")
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, err)
+		return
 	}
 	chain, err := this.dao.GetChain(targetChainId)
 	if err != nil {
@@ -471,6 +478,26 @@ func (this *Controller) AddSignReward(c *gin.Context) {
 	bigReward, success := big.NewInt(0).SetString(param.Reward, 10)
 	if !success {
 		this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("reward数据非法"))
+		return
+	}
+	ids := strings.Split(chainRegister.AnchorAddresses, ",")
+	anchorNodeIds := fmt.Sprintf("%d", anchorNode.ID)
+	var exists bool
+	for _, id := range ids {
+		if id == anchorNodeIds {
+			exists = true
+		}
+	}
+	fmt.Printf("from network=%d\n", source.GetNetworkId())
+	fmt.Printf("to network=%d\n", chain.NetworkId)
+	fmt.Printf("from chain=%d\n", source.GetChainId())
+	fmt.Printf("to chain=%d\n", targetChainId)
+	fmt.Printf("to address=%s\n", contract.Address)
+	fmt.Printf("bigReward=%d；anchorId=%d\n", bigReward, anchorNode.ID)
+	fmt.Printf("anchorNodes=%s\n", chainRegister.AnchorAddresses)
+	if !exists {
+		fmt.Println("当前选中的锚定节点不是当前链的锚定节点2")
+		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, errors.New("当前选中的锚定节点不是当前链的锚定节点"))
 		return
 	}
 	hash, err := source.AccumulateRewards(config, callerConfig, bigReward)

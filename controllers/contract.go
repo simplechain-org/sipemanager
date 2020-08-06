@@ -121,7 +121,7 @@ type ContractResult struct {
 	TotalCount  int             `json:"total_count"`  //总记录数
 	CurrentPage int             `json:"current_page"` //当前页数
 	PageSize    int             `json:"page_size"`    //页的大小
-	PageData    []*dao.Contract `json:"page_data"`    //页的数据
+	PageData    []*dao.ContractView `json:"page_data"`    //页的数据
 }
 
 // @Summary 合约管理

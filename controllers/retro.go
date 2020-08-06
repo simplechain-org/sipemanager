@@ -81,7 +81,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		this.echoError(c, errors.New("already exit"))
 		return
 	}
-	chain,err :=  this.dao.GetChainByNetWorkId(param.NetworkId)
+	chain, err := this.dao.GetChainByNetWorkId(param.NetworkId)
 
 	if err != nil {
 		fmt.Println("2", err)
@@ -96,9 +96,9 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		return
 	}
 
-	conAbi,err := this.dao.GetContractById(contract.ContractId)
+	conAbi, err := this.dao.GetContractById(contract.ContractId)
 	if err != nil {
-		fmt.Println("111",err)
+		fmt.Println("111", err)
 		this.echoError(c, err)
 		return
 	}
@@ -171,7 +171,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 	}
 
 	if param.Event == 1 {
-		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
+		targetId, err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 
 		if err != nil {
 			fmt.Println("12", err)
@@ -185,7 +185,7 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			this.echoError(c, err)
 			return
 		}
-		stat,err := api.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(chain.NetworkId)))
+		stat, err := api.GetMakerTx(common.HexToHash(param.CtxId), common.HexToAddress(contract.Address), common.HexToAddress(wallet.Address), []byte(conAbi.Abi), big.NewInt(int64(chain.NetworkId)))
 
 		fmt.Println(stat)
 		if err != nil {
@@ -210,16 +210,16 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 			param.Status = 2
 		}
 	} else {
-		targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
+		targetId, err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 
 		if err != nil {
 			fmt.Println("12", err)
 			this.echoError(c, err)
 			return
 		}
-		targetChain,err := this.dao.GetChain(targetId)
+		targetChain, err := this.dao.GetChain(targetId)
 		if err != nil {
-			fmt.Println("121",err)
+			fmt.Println("121", err)
 			this.echoError(c, err)
 			return
 		}
@@ -256,8 +256,8 @@ func (this *Controller) RetroActiveAdd(c *gin.Context) {
 		//	return
 		//}
 		//todo obApi对称
-		fmt.Println(objContract.Address,param.NetworkId)
-		stat,err := obApi.GetMakerTx(common.HexToHash(param.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(param.NetworkId)))
+		fmt.Println(objContract.Address, param.NetworkId)
+		stat, err := obApi.GetMakerTx(common.HexToHash(param.CtxId), common.HexToAddress(objContract.Address), common.HexToAddress(wallet.Address), []byte(conAbi.Abi), big.NewInt(int64(param.NetworkId)))
 
 		if err != nil {
 			fmt.Println("16", err)
@@ -310,7 +310,7 @@ func (this *Controller) UpdateRetroActive() {
 
 			for _, v := range result {
 				if v.Status == 1 {
-					chain,err :=  this.dao.GetChainByNetWorkId(v.NetworkId)
+					chain, err := this.dao.GetChainByNetWorkId(v.NetworkId)
 
 					if err != nil {
 						fmt.Println("2", err)
@@ -336,7 +336,7 @@ func (this *Controller) UpdateRetroActive() {
 						if err != nil {
 							break
 						}
-						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
+						targetId, err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 
 						if err != nil {
 							fmt.Println("12", err)
@@ -347,14 +347,14 @@ func (this *Controller) UpdateRetroActive() {
 							fmt.Println("14", err)
 							break
 						}
-						conAbi,err := this.dao.GetContractById(contract.ContractId)
+						conAbi, err := this.dao.GetContractById(contract.ContractId)
 						if err != nil {
-							fmt.Println("111",err)
+							fmt.Println("111", err)
 							break
 						}
 
-						stat,err := api.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(contract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(chain.NetworkId)))
-						fmt.Println("777",stat,chain.NetworkId,v.CtxId)
+						stat, err := api.GetMakerTx(common.HexToHash(v.CtxId), common.HexToAddress(contract.Address), common.HexToAddress(wallet.Address), []byte(conAbi.Abi), big.NewInt(int64(chain.NetworkId)))
+						fmt.Println("777", stat, chain.NetworkId, v.CtxId)
 
 						if err != nil {
 							break
@@ -374,15 +374,15 @@ func (this *Controller) UpdateRetroActive() {
 							v.Status = 2
 						}
 					} else {
-						targetId,err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
+						targetId, err := this.dao.GetTargetChainIdBySourceChainId(chain.ID)
 
 						if err != nil {
 							fmt.Println("12", err)
 							break
 						}
-						targetChain,err := this.dao.GetChain(targetId)
+						targetChain, err := this.dao.GetChain(targetId)
 						if err != nil {
-							fmt.Println("14",err)
+							fmt.Println("14", err)
 							break
 						}
 						objContract, err := this.dao.GetContractInstanceById(targetChain.ContractInstanceId)
@@ -390,12 +390,12 @@ func (this *Controller) UpdateRetroActive() {
 							fmt.Println("13", err)
 							break
 						}
-						conAbi,err := this.dao.GetContractById(objContract.ContractId)
+						conAbi, err := this.dao.GetContractById(objContract.ContractId)
 						if err != nil {
-							fmt.Println("111",err)
+							fmt.Println("111", err)
 							break
 						}
-						chain,err := this.dao.GetChain(targetId)
+						chain, err := this.dao.GetChain(targetId)
 
 						if err != nil {
 							fmt.Println("14", err)
@@ -416,8 +416,8 @@ func (this *Controller) UpdateRetroActive() {
 								break
 							}
 						}
-						fmt.Println(objContract.Address,v.NetworkId)
-						stat,err := obApi.GetMakerTx(common.HexToHash(v.CtxId),common.HexToAddress(objContract.Address),common.HexToAddress(wallet.Address),[]byte(conAbi.Abi),big.NewInt(int64(v.NetworkId)))
+						fmt.Println(objContract.Address, v.NetworkId)
+						stat, err := obApi.GetMakerTx(common.HexToHash(v.CtxId), common.HexToAddress(objContract.Address), common.HexToAddress(wallet.Address), []byte(conAbi.Abi), big.NewInt(int64(v.NetworkId)))
 
 						if err != nil {
 							fmt.Println("16", err)
