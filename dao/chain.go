@@ -155,7 +155,7 @@ type ChainInfo struct {
 
 func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*ChainInfo, error) {
 	result := make([]*ChainInfo, 0)
-	sql:=`select chains.id,
+	sql := `select chains.id,
 			chains.name,
 			chains.network_id,
 			chains.coin_name,

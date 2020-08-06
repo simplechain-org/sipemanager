@@ -292,7 +292,6 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 	}
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
-
 	chainRegister, err := this.dao.GetChainRegisterWithAddress(anchorNode.SourceChainId, anchorNode.TargetChainId, sourceContract.Address, 1)
 	if err != nil {
 		this.ResponseError(c, ANCHOR_NODE_ID_NOT_IN_CHAIN_EXISTS_ERROR, err)

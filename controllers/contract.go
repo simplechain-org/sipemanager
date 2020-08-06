@@ -118,9 +118,9 @@ func (this *Controller) RemoveContract(c *gin.Context) {
 }
 
 type ContractResult struct {
-	TotalCount  int             `json:"total_count"`  //总记录数
-	CurrentPage int             `json:"current_page"` //当前页数
-	PageSize    int             `json:"page_size"`    //页的大小
+	TotalCount  int                 `json:"total_count"`  //总记录数
+	CurrentPage int                 `json:"current_page"` //当前页数
+	PageSize    int                 `json:"page_size"`    //页的大小
 	PageData    []*dao.ContractView `json:"page_data"`    //页的数据
 }
 

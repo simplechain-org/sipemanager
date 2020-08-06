@@ -47,12 +47,12 @@ func Register(router *gin.Engine, object *dao.DataBaseAccessObject) {
 	router.POST("/api/v1/retro/list", validateLogin, c.RetroActiveList)
 	router.POST("/api/v1/retro/add", validateLogin, c.RetroActiveAdd)
 
-	router.GET("/api/v1/chart/feeAndCount/list", validateLogin, c.FeeAndCount)
+	router.GET("/api/v1/chart/feeAndCount/list", c.FeeAndCount)
 	router.GET("/api/v1/chart/maxUncle/list", validateLogin, c.MaxUncle)
-	router.GET("/api/v1/chart/txTokenList/list", validateLogin, c.TxTokenList)
+	router.GET("/api/v1/chart/txTokenList/list", c.TxTokenList)
 	router.GET("/api/v1/chart/anchorCount/list", validateLogin, c.AnchorCount)
 	router.GET("/api/v1/chart/crossTxCount/list", validateLogin, c.CrossTxCount)
-	router.GET("/api/v1/chart/finishList/list", validateLogin, c.getFinishList)
+	router.GET("/api/v1/chart/finishList/list", c.getFinishList)
 	router.GET("/api/v1/chart/crossMonitor/list", validateLogin, c.GetCrossMonitor)
 
 	router.GET("/api/v1/reward/list", validateLogin, c.ListSignReward)
