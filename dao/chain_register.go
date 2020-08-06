@@ -273,3 +273,20 @@ func (this *DataBaseAccessObject) ChainRegisterRecordNotFound(sourceChainId, tar
 		Where("status=?", status).First(&result).RecordNotFound()
 
 }
+func (this *DataBaseAccessObject) GetChainRegisterWithAddress(sourceChainId, targetChainId uint, address string, status int) (*ChainRegister, error) {
+	var result ChainRegister
+	err := this.db.Model(&ChainRegister{}).
+		Where("source_chain_id=?", sourceChainId).
+		Where("target_chain_id=?", targetChainId).
+		Where("address=?", address).
+		Where("status=?", status).First(&result).Error
+	if err != nil {
+		err = this.db.Model(&ChainRegister{}).
+			Where("source_chain_id=?", targetChainId).
+			Where("target_chain_id=?", sourceChainId).
+			Where("address=?", address).
+			Where("status=?", status).First(&result).Error
+	}
+	return &result, err
+
+}

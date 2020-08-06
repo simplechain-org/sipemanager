@@ -46,6 +46,7 @@ func (this *Api) GetTotalReward(config *AnchorNodeRewardConfig, callerConfig *Ca
 
 //发放交易签名奖励
 func (this *Api) AccumulateRewards(config *AnchorNodeRewardConfig, callerConfig *CallerConfig, reward *big.Int) (string, error) {
+
 	abi, err := abi.JSON(bytes.NewReader(config.AbiData))
 	if err != nil {
 		return "", err

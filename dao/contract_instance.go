@@ -146,9 +146,7 @@ func (this *DataBaseAccessObject) GetContractInstancePage(start, pageSize int) (
 			contract_instances.chain_id,
 			contract_instances.tx_hash,
 			contract_instances.address,
-			contract_instances.created_at,
-			contract_instances.updated_at,
-			contract_instances.deleted_at,
+            date_format(contract_instances.created_at,'%Y-%m-%d %H:%i:%S') as created_at,
             (select name from chains where chains.id=contract_instances.chain_id) as chain_name,
 			contracts.name from contract_instances,contracts 
             where contract_instances.contract_id=contracts.id and contract_instances.deleted_at is null`
@@ -165,9 +163,6 @@ func (this *DataBaseAccessObject) GetContractInstanceCount() (int, error) {
 			contract_instances.chain_id,
 			contract_instances.tx_hash,
 			contract_instances.address,
-			contract_instances.created_at,
-			contract_instances.updated_at,
-			contract_instances.deleted_at,
             (select name from chains where chains.id=contract_instances.chain_id) as chain_name,
 			contracts.name from contract_instances ,contracts where contract_instances.contract_id=contracts.id and contract_instances.deleted_at is null) as temp`
 	db := this.db.Raw(sql)
