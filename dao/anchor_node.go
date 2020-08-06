@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"math/big"
@@ -81,13 +82,14 @@ func (this *DataBaseAccessObject) ListAnchorNode() ([]AnchorNode, error) {
 	return anchorNodes, nil
 }
 func (this *DataBaseAccessObject) GetAnchorNodeCount(anchorNodeId uint) (int, error) {
-	var count int
-	db := this.db.Table((&AnchorNode{}).TableName()).Where("target_status=?", 1).Where("source_status=?", 1)
+	sql := `select count(*) as total from 
+    anchor_nodes where target_status=1 and source_status=1 and deleted_at IS NULL`
 	if anchorNodeId != 0 {
-		db = db.Where("id=?", anchorNodeId)
+		sql += fmt.Sprintf(" and id=%d", anchorNodeId)
 	}
-	err := db.Count(&count).Error
-	return count, err
+	var total Total
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 
 func (this *DataBaseAccessObject) GetAnchorNodePage(start, pageSize int, anchorNodeId uint) ([]*AnchorNode, error) {
