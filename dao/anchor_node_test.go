@@ -168,3 +168,11 @@ func TestDataBaseAccessObject_GetAnchorNodePage(t *testing.T) {
 	}
 	t.Log(string(data))
 }
+func TestDataBaseAccessObject_GetAnchorNodeCount(t *testing.T) {
+	result, err := obj.GetAnchorNodeCount(0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}
