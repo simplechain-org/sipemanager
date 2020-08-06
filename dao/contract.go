@@ -16,6 +16,15 @@ type Contract struct {
 	Bin       string     `gorm:"type:text" json:"bin" binding:"required"`
 }
 
+type ContractView struct {
+	ID        uint   `gorm:"primary_key" json:"id"`
+	CreatedAt string `gorm:"created_at" json:"created_at"`
+	Name      string `json:"name" binding:"required"`
+	Sol       string `gorm:"type:text" json:"sol" binding:"required"`
+	Abi       string `gorm:"type:text" json:"abi" binding:"required"`
+	Bin       string `gorm:"type:text" json:"bin" binding:"required"`
+}
+
 func (this *Contract) TableName() string {
 	return "contracts"
 }
@@ -87,16 +96,14 @@ func (this *DataBaseAccessObject) ContractCanDelete(contractId uint) (bool, erro
 func (this *DataBaseAccessObject) RemoveContract(contractId uint) error {
 	return this.db.Where("id = ?", contractId).Delete(&Contract{}).Error
 }
-func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status string) ([]*Contract, error) {
+func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status string) ([]*ContractView, error) {
 	if status == "not_deployed" || status == "deployed" {
 		sql := `select id,
         name,
         sol,
         bin,
         abi,
-        created_at,
-        updated_at,
-        deleted_at from contracts`
+        date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at from contracts`
 		if status == "deployed" {
 			sql += " where id in (select distinct contract_id from contract_instances)"
 		} else {
@@ -104,13 +111,19 @@ func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status st
 		}
 		sql += " and `contracts`.`deleted_at` IS NULL "
 		sql += fmt.Sprintf(" order by id limit %d offset %d", pageSize, start)
-		result := make([]*Contract, 0)
+		result := make([]*ContractView, 0)
 		err := this.db.Raw(sql).Scan(&result).Error
 		return result, err
 
 	} else {
-		result := make([]*Contract, 0)
-		err := this.db.Table((&Contract{}).TableName()).Offset(start).Limit(pageSize).Find(&result).Error
+		sql := `select id,
+        name,
+        sol,
+        bin,
+        abi,
+        date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at from contracts`
+		result := make([]*ContractView, 0)
+		err := this.db.Raw(sql).Offset(start).Limit(pageSize).Scan(&result).Error
 		return result, err
 	}
 }
