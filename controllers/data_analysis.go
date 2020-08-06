@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
 	"sipemanager/blockchain"
@@ -78,6 +79,24 @@ func (this *Controller) FeeAndCount(c *gin.Context) {
 	timeType := c.Query("timeType")
 	chainId, err := strconv.Atoi(chainIdParam)
 	anchors, err := this.dao.QueryAnchors(startTime, endTime, chainId, timeType)
+	anchorsView := make([]dao.TxAnchorsNode, 0)
+	chainRegister, err := this.dao.GetRegisterLatestBySourChainId(chainId)
+	idStrings := strings.Split(chainRegister.AnchorAddresses, ",")
+	anchorAdds := make([]string, 0)
+	for _, idStr := range idStrings {
+		id, _ := strconv.Atoi(idStr)
+		anchor, err := this.dao.GetAnchorNode(uint(id))
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		anchorAdds = append(anchorAdds, anchor.Address)
+	}
+	for _, item := range anchors {
+		if utils.IsContain(anchorAdds, item.AnchorAddress) {
+			anchorsView = append(anchorsView, item)
+		}
+	}
 	if err != nil {
 		this.echoError(c, err)
 		return
@@ -264,7 +283,7 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 			return anchor.ID, anchor.Name, nil
 		}
 	}
-	return 0, "nknown", nil
+	return 0, "unknown", nil
 }
 
 type AnchorNodeMonitor struct {

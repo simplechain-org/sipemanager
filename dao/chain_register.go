@@ -121,9 +121,9 @@ func (this *DataBaseAccessObject) GetTxTokenList() (map[string]TokenListInterfac
 	result := make([]ChainRegister, 0)
 	opposite := make([]ChainRegister, 0)
 	TokenList := make(map[string]TokenListInterface, 0)
-	err := this.db.Table((&ChainRegister{}).TableName()).Order("id asc").Find(&result).Error
+	err := this.db.Table((&ChainRegister{}).TableName()).Where("status = 1").Order("id desc").Find(&result).Error
 	for _, item := range result {
-		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =?", item.TargetChainId, item.SourceChainId).Find(&opposite).Error
+		err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id=? and target_chain_id =? and status = 1", item.TargetChainId, item.SourceChainId).Find(&opposite).Error
 		if err != nil {
 			return nil, err
 		}
@@ -272,4 +272,13 @@ func (this *DataBaseAccessObject) ChainRegisterRecordNotFound(sourceChainId, tar
 		Where("address=?", address).
 		Where("status=?", status).First(&result).RecordNotFound()
 
+}
+
+func (this *DataBaseAccessObject) GetRegisterLatestBySourChainId(sourceChainId int) (*ChainRegister, error) {
+	var result ChainRegister
+	err := this.db.Table((&ChainRegister{}).TableName()).Where("source_chain_id = ? and status = 1", sourceChainId).Order("id desc").First(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

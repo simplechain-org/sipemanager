@@ -118,7 +118,7 @@ func (this *Controller) SyncBlock(api *blockchain.Api, number int64, node dao.In
 			var args dao.MakerFinish
 			UnpackErr := method.Inputs.Unpack(&args, argdata)
 			if UnpackErr != nil {
-				logrus.Error("UnpackErr:", UnpackErr.Error())
+				//logrus.Error("UnpackErr:", UnpackErr.Error())
 				continue
 			}
 			txRecord.EventType = "makerFinish"
