@@ -301,3 +301,27 @@ func (this *DataBaseAccessObject) GetRegisterLatestBySourChainId(sourceChainId i
 	}
 	return &result, nil
 }
+
+func (this *DataBaseAccessObject) GetAnchorNodePledge(sourceChainId, targetChainId uint, address string) (string, error) {
+	var result ChainRegister
+	err := this.db.Model(&ChainRegister{}).
+		Where("source_chain_id=?", sourceChainId).
+		Where("target_chain_id=?", targetChainId).
+		Where("address=?", address).First(&result).Error
+	if err != nil {
+		return "", err
+	}
+	ids := strings.Split(result.AnchorAddresses, ",")
+	for _, id := range ids {
+		anchorNodeId, err := strconv.ParseUint(id, 10, 64)
+		if err != nil {
+			continue
+		}
+		anchorNode, err := this.GetAnchorNode(uint(anchorNodeId))
+		if err != nil {
+			continue
+		}
+		return anchorNode.Pledge, nil
+	}
+	return "", errors.New("no record")
+}
