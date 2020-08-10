@@ -121,7 +121,7 @@ func (this *DataBaseAccessObject) GetContractPage(start, pageSize int, status st
         sol,
         bin,
         abi,
-        date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at from contracts`
+        date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at from contracts where contracts.deleted_at IS NULL`
 		result := make([]*ContractView, 0)
 		err := this.db.Raw(sql).Offset(start).Limit(pageSize).Scan(&result).Error
 		return result, err
