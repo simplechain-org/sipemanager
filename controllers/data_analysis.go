@@ -30,20 +30,20 @@ const (
 func (this *Controller) AnalysisAnchors() {
 	registers, err := this.dao.ListChainRegisterByStatus(1)
 	if err != nil {
-		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
+		logrus.Warn(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
 	}
 	for _, register := range registers {
 		sourceChain, err := this.dao.GetChain(register.SourceChainId)
 		targetChain, err := this.dao.GetChain(register.TargetChainId)
 		if err != nil {
-			logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "GetChain Anchors  Not Found", Err: nil})
+			logrus.Warn(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40003, Message: "GetChain Anchors  Not Found", Err: nil})
 		}
 		anchorIds := strings.Split(register.AnchorAddresses, ",")
 		for _, anchorId := range anchorIds {
 			n, _ := strconv.Atoi(anchorId)
 			anchor, err := this.dao.GetAnchorNode(uint(n))
 			if err != nil {
-				logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "GetAnchorNode Anchors Not Found", Err: nil})
+				logrus.Warn(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40004, Message: "GetAnchorNode Anchors Not Found", Err: nil})
 				continue
 			}
 			txAnchor := dao.TxAnchors{
@@ -265,9 +265,9 @@ func (this *Controller) getFinishList(c *gin.Context) {
 		} else {
 			tokenKey = targetId + "," + sourceId
 		}
-		anchorId, anchorName, err := this.GetAnchorId(tokenList[tokenKey], item.AnchorAddress)
+		anchorId, anchorName, err := this.GetAnchorId(tokenList[tokenKey], item.AnchorAddress, item.ChainId, item.RemoteChainId)
 		if err != nil {
-			this.echoError(c, err)
+			this.ResponseError(c, ANALYSIS_ANCHORS_INVALID_ERROR, errors.New("chain Register can not found anchor address"))
 			return
 		}
 		finishEvent := FinishEvent{
@@ -292,7 +292,7 @@ func (this *Controller) getFinishList(c *gin.Context) {
 	this.echoResult(c, result)
 }
 
-func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress string) (uint, string, error) {
+func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress string, sourceId uint, targetId uint) (uint, string, error) {
 	anchorIds := strings.Split(token.AnchorAddresses, ",")
 	for _, id := range anchorIds {
 		n, _ := strconv.Atoi(id)
@@ -304,7 +304,11 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 			return anchor.ID, anchor.Name, nil
 		}
 	}
-	return 0, "unknown", nil
+	anchor, err := this.dao.GetAnchorByAddress(sourceId, targetId, anchorAddress)
+	if err != nil {
+		return 0, "", err
+	}
+	return anchor.ID, anchor.Name, nil
 }
 
 type AnchorNodeMonitor struct {

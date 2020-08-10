@@ -66,6 +66,7 @@ func (this *DataBaseAccessObject) GetAnchorNode(id uint) (*AnchorNode, error) {
 	}
 	return &obj, nil
 }
+
 func (this *DataBaseAccessObject) RemoveAnchorNode(id uint) error {
 	return this.db.Where("id = ?", id).Delete(&AnchorNode{}).Error
 
@@ -128,4 +129,13 @@ func (this *DataBaseAccessObject) SubPledge(anchorNodeId uint, value string) err
 func (this *DataBaseAccessObject) UpdateAnchorNode(anchorNodeId uint, sourceRpcUrl string, targetRpcUrl string) error {
 	return this.db.Table((&AnchorNode{}).TableName()).Where("id=?", anchorNodeId).Update(AnchorNode{SourceRpcUrl: sourceRpcUrl, TargetRpcUrl: targetRpcUrl}).Error
 
+}
+
+func (this *DataBaseAccessObject) GetAnchorByAddress(sourceId uint, targetId uint, address string) (*AnchorNode, error) {
+	var obj AnchorNode
+	err := this.db.Table((&AnchorNode{}).TableName()).Where("source_chain_id=? and target_chain_id=? and address=? ", sourceId, targetId, address).Order("id desc").First(&obj).Error
+	if err != nil {
+		return nil, err
+	}
+	return &obj, nil
 }
