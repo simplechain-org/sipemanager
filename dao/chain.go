@@ -163,7 +163,7 @@ func (this *DataBaseAccessObject) GetChainInfoPage(start, pageSize int) ([]*Chai
 			chains.contract_instance_id,
 			date_format(chains.created_at,'%Y-%m-%d %H:%i:%S') as created_at,
 			contract_instances.address from chains 
-			left join contract_instances on contract_instances.id=chains.contract_instance_id`
+			left join contract_instances on contract_instances.id=chains.contract_instance_id WHERE chains.deleted_at IS NULL`
 	db := this.db.Raw(sql)
 	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
