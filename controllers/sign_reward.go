@@ -91,7 +91,7 @@ func (this *Controller) ListSignReward(c *gin.Context) {
 		this.ResponseError(c, DATABASE_ERROR, err)
 		return
 	}
-	count, err := this.dao.GetServiceChargeLogCount(anchorNodeId)
+	count, err := this.dao.GetSignRewardLogCount(anchorNodeId)
 	if err != nil {
 		this.ResponseError(c, DATABASE_ERROR, err)
 		return
