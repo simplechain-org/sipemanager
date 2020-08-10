@@ -142,6 +142,11 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		this.ResponseError(c, CONTRACT_INVOKE_ERROR, fmt.Errorf("调用目标链的合约添加锚定节点失败:%s", err.Error()))
 		return
 	}
+	pledge, err := this.dao.GetAnchorNodePledge(param.SourceChainId, param.TargetChainId, sourceContract.Address)
+	if err != nil {
+		this.ResponseError(c, DATABASE_ERROR, err)
+		return
+	}
 	anchorNode := &dao.AnchorNode{
 		Name:          param.AnchorName,
 		Address:       param.AnchorAddress,
@@ -152,6 +157,7 @@ func (this *Controller) AddAnchorNode(c *gin.Context) {
 		SourceRpcUrl:  param.SourceRpcUrl,
 		TargetRpcUrl:  param.TargetRpcUrl,
 		Status:        true,
+		Pledge:        pledge,
 	}
 	id, err := this.dao.CreateAnchorNode(anchorNode)
 	if err != nil {
@@ -375,12 +381,12 @@ func (this *Controller) RemoveAnchorNode(c *gin.Context) {
 								fmt.Println(err)
 								continue
 							}
-							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.SourceChainId, anchorNode.TargetChainId, sourceAddress, "_", id)
+							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.SourceChainId, anchorNode.TargetChainId, sourceAddress, "-", id)
 							if err != nil {
 								fmt.Println(err)
 								continue
 							}
-							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.TargetChainId, anchorNode.SourceChainId, targetAddress, "_", id)
+							err = this.dao.UpdateChainRegisterAnchorAddresses(anchorNode.TargetChainId, anchorNode.SourceChainId, targetAddress, "-", id)
 							if err != nil {
 								fmt.Println(err)
 								continue
