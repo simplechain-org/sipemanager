@@ -130,3 +130,12 @@ func TestDataBaseAccessObject_UpdateChainRegisterAnchorAddresses(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDataBaseAccessObject_GetAnchorNodePledge(t *testing.T) {
+
+	result,err := obj.GetAnchorNodePledge(1, 2, "0x95566BF949aDC929EfEE9b59dAE8A1e8876b2561")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(result)
+}
