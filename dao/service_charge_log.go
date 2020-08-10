@@ -50,16 +50,13 @@ func (this *DataBaseAccessObject) UpdateServiceChargeLogSourceStatus(id uint, st
 }
 
 func (this *DataBaseAccessObject) GetServiceChargeLogCount(anchorNodeId uint) (int, error) {
-	var count int
-
-	db := this.db.Table((&ServiceChargeLog{}).TableName()).Where("status=?", 1)
-
+	sql:=`select count(*) as total from service_charge_logs where status=1 and deleted_at is null`
 	if anchorNodeId != 0 {
-		db = db.Where("anchor_node_id=?", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
-	err := db.Count(&count).Error //表示已经成功上链的数据
-
-	return count, err
+	var total Total
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 
 func (this *DataBaseAccessObject) GetServiceChargeLogPage(start, pageSize int, anchorNodeId uint) ([]*ServiceChargeLogView, error) {

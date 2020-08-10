@@ -56,13 +56,7 @@ func TestDataBaseAccessObject_UpdateServiceChargeLogSourceStatus(t *testing.T) {
 
 //
 func TestDataBaseAccessObject_GetServiceChargeLogCount(t *testing.T) {
-	db, err := GetDBConnection(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	obj := NewDataBaseAccessObject(db)
-	count, err := obj.GetServiceChargeLogCount(uint(1))
+	count, err := obj.GetServiceChargeLogCount(uint(0))
 	if err != nil {
 		t.Fatal(err)
 	}

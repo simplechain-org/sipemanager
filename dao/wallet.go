@@ -90,10 +90,10 @@ func (this *DataBaseAccessObject) ListWalletViewByUserId(userId uint) ([]WalletV
 	return wallets, nil
 }
 func (this *DataBaseAccessObject) GetWalletViewCount(userId uint) (int, error) {
-	var count int
-	err := this.db.Table((&Wallet{}).TableName()).Where("user_id=?", userId).
-		Count(&count).Error
-	return count, err
+	sql := `select count(*) as total from wallets where wallets.user_id=? and wallets.deleted_at is null`
+	var total Total
+	err := this.db.Raw(sql, userId).Scan(&total).Error
+	return total.Total, err
 }
 func (this *DataBaseAccessObject) GetWalletViewPage(userId uint, start, pageSize int) ([]*WalletView, error) {
 	sql := `select

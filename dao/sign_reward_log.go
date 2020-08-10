@@ -68,7 +68,6 @@ func (this *DataBaseAccessObject) GetSignRewardLogPage(start, pageSize int, anch
     total_reward,
     rate,
     reward,
-    transaction_hash,
     coin,
     sender,
     finish_count,
@@ -82,16 +81,13 @@ func (this *DataBaseAccessObject) GetSignRewardLogPage(start, pageSize int, anch
 	return result, err
 }
 func (this *DataBaseAccessObject) GetSignRewardLogCount(anchorNodeId uint) (int, error) {
-	var count int
-
-	db := this.db.Table((&SignRewardLog{}).TableName()).Where("status=?", 1)
-
+	sql := `select count(*) as total from sign_reward_logs where status=1 and deleted_at is null`
 	if anchorNodeId != 0 {
-		db = db.Where("anchor_node_id=?", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
-	err := db.Count(&count).Error //表示已经成功上链的数据
-
-	return count, err
+	var total Total
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 
 func (this *DataBaseAccessObject) GetSignRewardLogSumFee(anchorNodeId uint, coin string) (*big.Int, error) {
