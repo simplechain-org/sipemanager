@@ -48,22 +48,22 @@ func (this *DataBaseAccessObject) GetPunishmentPage(start, pageSize int, anchorN
     coin,
     manage_type,
     date_format(created_at,'%Y-%m-%d %H:%i:%S') as created_at,
-    anchor_node_id from punishments`
+    anchor_node_id from punishments where deleted_at is null `
 	if anchorNodeId != 0 {
-		sql += fmt.Sprintf(" where anchor_node_id=%d", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
 	db := this.db.Raw(sql)
 	err := db.Offset(start).Limit(pageSize).Scan(&result).Error
 	return result, err
 }
 func (this *DataBaseAccessObject) GetPunishmentCount(anchorNodeId uint) (int, error) {
-	var count int
-	db := this.db.Table((&Punishment{}).TableName())
+	sql := `select count(*) as total from punishments where deleted_at is null`
 	if anchorNodeId != 0 {
-		db = db.Where("anchor_node_id=?", anchorNodeId)
+		sql += fmt.Sprintf(" and anchor_node_id=%d", anchorNodeId)
 	}
-	err := db.Count(&count).Error
-	return count, err
+	var total Total
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 func (this *DataBaseAccessObject) PunishmentRecordNotFound(anchorNodeId uint, manageType string) bool {
 	var punishment Punishment

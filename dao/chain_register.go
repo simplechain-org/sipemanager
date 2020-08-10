@@ -186,7 +186,7 @@ func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*
     confirm,
     status,
     status_text,
-    tx_hash from chain_registers`
+    tx_hash from chain_registers where deleted_at is null`
 	result := make([]*ChainRegisterView, 0)
 	db := this.db.Raw(sql)
 	err := db.Offset(start).
@@ -195,9 +195,10 @@ func (this *DataBaseAccessObject) GetChainRegisterPage(start, pageSize int) ([]*
 	return result, err
 }
 func (this *DataBaseAccessObject) GetChainRegisterCount() (int, error) {
-	var count int
-	err := this.db.Table((&ChainRegister{}).TableName()).Count(&count).Error
-	return count, err
+	sql := `select count(*) as total from chain_registers where deleted_at is null`
+	var total Total
+	err := this.db.Raw(sql).Scan(&total).Error
+	return total.Total, err
 }
 func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView, error) {
 	sql := `select 
@@ -211,7 +212,7 @@ func (this *DataBaseAccessObject) GetChainRegister(id uint) (*ChainRegisterView,
     confirm,
 	status,
 	status_text,
-    tx_hash from chain_registers where chain_registers.id=?`
+    tx_hash from chain_registers where deleted_at is null and chain_registers.id=?`
 	var result ChainRegisterView
 	db := this.db.Raw(sql, id).Limit(1)
 	err := db.Scan(&result).Error
