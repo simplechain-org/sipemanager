@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/simplechain-org/go-simplechain/common"
 	"math/big"
@@ -21,9 +22,13 @@ type AnchorsNodes struct {
 	Address string
 }
 
+const (
+	ANALYSIS_ANCHORS_INVALID_ERROR int = 21001 // 无法获取注册的锚定节点地址
+	ANALYSIS_CHAINID_INVALID_ERROR int = 21002 // 无效的ChainID 查询
+)
+
 func (this *Controller) AnalysisAnchors() {
 	registers, err := this.dao.ListChainRegisterByStatus(1)
-	fmt.Println(343, registers)
 	if err != nil {
 		logrus.Error(utils.ErrLogCode{LogType: "controller => data_analysis => AnalysisAnchors:", Code: 40002, Message: "Analysis Anchors Failed", Err: nil})
 	}
@@ -80,19 +85,32 @@ func (this *Controller) FeeAndCount(c *gin.Context) {
 	timeType := c.Query("timeType")
 	chainId, err := strconv.Atoi(chainIdParam)
 	anchors, err := this.dao.QueryAnchors(startTime, endTime, chainId, timeType)
+	if err != nil {
+		this.ResponseError(c, ANALYSIS_CHAINID_INVALID_ERROR, err)
+		return
+	}
 	anchorsView := make([]dao.TxAnchorsNode, 0)
 	chainRegister, err := this.dao.GetRegisterLatestBySourChainId(chainId)
+	if err != nil {
+		this.ResponseError(c, ANALYSIS_CHAINID_INVALID_ERROR, err)
+		return
+	}
 	idStrings := strings.Split(chainRegister.AnchorAddresses, ",")
 	anchorAdds := make([]string, 0)
 	for _, idStr := range idStrings {
 		id, _ := strconv.Atoi(idStr)
 		anchor, err := this.dao.GetAnchorNode(uint(id))
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		anchorAdds = append(anchorAdds, anchor.Address)
 	}
+
+	if len(anchorAdds) == 0 {
+		this.ResponseError(c, ANALYSIS_ANCHORS_INVALID_ERROR, errors.New("chain Register can not found anchor address"))
+		return
+	}
+
 	for _, item := range anchors {
 		if utils.IsContain(anchorAdds, item.AnchorAddress) {
 			anchorsView = append(anchorsView, item)
@@ -102,7 +120,7 @@ func (this *Controller) FeeAndCount(c *gin.Context) {
 		this.echoError(c, err)
 		return
 	}
-	this.echoResult(c, anchors)
+	this.echoResult(c, anchorsView)
 }
 
 //分叉监控
