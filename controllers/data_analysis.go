@@ -173,7 +173,6 @@ func (this *Controller) AnchorCount(c *gin.Context) {
 	token := tokenList[tokenKey]
 	anchorIds := strings.Split(token.AnchorAddresses, ",")
 	tokenCount := make(map[string][]dao.TokenListCount, 0)
-	fmt.Println(543, anchorIds)
 	for _, id := range anchorIds {
 		n, _ := strconv.Atoi(id)
 		anchors, err := this.dao.TokenListAnchorCount(token, startTime, endTime, timeType, uint(n))
@@ -265,7 +264,12 @@ func (this *Controller) getFinishList(c *gin.Context) {
 		} else {
 			tokenKey = targetId + "," + sourceId
 		}
-		anchorId, anchorName, err := this.GetAnchorId(tokenList[tokenKey], item.AnchorAddress, item.ChainId, item.RemoteChainId)
+		anchor, err := this.dao.GetAnchorByAddress(item.ChainId, item.RemoteChainId, item.AnchorAddress)
+		if err != nil {
+			anchor.ID = 0
+			anchor.Name = "unknown"
+		}
+
 		if err != nil {
 			this.ResponseError(c, ANALYSIS_ANCHORS_INVALID_ERROR, errors.New("chain Register can not found anchor address"))
 			return
@@ -274,8 +278,8 @@ func (this *Controller) getFinishList(c *gin.Context) {
 			CrossAnchors: item,
 			TokenName:    tokenList[tokenKey].Name,
 			TokenListKey: tokenKey,
-			AnchorId:     anchorId,
-			AnchorName:   anchorName,
+			AnchorId:     anchor.ID,
+			AnchorName:   anchor.Name,
 		}
 		finishEventArr = append(finishEventArr, finishEvent)
 
@@ -297,14 +301,17 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 	for _, id := range anchorIds {
 		n, _ := strconv.Atoi(id)
 		anchor, anchorErr := this.dao.GetAnchorNode(uint(n))
+		fmt.Println(3434, anchor)
 		if anchorErr != nil {
-			return 0, "", anchorErr
+			continue
 		}
 		if anchor.Address == anchorAddress {
 			return anchor.ID, anchor.Name, nil
 		}
 	}
 	anchor, err := this.dao.GetAnchorByAddress(sourceId, targetId, anchorAddress)
+	fmt.Println(435435, anchor)
+
 	if err != nil {
 		return 0, "", err
 	}
