@@ -133,7 +133,11 @@ func (this *DataBaseAccessObject) UpdateAnchorNode(anchorNodeId uint, sourceRpcU
 
 func (this *DataBaseAccessObject) GetAnchorByAddress(sourceId uint, targetId uint, address string) (*AnchorNode, error) {
 	var obj AnchorNode
-	err := this.db.Table((&AnchorNode{}).TableName()).Where("source_chain_id=? and target_chain_id=? and address=? ", sourceId, targetId, address).Order("id desc").First(&obj).Error
+	err := this.db.Table((&AnchorNode{}).TableName()).
+		Where("source_chain_id=? and target_chain_id=? and address=? ", sourceId, targetId, address).
+		Or(" target_chain_id=? and source_chain_id=? and address=? ", sourceId, targetId, address).
+		Order("id desc").
+		First(&obj).Error
 	if err != nil {
 		return nil, err
 	}

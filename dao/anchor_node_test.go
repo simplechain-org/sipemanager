@@ -176,3 +176,12 @@ func TestDataBaseAccessObject_GetAnchorNodeCount(t *testing.T) {
 	}
 	t.Log(result)
 }
+
+func TestDataBaseAccessObject_GetAnchorByAddress(t *testing.T) {
+	result, err := obj.GetAnchorByAddress(5, 4, "0x17529b05513e5595ceff7f4fb1e06512c271a540")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(result)
+}
