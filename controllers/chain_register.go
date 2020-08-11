@@ -82,6 +82,11 @@ func (this *Controller) RegisterChainTwoWay(c *gin.Context) {
 	db := this.dao.BeginTransaction()
 	ids := make([]string, 0)
 	for index, address := range param.AnchorAddresses {
+		if !common.IsHexAddress(address) {
+			db.Rollback()
+			this.ResponseError(c, REQUEST_PARAM_INVALID_ERROR, errors.New("锚定节点地址不合法"))
+			return
+		}
 		anchorNode := &dao.AnchorNode{
 			Name:          param.AnchorNames[index],
 			Address:       address,
