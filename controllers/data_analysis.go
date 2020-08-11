@@ -321,6 +321,8 @@ func (this *Controller) GetAnchorId(token dao.TokenListInterface, anchorAddress 
 type AnchorNodeMonitor struct {
 	SourceBalance *big.Int
 	TargetBalance *big.Int
+	SourceChain   *dao.Chain
+	TargetChain   *dao.Chain
 	SignTxCount   uint32
 	AnchorId      uint
 	AnchorName    string
@@ -357,6 +359,14 @@ func (this *Controller) GetCrossMonitor(c *gin.Context) {
 		ChainId: targetNode.ChainId,
 		IsHttps: targetNode.IsHttps,
 	}
+
+	sourceChain, err := this.dao.GetChain(source.ChainId)
+	targetChain, err := this.dao.GetChain(target.ChainId)
+	if err != nil {
+		this.ResponseError(c, ANALYSIS_CHAINID_INVALID_ERROR, err)
+		return
+	}
+
 	sourceApi, err := blockchain.NewApi(source)
 	targetApi, err := blockchain.NewApi(target)
 	anchorIds := strings.Split(token.AnchorAddresses, ",")
@@ -389,6 +399,8 @@ func (this *Controller) GetCrossMonitor(c *gin.Context) {
 		AM := AnchorNodeMonitor{
 			SourceBalance: souBal,
 			TargetBalance: tarBal,
+			SourceChain:   sourceChain,
+			TargetChain:   targetChain,
 			SignTxCount:   MonCountMap[anchor.Address],
 			UnSignTxCount: 200 - MonCountMap[anchor.Address],
 			AnchorId:      uint(anId),
